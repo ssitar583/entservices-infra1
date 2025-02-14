@@ -164,7 +164,7 @@ jobs:
 
       - name: Checkout entservices-apis
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/checkout@v3
+        uses: actions/checkout@7e74933096c1744ed54631b2ef1c87d1b2504d1b
         with:
           repository: rdkcentral/entservices-apis
           path: rdkservices-apis
