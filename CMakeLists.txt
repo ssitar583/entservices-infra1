@@ -25,6 +25,30 @@ find_package(WPEFramework)
 # are located in the cmake directory. Include it in the search.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
 
+if(RDK_SERVICE_L2_TEST)
+    include(l2tests.cmake)
+endif()
+
+if(RDK_SERVICE_L2HALMOCK)
+    include(l2HalMock.cmake)
+endif()
+
+if(RDK_SERVICES_L1_TEST)
+    include(l1tests.cmake)
+endif()
+
+if(RDK_SERVICES_L1_TEST)
+    add_subdirectory(Tests/L1Tests)
+endif()
+
+if(RDK_SERVICE_L2_TEST)
+    if(L2_TEST_OOP_RPC)
+        add_subdirectory(Tests/mocks/MockPlugin)
+    endif()
+    add_subdirectory(Tests/L2Tests/L2TestsPlugin)
+    add_subdirectory(Tests/L2Tests)
+endif()
+
 option(COMCAST_CONFIG "Comcast services configuration" ON)
 if(COMCAST_CONFIG)
     include(services.cmake)
