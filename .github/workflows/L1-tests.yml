@@ -41,7 +41,7 @@ jobs:
         with:
           path: |
             thunder/build/Thunder
-            thunder/build/rdkservices-apis
+            thunder/build/entservices-apis
             thunder/build/ThunderTools
             thunder/install
             !thunder/install/etc/WPEFramework/plugins
@@ -134,6 +134,7 @@ jobs:
           &&
           cmake --install build/ThunderTools
 
+
       - name: Apply patches Thunder
         run: |
           cd $GITHUB_WORKSPACE/Thunder
@@ -162,12 +163,36 @@ jobs:
           &&
           cmake --install build/Thunder
 
+      - name: Checkout entservices-apis
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@v3
+        with:
+          repository: rdkcentral/entservices-apis
+          path: entservices-apis
+          ref: ${{env.INTERFACES_REF}}
+          token : ${{ secrets.RDKCM_RDKE }}
+          run: rm -rf $GITHUB_WORKSPACE/entservices-apis/jsonrpc/DTV.json
+
+      - name: Build entservices-apis
+        run: >
+          cmake -G Ninja
+          -S "$GITHUB_WORKSPACE/entservices-apis"
+          -B build/entservices-apis
+          -DEXCEPTIONS_ENABLE=ON
+          -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install/usr"
+          -DCMAKE_MODULE_PATH="$GITHUB_WORKSPACE/install/tools/cmake"
+          &&
+          cmake --build build/entservices-apis -j8
+          &&
+          cmake --install build/entservices-apis
+
+
       - name: Generate external headers
         # Empty headers to mute errors
         run: >
           cd "$GITHUB_WORKSPACE/rdkservices/Tests/"
           &&
-          mkdir -p
+          sudo mkdir -p
           headers
           headers/audiocapturemgr
           headers/rdk/ds
@@ -181,7 +206,7 @@ jobs:
           &&
           cd headers
           &&
-          touch
+          sudo touch
           audiocapturemgr/audiocapturemgr_iarm.h
           ccec/drivers/CecIARMBusMgr.h
           rdk/ds/audioOutputPort.hpp
@@ -225,7 +250,7 @@ jobs:
           gdialservice.h
           gdialservicecommon.h
           &&
-          cp -r /usr/include/gstreamer-1.0/gst /usr/include/glib-2.0/* /usr/lib/x86_64-linux-gnu/glib-2.0/include/* /usr/local/include/trower-base64/base64.h .
+          sudo cp -r /usr/include/gstreamer-1.0/gst /usr/include/glib-2.0/* /usr/lib/x86_64-linux-gnu/glib-2.0/include/* /usr/local/include/trower-base64/base64.h .
 
       - name: Set clang toolchain
         if: ${{ matrix.compiler == 'clang' }}
