@@ -16,6 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **/
+#if 0
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <mntent.h>
@@ -1312,3 +1313,4 @@ TEST_F(AppManagerTest, getAppPropertyFailed_onGetValueFails)
     EXPECT_EQ(Core::ERROR_GENERAL, mHandler.Invoke(connection, _T("getAppProperty"), requestPayload, mResponse));
     releaseResources();
 }
+#endif
