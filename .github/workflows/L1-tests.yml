@@ -108,15 +108,15 @@ jobs:
           path: ThunderTools
           ref: R4.4.3
 
-      - name: Checkout rdkservices
+      - name: Checkout entservices-infra
         uses: actions/checkout@v3
         with:
-          path: rdkservices
+          path: entservices-infra
 
       - name: Apply patches ThunderTools
         run: |  
           cd $GITHUB_WORKSPACE/ThunderTools
-          patch -p1 < $GITHUB_WORKSPACE/rdkservices/Tests/L1Tests/patches/00010-R4.4-Add-support-for-project-dir.patch
+          patch -p1 < $GITHUB_WORKSPACE/entservices-infra/Tests/L1Tests/patches/00010-R4.4-Add-support-for-project-dir.patch
           cd -
 
       - name: Build ThunderTools
@@ -138,10 +138,10 @@ jobs:
       - name: Apply patches Thunder
         run: |
           cd $GITHUB_WORKSPACE/Thunder
-          patch -p1 < $GITHUB_WORKSPACE/rdkservices/Tests/L2Tests/patches/Use_Legact_Alt_Based_On_ThunderTools_R4.4.3.patch
-          patch -p1 < $GITHUB_WORKSPACE/rdkservices/Tests/L2Tests/patches/error_code_R4_4.patch
-          patch -p1 < $GITHUB_WORKSPACE/rdkservices/Tests/L1Tests/patches/1004-Add-support-for-project-dir.patch
-          patch -p1 < $GITHUB_WORKSPACE/rdkservices/Tests/L1Tests/patches/RDKEMW-733-Add-ENTOS-IDS.patch
+          patch -p1 < $GITHUB_WORKSPACE/entservices-infra/Tests/L2Tests/patches/Use_Legact_Alt_Based_On_ThunderTools_R4.4.3.patch
+          patch -p1 < $GITHUB_WORKSPACE/entservices-infra/Tests/L2Tests/patches/error_code_R4_4.patch
+          patch -p1 < $GITHUB_WORKSPACE/entservices-infra/Tests/L1Tests/patches/1004-Add-support-for-project-dir.patch
+          patch -p1 < $GITHUB_WORKSPACE/entservices-infra/Tests/L1Tests/patches/RDKEMW-733-Add-ENTOS-IDS.patch
           cd -
 
       - name: Build Thunder
@@ -190,7 +190,7 @@ jobs:
       - name: Generate external headers
         # Empty headers to mute errors
         run: >
-          cd "$GITHUB_WORKSPACE/rdkservices/Tests/"
+          cd "$GITHUB_WORKSPACE/entservices-infra/Tests/"
           &&
           sudo mkdir -p
           headers
@@ -254,17 +254,17 @@ jobs:
 
       - name: Set clang toolchain
         if: ${{ matrix.compiler == 'clang' }}
-        run: echo "TOOLCHAIN_FILE=$GITHUB_WORKSPACE/rdkservices/Tests/clang.cmake" >> $GITHUB_ENV
+        run: echo "TOOLCHAIN_FILE=$GITHUB_WORKSPACE/entservices-infra/Tests/clang.cmake" >> $GITHUB_ENV
 
       - name: Set gcc/with-coverage toolchain
         if: ${{ matrix.compiler == 'gcc' && matrix.coverage == 'with-coverage' && !env.ACT }}
-        run: echo "TOOLCHAIN_FILE=$GITHUB_WORKSPACE/rdkservices/Tests/gcc-with-coverage.cmake" >> $GITHUB_ENV
+        run: echo "TOOLCHAIN_FILE=$GITHUB_WORKSPACE/entservices-infra/Tests/gcc-with-coverage.cmake" >> $GITHUB_ENV
 
-      - name: Build rdkservices
+      - name: Build entservices-infra
         run: >
           sudo cmake -G Ninja
-          -S "$GITHUB_WORKSPACE/rdkservices"
-          -B build/rdkservices
+          -S "$GITHUB_WORKSPACE/entservices-infra"
+          -B build/entservices-infra
           -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install/usr"
           -DCMAKE_MODULE_PATH="$GITHUB_WORKSPACE/install/tools/cmake"
           -DCMAKE_CXX_FLAGS="
@@ -274,31 +274,31 @@ jobs:
           -DTHUNDER_VERSION_MAJOR=4
           -DTHUNDER_VERSION_MINOR=4
           -DRDK_SERVICES_L1_TEST
-          -I $GITHUB_WORKSPACE/rdkservices/Tests/headers
-          -I $GITHUB_WORKSPACE/rdkservices/Tests/headers/audiocapturemgr
-          -I $GITHUB_WORKSPACE/rdkservices/Tests/headers/rdk/ds
-          -I $GITHUB_WORKSPACE/rdkservices/Tests/headers/rdk/iarmbus
-          -I $GITHUB_WORKSPACE/rdkservices/Tests/headers/rdk/iarmmgrs-hal
-          -I $GITHUB_WORKSPACE/rdkservices/Tests/headers/ccec/drivers
-          -I $GITHUB_WORKSPACE/rdkservices/Tests/headers/network
-          -I $GITHUB_WORKSPACE/rdkservices/Tests
+          -I $GITHUB_WORKSPACE/entservices-infra/Tests/headers
+          -I $GITHUB_WORKSPACE/entservices-infra/Tests/headers/audiocapturemgr
+          -I $GITHUB_WORKSPACE/entservices-infra/Tests/headers/rdk/ds
+          -I $GITHUB_WORKSPACE/entservices-infra/Tests/headers/rdk/iarmbus
+          -I $GITHUB_WORKSPACE/entservices-infra/Tests/headers/rdk/iarmmgrs-hal
+          -I $GITHUB_WORKSPACE/entservices-infra/Tests/headers/ccec/drivers
+          -I $GITHUB_WORKSPACE/entservices-infra/Tests/headers/network
+          -I $GITHUB_WORKSPACE/entservices-infra/Tests
           -I $GITHUB_WORKSPACE/Thunder/Source
           -I $GITHUB_WORKSPACE/Thunder/Source/core
-          -include $GITHUB_WORKSPACE/rdkservices/Tests/mocks/devicesettings.h
-          -include $GITHUB_WORKSPACE/rdkservices/Tests/mocks/Iarm.h
-          -include $GITHUB_WORKSPACE/rdkservices/Tests/mocks/libusb.h
-          -include $GITHUB_WORKSPACE/rdkservices/Tests/mocks/Rfc.h
-          -include $GITHUB_WORKSPACE/rdkservices/Tests/mocks/RBus.h
-          -include $GITHUB_WORKSPACE/rdkservices/Tests/mocks/Telemetry.h
-          -include $GITHUB_WORKSPACE/rdkservices/Tests/mocks/Udev.h
-          -include $GITHUB_WORKSPACE/rdkservices/Tests/mocks/maintenanceMGR.h
-          -include $GITHUB_WORKSPACE/rdkservices/Tests/mocks/pkg.h
-          -include $GITHUB_WORKSPACE/rdkservices/Tests/mocks/secure_wrappermock.h
-          -include $GITHUB_WORKSPACE/rdkservices/Tests/mocks/wpa_ctrl_mock.h
-          -include $GITHUB_WORKSPACE/rdkservices/Tests/mocks/readprocMockInterface.h
-          -include $GITHUB_WORKSPACE/rdkservices/Tests/mocks/systemaudioplatform.h
-          -include $GITHUB_WORKSPACE/rdkservices/Tests/mocks/gdialservice.h
-          -include $GITHUB_WORKSPACE/rdkservices/Tests/mocks/thunder/Communicator.h
+          -include $GITHUB_WORKSPACE/entservices-infra/Tests/mocks/devicesettings.h
+          -include $GITHUB_WORKSPACE/entservices-infra/Tests/mocks/Iarm.h
+          -include $GITHUB_WORKSPACE/entservices-infra/Tests/mocks/libusb.h
+          -include $GITHUB_WORKSPACE/entservices-infra/Tests/mocks/Rfc.h
+          -include $GITHUB_WORKSPACE/entservices-infra/Tests/mocks/RBus.h
+          -include $GITHUB_WORKSPACE/entservices-infra/Tests/mocks/Telemetry.h
+          -include $GITHUB_WORKSPACE/entservices-infra/Tests/mocks/Udev.h
+          -include $GITHUB_WORKSPACE/entservices-infra/Tests/mocks/maintenanceMGR.h
+          -include $GITHUB_WORKSPACE/entservices-infra/Tests/mocks/pkg.h
+          -include $GITHUB_WORKSPACE/entservices-infra/Tests/mocks/secure_wrappermock.h
+          -include $GITHUB_WORKSPACE/entservices-infra/Tests/mocks/wpa_ctrl_mock.h
+          -include $GITHUB_WORKSPACE/entservices-infra/Tests/mocks/readprocMockInterface.h
+          -include $GITHUB_WORKSPACE/entservices-infra/Tests/mocks/systemaudioplatform.h
+          -include $GITHUB_WORKSPACE/entservices-infra/Tests/mocks/gdialservice.h
+          -include $GITHUB_WORKSPACE/entservices-infra/Tests/mocks/thunder/Communicator.h
           --coverage
           -Wall -Wno-unused-result -Wno-deprecated-declarations -Wno-error=format=
           -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
@@ -335,9 +335,9 @@ jobs:
           -DUSE_THUNDER_R4=ON
           -DHIDE_NON_EXTERNAL_SYMBOLS=OFF
           &&
-          sudo cmake --build build/rdkservices -j8
+          sudo cmake --build build/entservices-infra -j8
           &&
-          sudo cmake --install build/rdkservices
+          sudo cmake --install build/entservices-infra
 
       - name: Set up files
         run: >
@@ -361,6 +361,13 @@ jobs:
           /tmp/block/sdb/device
           /dev/disk/by-id
           /dev
+          &&
+		  if [ ! -f mknod /dev/sda c 240 0 ]; then mknod /dev/sda c 240 0; fi &&
+          if [ ! -f mknod /dev/sda1 c 240 0 ]; then mknod /dev/sda1 c 240 0; fi &&
+          if [ ! -f mknod /dev/sda2 c 240 0 ]; then mknod /dev/sda2 c 240 0; fi &&
+          if [ ! -f mknod /dev/sdb c 240 0 ]; then mknod /dev/sdb c 240 0; fi &&
+          if [ ! -f mknod /dev/sdb1 c 240 0 ]; then mknod /dev/sdb1 c 240 0; fi &&
+          if [ ! -f mknod /dev/sdb2 c 240 0 ]; then mknod /dev/sdb2 c 240 0; fi
           &&
           sudo touch
           /tmp/test/testApp/etc/apps/testApp_package.json
@@ -406,6 +413,17 @@ jobs:
           /tmp/bus/usb/devices/101-124/serial
           /tmp/block/sdb/device/vendor
           /tmp/block/sdb/device/model
+		  &&
+          cd /dev/disk/by-id/
+          &&
+          sudo ln -s ../../sda /dev/disk/by-id/usb-Generic_Flash_Disk_B32FD507-0
+          &&
+          sudo ln -s ../../sdb /dev/disk/by-id/usb-JetFlash_Transcend_16GB_UEUIRCXT-0
+          &&
+          ls -l /dev/disk/by-id/usb-Generic_Flash_Disk_B32FD507-0
+          &&
+          ls -l /dev/disk/by-id/usb-JetFlash_Transcend_16GB_UEUIRCXT-0
+
 
       - name: Run unit tests without valgrind
         run: >
@@ -436,16 +454,16 @@ jobs:
       - name: Generate coverage
         if: ${{ matrix.coverage == 'with-coverage' && !env.ACT }}
         run: >
-          cp $GITHUB_WORKSPACE/rdkservices/Tests/L1Tests/.lcovrc_l1 ~/.lcovrc
+          cp $GITHUB_WORKSPACE/entservices-infra/Tests/L1Tests/.lcovrc_l1 ~/.lcovrc
           &&
           lcov -c
           -o coverage.info
-          -d build/rdkservices
+          -d build/entservices-infra
           &&
           lcov
           -r coverage.info
           '/usr/include/*'
-          '*/build/rdkservices/_deps/*'
+          '*/build/entservices-infra/_deps/*'
           '*/install/usr/include/*'
           '*/Tests/headers/*'
           '*/Tests/mocks/*'
@@ -454,7 +472,7 @@ jobs:
           &&
           genhtml
           -o coverage
-          -t "rdkservices coverage"
+          -t "entservices-infra coverage"
           filtered_coverage.info
 
       - name: Upload artifacts
@@ -478,5 +496,5 @@ jobs:
       - name: Publishing the artifacts to automatics
         if: ${{ !env.ACT }}
         run: >
-          git config --global --add safe.directory `pwd`/thunder/rdkservices &&
-          gtest-json-result-push.py /tmp/Gtest_Report/ https://rdkeorchestrationservice.apps.cloud.comcast.net/rdke_orchestration_api/push_unit_test_results `pwd`/thunder/rdkservices
+          git config --global --add safe.directory `pwd`/thunder/entservices-infra &&
+          gtest-json-result-push.py /tmp/Gtest_Report/ https://rdkeorchestrationservice.apps.cloud.comcast.net/rdke_orchestration_api/push_unit_test_results `pwd`/thunder/entservices-infra
