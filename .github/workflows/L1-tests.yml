@@ -362,18 +362,6 @@ jobs:
           /dev/disk/by-id
           /dev
           &&
-          mknod /dev/sda c 240 0
-          &&
-          mknod /dev/sdb c 240 0
-          &&
-          mknod /dev/sda1 c 240 0
-          &&
-          mknod /dev/sda2 c 240 0
-          &&
-          mknod /dev/sdb1 c 240 0
-          &&
-          mknod /dev/sdb2 c 240 0
-          &&
           sudo touch
           /tmp/test/testApp/etc/apps/testApp_package.json
           /opt/rdk_maintenance.conf
@@ -418,16 +406,6 @@ jobs:
           /tmp/bus/usb/devices/101-124/serial
           /tmp/block/sdb/device/vendor
           /tmp/block/sdb/device/model
-          &&
-          cd /dev/disk/by-id/
-          &&
-          ln -s ../../sda /dev/disk/by-id/usb-Generic_Flash_Disk_B32FD507-0
-          &&
-          ln -s ../../sdb /dev/disk/by-id/usb-JetFlash_Transcend_16GB_UEUIRCXT-0
-          &&
-          ls -l /dev/disk/by-id/usb-Generic_Flash_Disk_B32FD507-0
-          &&
-          ls -l /dev/disk/by-id/usb-JetFlash_Transcend_16GB_UEUIRCXT-0
 
       - name: Run unit tests without valgrind
         run: >
