@@ -20,6 +20,7 @@
 #pragma once
 
 #include <string>
+#include <cstdint>
 
 typedef int IARM_EventId_t;
 
