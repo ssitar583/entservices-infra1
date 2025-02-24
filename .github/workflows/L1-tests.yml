@@ -413,7 +413,7 @@ jobs:
           /tmp/bus/usb/devices/101-124/serial
           /tmp/block/sdb/device/vendor
           /tmp/block/sdb/device/model
-		  &&
+          &&
           cd /dev/disk/by-id/
           &&
           sudo ln -s ../../sda /dev/disk/by-id/usb-Generic_Flash_Disk_B32FD507-0
