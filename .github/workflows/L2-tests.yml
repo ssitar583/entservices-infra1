@@ -109,6 +109,7 @@ jobs:
           patch -p1 < $GITHUB_WORKSPACE/rdkservices/Tests/L2Tests/patches/Use_Legact_Alt_Based_On_ThunderTools_R4.4.3.patch
           patch -p1 < $GITHUB_WORKSPACE/rdkservices/Tests/L2Tests/patches/error_code_R4_4.patch
           patch -p1 < $GITHUB_WORKSPACE/rdkservices/Tests/L1Tests/patches/1004-Add-support-for-project-dir.patch
+          patch -p1 < $GITHUB_WORKSPACE/entservices-infra/Tests/L1Tests/patches/RDKEMW-733-Add-ENTOS-IDS.patch
           cd -
       - name: Build Thunder
         run: >
