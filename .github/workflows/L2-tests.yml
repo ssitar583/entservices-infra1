@@ -134,34 +134,34 @@ jobs:
           &&
           cmake --install build/Thunder
 
-      - name: Checkout rdkservices-apis
+      - name: Checkout entservices-apis
         uses: actions/checkout@v3
         with:
-          repository: rdk-e/rdkservices-apis
-          path: rdkservices-apis
+          repository: rdkcentral/entservices-apis
+          path: entservices-apis
           ref: ${{env.INTERFACES_REF}}
-          token: ${{ secrets.RDKE_GITHUB_TOKEN }}
+          token: ${{ secrets.RDKCM_RDKE }}
           run: rm -rf $GITHUB_WORKSPACE/rdkservices-apis/jsonrpc/DTV.json
 
-      - name: Build rdkservices-apis
+      - name: Build entservices-apis
         run: >
           cmake
-          -S "$GITHUB_WORKSPACE/rdkservices-apis"
-          -B build/rdkservices-apis
+          -S "$GITHUB_WORKSPACE/entservices-apis"
+          -B build/entservices-apis
           -DEXCEPTIONS_ENABLE=ON
           -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install/usr"
           -DCMAKE_MODULE_PATH="$GITHUB_WORKSPACE/install/tools/cmake"
           &&
-          cmake --build build/rdkservices-apis -j8
+          cmake --build build/entservices-apis -j8
           &&
-          cmake --install build/rdkservices-apis
+          cmake --install build/entservices-apis
 
       - name: Generate external headers
         # Empty headers to mute errors
         run: >
           cd "$GITHUB_WORKSPACE/rdkservices/Tests/"
           &&
-          mkdir -p
+          sudo mkdir -p
           headers
           headers/rdk/ds
           headers/rdk/iarmbus
@@ -171,7 +171,7 @@ jobs:
           &&
           cd headers
           &&
-          touch
+          sudo touch
           rdk/ds/host.hpp
           rdk/ds/videoOutputPort.hpp
           rdk/ds/audioOutputPort.hpp
@@ -207,7 +207,7 @@ jobs:
           tvTypesODM.h
           tr181api.h
           &&
-          cp -r /usr/include/gstreamer-1.0/gst /usr/include/glib-2.0/* /usr/lib/x86_64-linux-gnu/glib-2.0/include/* /usr/local/include/trower-base64/base64.h .
+          sudo cp -r /usr/include/gstreamer-1.0/gst /usr/include/glib-2.0/* /usr/lib/x86_64-linux-gnu/glib-2.0/include/* /usr/local/include/trower-base64/base64.h .
 
       - name: Set clang toolchain
         if: ${{ matrix.compiler == 'clang' }}
@@ -236,7 +236,7 @@ jobs:
 
       - name: Build rdkservices
         run: >
-          cmake
+          sudo cmake
           -S "$GITHUB_WORKSPACE/rdkservices"
           -B build/rdkservices
           -DCMAKE_TOOLCHAIN_FILE="${{ env.TOOLCHAIN_FILE }}"
@@ -291,12 +291,7 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RBus=ON
-          -DPLUGIN_WAREHOUSE=ON
-          -DPLUGIN_SYSTEMSERVICES=ON
           -DPLUGIN_TELEMETRY=ON
-          -DPLUGIN_HDCPPROFILE=ON
-          -DPLUGIN_NETWORK=ON
-          -DPLUGIN_TEXTTOSPEECH=ON
           -DPLUGIN_USBACCESS=OFF
           -DPLUGIN_USERSETTINGS=ON
           -DPLUGIN_PERSISTENTSTORE=ON
@@ -476,7 +471,7 @@ jobs:
 
       - name: Upload artifacts
         if: ${{ !env.ACT }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: artifacts
           path: |
