@@ -103,12 +103,6 @@ jobs:
           &&
           cmake --install build/ThunderTools
 
-      - name: Apply patch Rdkservices
-        run: |
-          cd $GITHUB_WORKSPACE/rdkservices
-          patch -p1 < Tests/L2Tests/patches/0003-R4.4.1-SystemAudioPlayer-compilation-error.patch
-          cd -
-
       - name: Apply patches Thunder
         run: |
           cd $GITHUB_WORKSPACE/Thunder
