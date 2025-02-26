@@ -628,7 +628,8 @@ namespace WPEFramework
             //Activate System plugin if needed
             if (IsPluginActivated(mShell, SYSTEM_CALLSIGN) == false)
             {
-                ActivatePlugin(mShell, SYSTEM_CALLSIGN);
+                //ActivatePlugin(mShell, SYSTEM_CALLSIGN);
+                LOGINFO("Ignore SYSTEM plugin activation call");
             }
 
             // One time readout attributes
