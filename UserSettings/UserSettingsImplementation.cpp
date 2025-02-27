@@ -23,11 +23,14 @@
 #include <mutex>
 #include "tracing/Logging.h"
 
+#ifdef HAS_RBUS
+#define RBUS_COMPONENT_NAME "UserSettingsThunderPlugin"
+#define RBUS_PRIVACY_MODE_EVENT_NAME "Device.X_RDKCENTRAL-COM_UserSettings.PrivacyModeChanged"
+#endif
 namespace WPEFramework {
 namespace Plugin {
 
-const std::map<string, string> UserSettingsImplementation::usersettingsDefaultMap =
-                                                                 {{USERSETTINGS_AUDIO_DESCRIPTION_KEY, "false"},
+const std::map<string, string> UserSettingsImplementation::usersettingsDefaultMap = {{USERSETTINGS_AUDIO_DESCRIPTION_KEY, "false"},
                                                                  {USERSETTINGS_PREFERRED_AUDIO_LANGUAGES_KEY, ""},
                                                                  {USERSETTINGS_PRESENTATION_LANGUAGE_KEY, ""},
                                                                  {USERSETTINGS_CAPTIONS_KEY, "false"},
@@ -45,6 +48,25 @@ const std::map<string, string> UserSettingsImplementation::usersettingsDefaultMa
                                                                  {USERSETTINGS_VOICE_GUIDANCE_RATE_KEY, "1"},
                                                                  {USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY, "false"}};
 
+const std::map<Exchange::IUserSettingsInspector::SettingsKey, string> UserSettingsInspectorImplementation::_userSettingsInspectorMap = {
+                                         {Exchange::IUserSettingsInspector::SettingsKey::PREFERRED_AUDIO_LANGUAGES, "preferredAudioLanguages"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::AUDIO_DESCRIPTION, "audioDescription"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::CAPTIONS, "captions"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::PREFERRED_CAPTIONS_LANGUAGES, "preferredCaptionsLanguages"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::PREFERRED_CLOSED_CAPTION_SERVICE, "preferredClosedCaptionsService"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::PRESENTATION_LANGUAGE, "presentationLanguage"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::HIGH_CONTRAST, "highContrast"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::PIN_CONTROL, "pinControl"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::VIEWING_RESTRICTIONS, "viewingRestrictions"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::VIEWING_RESTRICTIONS_WINDOW, "viewingRestrictionsWindow"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::LIVE_WATERSHED, "liveWaterShed"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::PLAYBACK_WATERSHED, "playbackWaterShed"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::BLOCK_NOT_RATED_CONTENT, "blockNotRatedContent"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::PIN_ON_PURCHASE, "pinOnPurchase"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::VOICE_GUIDANCE, "voiceGuidance"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::VOICE_GUIDANCE_RATE, "voiceGuidanceRate"},
+                                         {Exchange::IUserSettingsInspector::SettingsKey::VOICE_GUIDANCE_HINTS, "voiceGuidanceHints"}};
+
 SERVICE_REGISTRATION(UserSettingsImplementation, 1, 0);
 
 UserSettingsImplementation::UserSettingsImplementation()
@@ -52,7 +74,9 @@ UserSettingsImplementation::UserSettingsImplementation()
 , _remotStoreObject(nullptr)
 , _storeNotification(*this)
 , _registeredEventHandlers(false)
-, _service(nullptr)
+#ifdef HAS_RBUS
+, _rbusHandleStatus(RBUS_ERROR_NOT_INITIALIZED)
+#endif
 {
     LOGINFO("Create UserSettingsImplementation Instance");
     UserSettingsImplementation::instance(this);
@@ -114,6 +138,14 @@ UserSettingsImplementation::~UserSettingsImplementation()
     }
 
     _registeredEventHandlers = false;
+#ifdef HAS_RBUS
+    if (RBUS_ERROR_SUCCESS == _rbusHandleStatus)
+    {
+        rbus_close(_rbusHandle);
+        _rbusHandleStatus = RBUS_ERROR_NOT_INITIALIZED;
+    }
+
+#endif
 }
 
 void UserSettingsImplementation::registerEventHandlers()
@@ -241,6 +273,13 @@ void UserSettingsImplementation::Dispatch(Event event, const JsonValue params)
              }
          break;
 
+         case PRIVACY_MODE_CHANGED:
+             while (index != _userSettingNotification.end())
+             {
+                 (*index)->OnPrivacyModeChanged(params.String());
+                 ++index;
+             }
+         break;
          case PIN_CONTROL_CHANGED:
               while (index != _userSettingNotification.end())
               {
@@ -419,6 +458,7 @@ uint32_t UserSettingsImplementation::SetUserSettingsValue(const string& key, con
     uint32_t status = Core::ERROR_GENERAL;
     _adminLock.Lock();
 
+    LOGINFO("Key[%s] value[%s]", key.c_str(), value.c_str());
     if (nullptr != _remotStoreObject)
     {
         status = _remotStoreObject->SetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, key, value, 0);
@@ -437,7 +477,7 @@ uint32_t UserSettingsImplementation::GetUserSettingsValue(const string& key, str
     uint32_t ttl = 0;
     _adminLock.Lock();
 
-    LOGINFO("Key[%s] value[%s]", key.c_str(), value.c_str());
+    LOGINFO("Key[%s]", key.c_str());
     if (nullptr != _remotStoreObject)
     {
         status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, key, value, ttl);
@@ -594,6 +634,99 @@ uint32_t UserSettingsImplementation::GetPreferredClosedCaptionService(string &se
     std::string value = "";
 
     status = GetUserSettingsValue(USERSETTINGS_PREFERRED_CLOSED_CAPTIONS_SERVICE_KEY, service);
+    return status;
+}
+
+uint32_t UserSettingsImplementation::SetPrivacyMode(const string& privacyMode)
+{
+    uint32_t status = Core::ERROR_GENERAL;
+
+    LOGINFO("privacyMode: %s", privacyMode.c_str());
+
+    if (privacyMode != "SHARE" && privacyMode != "DO_NOT_SHARE")
+    {
+        LOGERR("Wrong privacyMode value: '%s', returning default", privacyMode.c_str());
+        return status;
+    }
+
+    _adminLock.Lock();
+
+    ASSERT (nullptr != _remotStoreObject);
+
+    if (nullptr != _remotStoreObject)
+    {
+        uint32_t ttl = 0;
+        string oldPrivacyMode;
+        status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_PRIVACY_MODE_KEY, oldPrivacyMode, ttl);
+        LOGINFO("oldPrivacyMode: %s", oldPrivacyMode.c_str());
+
+        if (privacyMode != oldPrivacyMode)
+        {
+#ifdef HAS_RBUS
+            if (Core::ERROR_NONE == status)
+            {
+                if (RBUS_ERROR_SUCCESS != _rbusHandleStatus)
+                {
+                    _rbusHandleStatus = rbus_open(&_rbusHandle, RBUS_COMPONENT_NAME);
+                }
+
+                if (RBUS_ERROR_SUCCESS == _rbusHandleStatus)
+                {
+                    rbusValue_t value;
+                    rbusSetOptions_t opts = {true, 0};
+
+                    rbusValue_Init(&value);
+                    rbusValue_SetString(value, privacyMode.c_str());
+                    int rc = rbus_set(_rbusHandle, RBUS_PRIVACY_MODE_EVENT_NAME, value, &opts);
+                    if (rc != RBUS_ERROR_SUCCESS)
+                    {
+                        std::stringstream str;
+                        str << "Failed to set property " << RBUS_PRIVACY_MODE_EVENT_NAME << ": " << rc;
+                        LOGERR("%s", str.str().c_str());
+                    }
+                    rbusValue_Release(value);
+                }
+                else
+                {
+                    std::stringstream str;
+                    str << "rbus_open failed with error code " << _rbusHandleStatus;
+                    LOGERR("%s", str.str().c_str());
+                }
+            }
+#endif
+            status = _remotStoreObject->SetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_PRIVACY_MODE_KEY, privacyMode, 0);
+        }
+    }
+
+    _adminLock.Unlock();
+
+    return status;
+}
+
+uint32_t UserSettingsImplementation::GetPrivacyMode(string &privacyMode) const
+{
+    uint32_t status = Core::ERROR_NONE;
+    std::string value = "";
+    uint32_t ttl = 0;
+    privacyMode = "";
+
+    _adminLock.Lock();
+
+    ASSERT (nullptr != _remotStoreObject);
+
+    if (nullptr != _remotStoreObject)
+    {
+        _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_PRIVACY_MODE_KEY, privacyMode, ttl);
+    }
+
+    _adminLock.Unlock();
+    
+    if (privacyMode != "SHARE" && privacyMode != "DO_NOT_SHARE") 
+    {
+        LOGWARN("Wrong privacyMode value: '%s', returning default", privacyMode.c_str());
+        privacyMode = "SHARE";
+    }
+
     return status;
 }
 
@@ -895,6 +1028,123 @@ uint32_t UserSettingsImplementation::GetVoiceGuidanceHints(bool &hints) const
             hints = false;
         }
     }
+    return status;
+}
+
+UserSettingsInspectorImplementation::UserSettingsInspectorImplementation()
+: _adminLock()
+, _remotStoreObject(nullptr)
+{
+    LOGINFO("Create UserSettingsImplementation Instance");
+}
+
+uint32_t UserSettingsInspectorImplementation::Configure(PluginHost::IShell* service)
+{
+    uint32_t result = Core::ERROR_GENERAL;
+
+    if (service != nullptr)
+    {
+        _service = service;
+        _service->AddRef();
+        result = Core::ERROR_NONE;
+
+        _remotStoreObject = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::IStore2>("org.rdk.PersistentStore");
+    }
+    else
+    {
+        LOGERR("service is null \n");
+    }
+
+    return result;
+}
+
+UserSettingsInspectorImplementation::~UserSettingsInspectorImplementation()
+{
+    if(_remotStoreObject)
+    {
+        _remotStoreObject->Release();
+    }
+    if (_service != nullptr)
+    {
+       _service->Release();
+       _service = nullptr;
+    }
+}
+
+Core::hresult UserSettingsInspectorImplementation::GetMigrationState(const SettingsKey key, bool &requiresMigration) const
+{
+    uint32_t status = Core::ERROR_GENERAL;
+    std::string value = "";
+    uint32_t ttl = 0;
+    std::string strkey = _userSettingsInspectorMap.at(key);
+
+    _adminLock.Lock();
+
+    LOGINFO("key[%s]", strkey.c_str());
+    if (nullptr != _remotStoreObject && !strkey.empty())
+    {
+        status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, strkey, value, ttl);
+        LOGINFO("Key[%s] value[%s] status[%d]", strkey.c_str(), value.c_str(), status);
+        if(Core::ERROR_NOT_EXIST == status)
+        {
+            requiresMigration = true;
+            status = Core::ERROR_NONE;
+        }
+        else
+        {
+            requiresMigration = false;
+        }
+    }
+    else
+    {
+        LOGERR("_remotStoreObject is null or strkey is empty");
+    }
+
+    _adminLock.Unlock();
+
+    return status;
+
+}
+Core::hresult UserSettingsInspectorImplementation::GetMigrationStates(IUserSettingsMigrationStateIterator *&states) const
+{
+    uint32_t status = Core::ERROR_GENERAL;
+    std::string value = "";
+    uint32_t ttl = 0;
+    bool requiresMigration = false;
+
+    _adminLock.Lock();
+
+    Exchange::IUserSettingsInspector::SettingsMigrationState SettingMigrationState = {};
+    std::list<Exchange::IUserSettingsInspector::SettingsMigrationState> SettingMigrationStateList;
+    if (nullptr != _remotStoreObject)
+    {
+        for (auto uimap = _userSettingsInspectorMap.begin(); uimap != _userSettingsInspectorMap.end(); uimap++)
+        {
+            LOGINFO("key[%s]", (uimap->second).c_str());
+            status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, uimap->second, value, ttl);
+            LOGINFO("key[%s] value[%s] status[%d]", (uimap->second).c_str(), value.c_str(), status);
+            if(Core::ERROR_NOT_EXIST == status)
+            {
+                requiresMigration = true;
+                status = Core::ERROR_NONE;
+            }
+            else
+            {
+                requiresMigration = false;
+            }
+            SettingMigrationState.key = uimap->first;
+            SettingMigrationState.requiresMigration = requiresMigration;
+            SettingMigrationStateList.emplace_back(SettingMigrationState);
+        }
+        states = (Core::Service<RPC::IteratorType<Exchange::IUserSettingsInspector::IUserSettingsMigrationStateIterator>>::Create<Exchange::IUserSettingsInspector::IUserSettingsMigrationStateIterator>(SettingMigrationStateList));
+    }
+    else
+    {
+        LOGERR("_remotStoreObject is null");
+    }
+
+    _adminLock.Unlock();
+
     return status;
 }
 
