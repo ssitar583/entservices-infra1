@@ -73,10 +73,12 @@ namespace WPEFramework
         _service->AddRef();
         _service->Register(&_usersettingsNotification);
         _userSetting = _service->Root<Exchange::IUserSettings>(_connectionId, 5000, _T("UserSettingsImplementation"));
-        _userSettingsInspector = _service->Root<Exchange::IUserSettingsInspector>(_connectionId, 5000, _T("UserSettingsInspectorImplementation"));
+
         if(nullptr != _userSetting)
         {
             configure = _userSetting->QueryInterface<Exchange::IConfiguration>();
+            _userSettingsInspector = _userSetting->QueryInterface<Exchange::IUserSettingsInspector>();
+
             if (configure != nullptr)
             {
                 uint32_t result = configure->Configure(_service);
@@ -94,30 +96,6 @@ namespace WPEFramework
             _userSetting->Register(&_usersettingsNotification);
             // Invoking Plugin API register to wpeframework
             Exchange::JUserSettings::Register(*this, _userSetting);
-        }
-        else
-        {
-            SYSLOG(Logging::Startup, (_T("UserSettings::Initialize: Failed to initialise UserSettings plugin")));
-            message = _T("UserSettings plugin could not be initialised");
-        }
-
-        if(nullptr != _userSettingsInspector)
-        {
-            configure_userSettingsInspector = _userSettingsInspector->QueryInterface<Exchange::IConfiguration>();
-            if (configure_userSettingsInspector != nullptr)
-            {
-                uint32_t result = configure_userSettingsInspector->Configure(_service);
-                if(result != Core::ERROR_NONE)
-                {
-                    message = _T("UserSettings could not be configured");
-                }
-            }
-            else
-            {
-                message = _T("UserSettings implementation did not provide a configuration interface");
-            }
-
-            // Invoking Plugin API register to wpeframework
             Exchange::JUserSettingsInspector::Register(*this, _userSettingsInspector);
         }
         else

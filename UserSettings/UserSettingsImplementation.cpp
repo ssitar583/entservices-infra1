@@ -23,6 +23,10 @@
 #include <mutex>
 #include "tracing/Logging.h"
 
+#ifdef HAS_RBUS
+#define RBUS_COMPONENT_NAME "UserSettingsThunderPlugin"
+#define RBUS_PRIVACY_MODE_EVENT_NAME "Device.X_RDKCENTRAL-COM_UserSettings.PrivacyModeChanged"
+#endif
 namespace WPEFramework {
 namespace Plugin {
 
@@ -44,7 +48,7 @@ const std::map<string, string> UserSettingsImplementation::usersettingsDefaultMa
                                                                  {USERSETTINGS_VOICE_GUIDANCE_RATE_KEY, "1"},
                                                                  {USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY, "false"}};
 
-const std::map<Exchange::IUserSettingsInspector::SettingsKey, string> UserSettingsInspectorImplementation::_userSettingsInspectorMap = {
+const std::map<Exchange::IUserSettingsInspector::SettingsKey, string> UserSettingsImplementation::_userSettingsInspectorMap = {
                                          {Exchange::IUserSettingsInspector::SettingsKey::PREFERRED_AUDIO_LANGUAGES, "preferredAudioLanguages"},
                                          {Exchange::IUserSettingsInspector::SettingsKey::AUDIO_DESCRIPTION, "audioDescription"},
                                          {Exchange::IUserSettingsInspector::SettingsKey::CAPTIONS, "captions"},
@@ -70,7 +74,9 @@ UserSettingsImplementation::UserSettingsImplementation()
 , _remotStoreObject(nullptr)
 , _storeNotification(*this)
 , _registeredEventHandlers(false)
-, _service(nullptr)
+#ifdef HAS_RBUS
+, _rbusHandleStatus(RBUS_ERROR_NOT_INITIALIZED)
+#endif
 {
     LOGINFO("Create UserSettingsImplementation Instance");
     UserSettingsImplementation::instance(this);
@@ -132,6 +138,14 @@ UserSettingsImplementation::~UserSettingsImplementation()
     }
 
     _registeredEventHandlers = false;
+#ifdef HAS_RBUS
+    if (RBUS_ERROR_SUCCESS == _rbusHandleStatus)
+    {
+        rbus_close(_rbusHandle);
+        _rbusHandleStatus = RBUS_ERROR_NOT_INITIALIZED;
+    }
+
+#endif
 }
 
 void UserSettingsImplementation::registerEventHandlers()
@@ -259,6 +273,13 @@ void UserSettingsImplementation::Dispatch(Event event, const JsonValue params)
              }
          break;
 
+         case PRIVACY_MODE_CHANGED:
+             while (index != _userSettingNotification.end())
+             {
+                 (*index)->OnPrivacyModeChanged(params.String());
+                 ++index;
+             }
+         break;
          case PIN_CONTROL_CHANGED:
               while (index != _userSettingNotification.end())
               {
@@ -616,6 +637,99 @@ uint32_t UserSettingsImplementation::GetPreferredClosedCaptionService(string &se
     return status;
 }
 
+uint32_t UserSettingsImplementation::SetPrivacyMode(const string& privacyMode)
+{
+    uint32_t status = Core::ERROR_GENERAL;
+
+    LOGINFO("privacyMode: %s", privacyMode.c_str());
+
+    if (privacyMode != "SHARE" && privacyMode != "DO_NOT_SHARE")
+    {
+        LOGERR("Wrong privacyMode value: '%s', returning default", privacyMode.c_str());
+        return status;
+    }
+
+    _adminLock.Lock();
+
+    ASSERT (nullptr != _remotStoreObject);
+
+    if (nullptr != _remotStoreObject)
+    {
+        uint32_t ttl = 0;
+        string oldPrivacyMode;
+        status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_PRIVACY_MODE_KEY, oldPrivacyMode, ttl);
+        LOGINFO("oldPrivacyMode: %s", oldPrivacyMode.c_str());
+
+        if (privacyMode != oldPrivacyMode)
+        {
+#ifdef HAS_RBUS
+            if (Core::ERROR_NONE == status)
+            {
+                if (RBUS_ERROR_SUCCESS != _rbusHandleStatus)
+                {
+                    _rbusHandleStatus = rbus_open(&_rbusHandle, RBUS_COMPONENT_NAME);
+                }
+
+                if (RBUS_ERROR_SUCCESS == _rbusHandleStatus)
+                {
+                    rbusValue_t value;
+                    rbusSetOptions_t opts = {true, 0};
+
+                    rbusValue_Init(&value);
+                    rbusValue_SetString(value, privacyMode.c_str());
+                    int rc = rbus_set(_rbusHandle, RBUS_PRIVACY_MODE_EVENT_NAME, value, &opts);
+                    if (rc != RBUS_ERROR_SUCCESS)
+                    {
+                        std::stringstream str;
+                        str << "Failed to set property " << RBUS_PRIVACY_MODE_EVENT_NAME << ": " << rc;
+                        LOGERR("%s", str.str().c_str());
+                    }
+                    rbusValue_Release(value);
+                }
+                else
+                {
+                    std::stringstream str;
+                    str << "rbus_open failed with error code " << _rbusHandleStatus;
+                    LOGERR("%s", str.str().c_str());
+                }
+            }
+#endif
+            status = _remotStoreObject->SetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_PRIVACY_MODE_KEY, privacyMode, 0);
+        }
+    }
+
+    _adminLock.Unlock();
+
+    return status;
+}
+
+uint32_t UserSettingsImplementation::GetPrivacyMode(string &privacyMode) const
+{
+    uint32_t status = Core::ERROR_NONE;
+    std::string value = "";
+    uint32_t ttl = 0;
+    privacyMode = "";
+
+    _adminLock.Lock();
+
+    ASSERT (nullptr != _remotStoreObject);
+
+    if (nullptr != _remotStoreObject)
+    {
+        _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_PRIVACY_MODE_KEY, privacyMode, ttl);
+    }
+
+    _adminLock.Unlock();
+    
+    if (privacyMode != "SHARE" && privacyMode != "DO_NOT_SHARE") 
+    {
+        LOGWARN("Wrong privacyMode value: '%s', returning default", privacyMode.c_str());
+        privacyMode = "SHARE";
+    }
+
+    return status;
+}
+
 uint32_t UserSettingsImplementation::SetPinControl(const bool pinControl)
 {
     uint32_t status = Core::ERROR_GENERAL;
@@ -916,12 +1030,12 @@ uint32_t UserSettingsImplementation::GetVoiceGuidanceHints(bool &hints) const
     }
     return status;
 }
-
+#if 0
 UserSettingsInspectorImplementation::UserSettingsInspectorImplementation()
 : _adminLock()
 , _remotStoreObject(nullptr)
 {
-    LOGINFO("Create UserSettingsImplementation Instance");
+    LOGINFO("Create UserSettingsInspectorImplementation Instance");
 }
 
 uint32_t UserSettingsInspectorImplementation::Configure(PluginHost::IShell* service)
@@ -956,8 +1070,8 @@ UserSettingsInspectorImplementation::~UserSettingsInspectorImplementation()
        _service = nullptr;
     }
 }
-
-Core::hresult UserSettingsInspectorImplementation::GetMigrationState(const SettingsKey key, bool &requiresMigration) const
+#endif
+Core::hresult UserSettingsImplementation::GetMigrationState(const SettingsKey key, bool &requiresMigration) const
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
@@ -991,7 +1105,7 @@ Core::hresult UserSettingsInspectorImplementation::GetMigrationState(const Setti
     return status;
 
 }
-Core::hresult UserSettingsInspectorImplementation::GetMigrationStates(IUserSettingsMigrationStateIterator *&states) const
+Core::hresult UserSettingsImplementation::GetMigrationStates(IUserSettingsMigrationStateIterator *&states) const
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
