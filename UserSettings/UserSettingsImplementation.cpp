@@ -915,47 +915,7 @@ uint32_t UserSettingsImplementation::GetVoiceGuidanceHints(bool &hints) const
     }
     return status;
 }
-#if 0
-UserSettingsInspectorImplementation::UserSettingsInspectorImplementation()
-: _adminLock()
-, _remotStoreObject(nullptr)
-{
-    LOGINFO("Create UserSettingsInspectorImplementation Instance");
-}
 
-uint32_t UserSettingsInspectorImplementation::Configure(PluginHost::IShell* service)
-{
-    uint32_t result = Core::ERROR_GENERAL;
-
-    if (service != nullptr)
-    {
-        _service = service;
-        _service->AddRef();
-        result = Core::ERROR_NONE;
-
-        _remotStoreObject = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::IStore2>("org.rdk.PersistentStore");
-    }
-    else
-    {
-        LOGERR("service is null \n");
-    }
-
-    return result;
-}
-
-UserSettingsInspectorImplementation::~UserSettingsInspectorImplementation()
-{
-    if(_remotStoreObject)
-    {
-        _remotStoreObject->Release();
-    }
-    if (_service != nullptr)
-    {
-       _service->Release();
-       _service = nullptr;
-    }
-}
-#endif
 Core::hresult UserSettingsImplementation::GetMigrationState(const SettingsKey key, bool &requiresMigration) const
 {
     uint32_t status = Core::ERROR_GENERAL;

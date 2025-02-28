@@ -50,7 +50,7 @@ namespace Plugin {
                 {
                     if (parent == nullptr)
                     {
-                       LOGERR("_parent is null");
+                       LOGERR("parent is null");
                     }
                 }
 
