@@ -562,6 +562,12 @@ namespace WPEFramework
                 LOGINFO("No security agent\n");
             }
 
+            //Activate AuthService plugin if needed
+            if (IsPluginActivated(mShell, AUTHSERVICE_CALLSIGN) == false)
+            {
+                ActivatePlugin(mShell, AUTHSERVICE_CALLSIGN);
+            }
+
             mAuthservicePlugin = mShell->QueryInterfaceByCallsign<Exchange::IAuthService>("org.rdk.AuthService");
             if (mAuthservicePlugin)
             {
