@@ -43,16 +43,22 @@ namespace Plugin {
             _service= nullptr;
         }
     }
-    
+
     uint32_t CloudStoreImplementation::Configure(PluginHost::IShell* service)
     {
         ASSERT(service != nullptr);
         _service = service;
         _service->AddRef();
-             
-        _accountStore2 = Core::Service<Grpc::Store2>::Create<Exchange::IStore2>(_service);
+
+        _accountStore2 = Core::Service<Grpc::Store2>::Create<Exchange::IStore2>();
         ASSERT(_accountStore2 != nullptr);
 
+        auto configConnection = _accountStore2->QueryInterface<Exchange::IConfiguration>();
+        if (configConnection != nullptr) {
+            configConnection->Configure(service);
+            configConnection->Release();
+        }
+        
         return Core::ERROR_NONE;
     }
 

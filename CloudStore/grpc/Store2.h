@@ -24,6 +24,7 @@
 #include <fstream>
 #include <grpcpp/create_channel.h>
 #include <interfaces/IStore2.h>
+#include <interfaces/IConfiguration.h>
 #include <interfaces/IAuthService.h>
 #ifdef WITH_SYSMGR
 #include <libIBus.h>
@@ -34,7 +35,7 @@ namespace WPEFramework {
 namespace Plugin {
     namespace Grpc {
 
-        class Store2 : public Exchange::IStore2 {
+        class Store2 : public Exchange::IStore2, public Exchange::IConfiguration {
         private:
             class Job : public Core::IDispatch {
             public:
@@ -69,20 +70,26 @@ namespace Plugin {
             Store2& operator=(const Store2&) = delete;
 
         public:
-            Store2(PluginHost::IShell* service)
-                : Store2(getenv(URI_ENV), getenv(TOKEN_ENV), service)
+            Store2()
+                : Store2(getenv(URI_ENV), getenv(TOKEN_ENV))
             {
             }
-            Store2(const string& uri, const string& token, PluginHost::IShell* service)
+            Store2(const string& uri, const string& token)
                 : IStore2()
                 , _uri(uri)
                 , _token(token)
-                , _service(service)
                 , _authorization((_uri.find("localhost") == string::npos) && (_uri.find("0.0.0.0") == string::npos))
             {
                 Open();
             }
-            ~Store2() override = default;
+
+            ~Store2() override
+            {
+                if (_service != nullptr) {
+                    _service->Release();
+                    _service = nullptr;
+                }
+            }
 
         private:
             void Open()
@@ -134,7 +141,10 @@ namespace Plugin {
                     TRACE(Trace::Information, (_T("Got IAuthService")));
 
                     WPEFramework::Exchange::IAuthService::GetServiceAccessTokenResult atRes;
-                    if (authservicePlugin->GetServiceAccessToken(atRes) == Core::ERROR_NONE)
+                    uint32_t res = authservicePlugin->GetServiceAccessToken(atRes);
+                    authservicePlugin->Release();
+
+                    if (res == Core::ERROR_NONE)
                         return atRes.token;
                 }
                 else 
@@ -377,8 +387,18 @@ namespace Plugin {
                 return result;
             }
 
+            virtual uint32_t Configure(PluginHost::IShell* service) override
+            {
+                ASSERT(service != nullptr);
+                _service = service;
+                _service->AddRef();
+
+                return Core::ERROR_NONE;
+            }
+
             BEGIN_INTERFACE_MAP(Store2)
             INTERFACE_ENTRY(IStore2)
+            INTERFACE_ENTRY(Exchange::IConfiguration)
             END_INTERFACE_MAP
 
         private:

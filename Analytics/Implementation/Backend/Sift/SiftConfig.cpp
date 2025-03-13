@@ -571,7 +571,6 @@ namespace WPEFramework
             mAuthservicePlugin = mShell->QueryInterfaceByCallsign<Exchange::IAuthService>("org.rdk.AuthService");
             if (mAuthservicePlugin)
             {
-                mAuthservicePlugin->AddRef();
                 LOGWARN("Got IAuthService");
 
                 mMonitorAuthService.RegisterActivationStatusCallback([this](const string &newActivationStatus){ 
