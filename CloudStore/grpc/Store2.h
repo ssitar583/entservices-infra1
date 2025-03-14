@@ -78,6 +78,7 @@ namespace Plugin {
                 : IStore2()
                 , _uri(uri)
                 , _token(token)
+                , _service(nullptr)
                 , _authorization((_uri.find("localhost") == string::npos) && (_uri.find("0.0.0.0") == string::npos))
             {
                 Open();
@@ -138,8 +139,6 @@ namespace Plugin {
                 // Get actual token, as it may change at any time...
                 Exchange::IAuthService *authservicePlugin = _service->QueryInterfaceByCallsign<Exchange::IAuthService>("org.rdk.AuthService");
                 if (authservicePlugin != nullptr) {
-                    TRACE(Trace::Information, (_T("Got IAuthService")));
-
                     WPEFramework::Exchange::IAuthService::GetServiceAccessTokenResult atRes;
                     uint32_t res = authservicePlugin->GetServiceAccessToken(atRes);
                     authservicePlugin->Release();

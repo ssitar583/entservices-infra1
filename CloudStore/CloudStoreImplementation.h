@@ -88,7 +88,6 @@ namespace Plugin {
 
     private:
         IStore2* _accountStore2;
-        PluginHost::IShell* _service;
     };
 
 } // namespace Plugin
