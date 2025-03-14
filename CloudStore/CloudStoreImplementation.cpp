@@ -26,7 +26,7 @@ namespace Plugin {
     SERVICE_REGISTRATION(CloudStoreImplementation, 1, 0);
 
     CloudStoreImplementation::CloudStoreImplementation()
-        : _accountStore2(nullptr)
+        : _accountStore2(Core::Service<Grpc::Store2>::Create<Exchange::IStore2>())
     {
     }
 
@@ -40,7 +40,6 @@ namespace Plugin {
 
     uint32_t CloudStoreImplementation::Configure(PluginHost::IShell* service)
     {
-        _accountStore2 = Core::Service<Grpc::Store2>::Create<Exchange::IStore2>();
         ASSERT(_accountStore2 != nullptr);
 
         auto configConnection = _accountStore2->QueryInterface<Exchange::IConfiguration>();
