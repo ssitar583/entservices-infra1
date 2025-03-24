@@ -1,16 +1,11 @@
 name: auto trigger
 on:
-  push:
-    branches: [ develop, 'sprint/**', 'release/**', l2tets ]
-  pull_request:
-    branches: [ develop, 'sprint/**', 'release/**' ]
-
-env:
-  BUILD_TYPE: Debug
-  THUNDER_REF: "R4.4.1"
-  INTERFACES_REF: "main"
-  AUTOMATICS_UNAME: ${{ secrets.AUTOMATICS_UNAME}}
-  AUTOMATICS_PASSCODE: ${{ secrets. AUTOMATICS_PASSCODE}}
+  workflow_dispatch:
+    inputs:
+      pullRequestNumber:
+        description: 'Pull Request Number - DEVELOP BRANCH'
+        required: false
+        type: string
 
 jobs:
   trigger-verification:
