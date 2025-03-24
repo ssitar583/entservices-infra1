@@ -1,0 +1,43 @@
+name: L2-tests
+
+on:
+  push:
+    branches: [ develop, 'sprint/**', 'release/**', l2tets ]
+  pull_request:
+    branches: [ develop, 'sprint/**', 'release/**' ]
+
+env:
+  BUILD_TYPE: Debug
+  THUNDER_REF: "R4.4.1"
+  INTERFACES_REF: "main"
+  AUTOMATICS_UNAME: ${{ secrets.AUTOMATICS_UNAME}}
+  AUTOMATICS_PASSCODE: ${{ secrets. AUTOMATICS_PASSCODE}}
+
+jobs:
+  L2-tests:
+    name: Build and run L2 tests
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        compiler: [ gcc, clang ]
+        coverage: [ with-coverage, without-coverage ]
+        exclude:
+          - compiler: clang
+            coverage: with-coverage
+          - compiler: clang
+            coverage: without-coverage
+          - compiler: gcc
+            coverage: without-coverage
+
+    steps:
+      - name: Checkout entservices-infra
+        uses: actions/checkout@v3
+        with:
+          path: entservices-infra
+
+      - name: Checkout entservices-testframework
+        uses: actions/checkout@v3
+        with:
+          repository: rdkcentral/entservices-testframework
+          path: entservices-testframework
+          branch: develop
