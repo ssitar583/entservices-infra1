@@ -1,12 +1,9 @@
 name: auto trigger1
 on:
-  workflow_dispatch:
-    inputs:
-      pullRequestNumber:
-        description: 'Pull Request Number - DEVELOP BRANCH'
-        required: false
-        type: string
-
+  push:
+    branches: [ main, 'sprint/**', 'release/**', l2tets ]
+  pull_request:
+    branches: [ main, 'sprint/**', 'release/**' ]
 jobs:
   trigger-verification:
     uses: rdkcentral/entservices-deviceanddisplay/.github/workflows/json_validator.yml@l2test
