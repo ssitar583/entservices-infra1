@@ -1,4 +1,4 @@
-name: auto trigger
+name: auto trigger1
 on:
   workflow_dispatch:
     inputs:
