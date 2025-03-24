@@ -40,4 +40,4 @@ jobs:
         with:
           repository: rdkcentral/entservices-testframework
           path: entservices-testframework
-          ref: develop
+          ref: e610795798d37aa3f80d3d34ecbec5f4e051140f
