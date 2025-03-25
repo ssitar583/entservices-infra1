@@ -41,3 +41,4 @@ jobs:
           repository: rdkcentral/entservices-testframework
           path: entservices-testframework
           ref: e610795798d37aa3f80d3d34ecbec5f4e051140f
+          github_token: ${{ secrets.GH_TOKEN }}
