@@ -39,6 +39,5 @@ jobs:
         with:
           repository: rdkcentral/entservices-testframework
           path: entservices-testframework
-          branch: develop
           token : ${{ secrets.GH_TOKEN }}
      
