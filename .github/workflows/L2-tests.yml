@@ -2,7 +2,7 @@ name: L2-tests
 
 on:
   push:
-    branches: [ develop, 'sprint/**', 'release/**' ]
+    branches: [ develop, 'sprint/**', 'release/**' , test_token]
   pull_request:
     branches: [ develop, 'sprint/**', 'release/**' ]
 
