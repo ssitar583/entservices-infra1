@@ -396,6 +396,20 @@ void RDKWindowManagerImplementation::RdkWindowManagerListener::onUserInactive(co
     }
 }
 
+void RDKWindowManagerImplementation::RdkWindowManagerListener::onApplicationDisconnected(const std::string& client)
+{
+    LOGINFO("RDKWindowManager onApplicationDisconnected event received for client: %s", client.c_str());
+
+    if (nullptr == mRDKWindowManagerImpl)
+    {
+        LOGERR("mRDKWindowManagerImpl is null");
+    }
+    else
+    {
+        mRDKWindowManagerImpl->dispatchEvent(RDKWindowManagerImplementation::Event::RDK_WINDOW_MANAGER_EVENT_APPLICATION_DISCONNECTED, JsonValue(client));
+    }
+}
+
 void RDKWindowManagerImplementation::dispatchEvent(Event event, const JsonValue &params)
 {
     Core::IWorkerPool::Instance().Submit(Job::Create(this, event, params));
@@ -417,6 +431,16 @@ void RDKWindowManagerImplementation::Dispatch(Event event, const JsonValue param
                  ++index;
              }
          break;
+
+        case RDK_WINDOW_MANAGER_EVENT_APPLICATION_DISCONNECTED:
+            while (index != mRDKWindowManagerNotification.end())
+            {
+                LOGINFO("RDKWindowManager Dispatch OnDisconnected client: %s", params.String().c_str());
+
+                (*index)->OnDisconnected(params.String());
+                ++index;
+            }
+            break;
 
          default:
              LOGWARN("Event[%u] not handled", event);
