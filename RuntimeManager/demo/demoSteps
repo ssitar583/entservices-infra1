@@ -1,0 +1,9 @@
+1,Flash this image and reboot
+2,cd /opt/demo
+3,Run ./demoSetup.sh
+4,Run ./activateAIPlugins.sh
+5,Run ./launchApp.sh 
+5,See if youtube launches in screen
+7,Use remote to see if you can navigate?
+8,Run ./getLoadedApps.sh
+9,Run ./killApp.sh

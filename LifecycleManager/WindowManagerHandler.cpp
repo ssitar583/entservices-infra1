@@ -73,6 +73,7 @@ bool WindowManagerHandler::createDisplay(const string& appPath, const string& ap
     JsonObject displayParams;
     displayParams["client"] = runtimeAppId;
     displayParams["displayName"] = displayName;
+    displayParams["focus"] = true;
     string displayParamsString;
     displayParams.ToString(displayParamsString);
     Core::hresult createDisplayResult = mWindowManager->CreateDisplay(displayParamsString);
@@ -119,7 +120,7 @@ std::pair<std::string, std::string> WindowManagerHandler::generateDisplayName()
         name.first = "/tmp";
     }
 
-    std::ifstream f("/tmp/specchange");
+    std::ifstream f("/opt/demo/testspec");
     if (f.good())
     {
         name.second.assign("testdisplay");
