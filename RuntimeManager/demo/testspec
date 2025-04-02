@@ -1,0 +1,480 @@
+{
+    "version":"1.0",
+    "memLimit": 524288000,
+    "hostname": "com.sky.as.appsb393f9ba-926b-4440-bdba-d797aa43f262",
+    "args": [                         
+        "/runtime/SkyBrowserLauncher"     
+    ],                     
+    "cwd": "/package",                                                             
+    "mounts": [
+      {
+        "destination" : "/etc/ssl/certs",
+        "options" : [ "bind", "ro", "nosuid", "nodev" ],
+        "source" : "/etc/ssl/certs",
+        "type" : "bind"
+      },
+        {                                                            
+            "source": "/opt/youtube/YouTube.T18IAl",
+            "destination": "/package",                               
+            "options": [                                             
+                "bind",                                              
+                "ro",                                                
+                "nosuid",                                            
+                "nodev"                                              
+            ],                                                                         
+            "type": "bind"                                           
+        },                                                           
+        {                                                            
+            "source": "/opt/youtube/com.sky.cobalt.Hn7UUm",
+            "destination": "/runtime",                     
+            "options": [                                   
+                "bind",                                    
+                "ro",                                      
+                "nosuid",                                  
+                "nodev"                                    
+            ],                                             
+            "type": "bind"                                 
+        },                                              
+    {
+      "destination" : "/home/private",
+      "fstype" : "ext4",
+       "options" : [ "nosuid", "nodev", "noexec" ],
+       "source" : "/media/apps/sky/packages/YouTube/data.img",
+       "type" : "loop"
+     },
+        {
+            "source": "/opt/drm/ffffffff00000001.key",
+            "destination": "/opt/drm/ffffffff00000001.key",
+            "options": [
+                "bind",
+                "ro",
+                "nosuid",
+                "nodev",
+                "noexec"
+            ],
+            "type": "bind"
+        },
+        {
+            "source": "/opt/drm/ffffffff00000001.sha",
+            "destination": "/opt/drm/ffffffff00000001.sha",
+            "options": [
+                "bind",
+                "ro",
+                "nosuid",
+                "nodev",
+                "noexec"
+            ],
+            "type": "bind"
+        },
+        {
+            "source": "/opt/drm/ffffffff00000001.keyinfo",
+            "destination": "/opt/drm/ffffffff00000001.keyinfo",
+            "options": [
+                "bind",
+                "ro",
+                "nosuid",
+                "nodev",
+                "noexec"
+            ],
+            "type": "bind"
+        },
+        {
+            "source": "/opt/drm/ffffffff00000002.bin",
+            "destination": "/opt/drm/ffffffff00000002.bin",
+            "options": [
+                "bind",
+                "ro",
+                "nosuid",
+                "nodev",
+                "noexec"
+            ],
+            "type": "bind"
+        },
+        {
+            "source": "/opt/drm/ffffffff00000002.sha",
+            "destination": "/opt/drm/ffffffff00000002.sha",
+            "options": [
+                "bind",
+                "ro",
+                "nosuid",
+                "nodev",
+                "noexec"
+            ],
+            "type": "bind"
+        },
+        {
+            "source": "/opt/drm/ffffffff00000004.bin",
+            "destination": "/opt/drm/ffffffff00000004.bin",
+            "options": [
+                "bind",
+                "ro",
+                "nosuid",
+                "nodev",
+                "noexec"
+            ],
+            "type": "bind"
+        },
+        {
+            "source": "/opt/drm/ffffffff00000004.sha",
+            "destination": "/opt/drm/ffffffff00000004.sha",
+            "options": [
+                "bind",
+                "ro",
+                "nosuid",
+                "nodev",
+                "noexec"
+            ],
+            "type": "bind"
+        },
+        {
+            "source": "/opt/drm/ffffffff00000006.bin",
+            "destination": "/opt/drm/ffffffff00000006.bin",
+            "options": [
+                "bind",
+                "ro",
+                "nosuid",
+                "nodev",
+                "noexec"
+            ],
+            "type": "bind"
+        },
+        {
+            "source": "/opt/drm/ffffffff00000006.sha",
+            "destination": "/opt/drm/ffffffff00000006.sha",
+            "options": [
+                "bind",
+                "ro",
+                "nosuid",
+                "nodev",
+                "noexec"
+            ],
+            "type": "bind"
+        },
+        {
+            "source": "/opt/drm/ffffffff00000007.bin",
+            "destination": "/opt/drm/ffffffff00000007.bin",
+            "options": [
+                "bind",
+                "ro",
+                "nosuid",
+                "nodev",
+                "noexec"
+            ],
+            "type": "bind"
+        },
+        {
+            "source": "/opt/drm/ffffffff00000008.bin",
+            "destination": "/opt/drm/ffffffff00000008.bin",
+            "options": [
+                "bind",
+                "ro",
+                "nosuid",
+                "nodev",
+                "noexec"
+            ],
+            "type": "bind"
+        },
+        {
+            "source": "/opt/drm/ffffffff00000009.key",
+            "destination": "/opt/drm/ffffffff00000009.key",
+            "options": [
+                "bind",
+                "ro",
+                "nosuid",
+                "nodev",
+                "noexec"
+            ],
+            "type": "bind"
+        },
+        {
+            "source": "/opt/drm/ffffffff00000009.sha",
+            "destination": "/opt/drm/ffffffff00000009.sha",
+            "options": [
+                "bind",
+                "ro",
+                "nosuid",
+                "nodev",
+                "noexec"
+            ],
+            "type": "bind"
+        },
+        {
+            "source": "/opt/drm/ffffffff00000009.keyinfo",
+            "destination": "/opt/drm/ffffffff00000009.keyinfo",
+            "options": [
+                "bind",
+                "ro",
+                "nosuid",
+                "nodev",
+                "noexec"
+            ],
+            "type": "bind"
+        },
+        {
+            "source": "/opt/drm/ffffffff0000000a.sha",
+            "destination": "/opt/drm/ffffffff0000000a.sha",
+            "options": [
+                "bind",
+                "ro",
+                "nosuid",
+                "nodev",
+                "noexec"
+            ],
+            "type": "bind"
+        },
+        {
+            "source": "/opt/drm/ffffffff0000000a.bin",
+            "destination": "/opt/drm/ffffffff0000000a.bin",
+            "options": [
+                "bind",
+                "ro",
+                "nosuid",
+                "nodev",
+                "noexec"
+            ],
+            "type": "bind"
+        },
+        {
+            "source": "/opt/drm/0381000003810001.key",
+            "destination": "/opt/drm/0381000003810001.key",
+            "options": [
+                "bind",
+                "ro",
+                "nosuid",
+                "nodev",
+                "noexec"
+            ],
+            "type": "bind"
+        },
+        {
+            "source": "/opt/drm/0381000003810001.keyinfo",
+            "destination": "/opt/drm/0381000003810001.keyinfo",
+            "options": [
+                "bind",
+                "ro",
+                "nosuid",
+                "nodev",
+                "noexec"
+            ],
+            "type": "bind"
+        },
+        {
+            "source": "/opt/drm/0381000003810001.sha",
+            "destination": "/opt/drm/0381000003810001.sha",
+            "options": [
+                "bind",
+                "ro",
+                "nosuid",
+                "nodev",
+                "noexec"
+            ],
+            "type": "bind"
+        },
+        {
+            "source": "/opt/drm/0381000003810002.key",
+            "destination": "/opt/drm/0381000003810002.key",
+            "options": [
+                "bind",
+                "ro",
+                "nosuid",
+                "nodev",
+                "noexec"
+            ],
+            "type": "bind"
+        },
+        {
+            "source": "/opt/drm/0381000003810002.keyinfo",
+            "destination": "/opt/drm/0381000003810002.keyinfo",
+            "options": [
+                "bind",
+                "ro",
+                "nosuid",
+                "nodev",
+                "noexec"
+            ],
+            "type": "bind"
+        },
+        {
+            "source": "/opt/drm/0381000003810003.key",
+            "destination": "/opt/drm/0381000003810003.key",
+            "options": [
+                "bind",
+                "ro",
+                "nosuid",
+                "nodev",
+                "noexec"
+            ],
+            "type": "bind"
+        },
+        {
+            "source": "/opt/drm/0381000003810003.keyinfo",
+            "destination": "/opt/drm/0381000003810003.keyinfo",
+            "options": [
+                "bind",
+                "ro",
+                "nosuid",
+                "nodev",
+                "noexec"
+            ],
+            "type": "bind"
+        },
+        {
+            "source": "/opt/drm/0681000006810001.bin",
+            "destination": "/opt/drm/0681000006810001.bin",
+            "options": [
+                "bind",
+                "ro",
+                "nosuid",
+                "nodev",
+                "noexec"
+            ],
+            "type": "bind"
+        },
+        {
+            "source": "tmpfs",
+            "destination": "/opt/drm/vault",
+            "options": [
+                "nosuid",
+                "nodev",
+                "noexec",
+                "size=65536k",
+                "nr_inodes=8k"
+            ],
+            "type": "tmpfs"
+        },
+        {                             
+            "source": "/tmp/testdisplay",
+            "destination": "/tmp/westeros",
+            "options": [
+                "bind",
+                "nosuid",   
+                "noexec",
+                "nodev",                               
+                "rw"     
+            ],                            
+            "type": "bind"
+        }
+    ],
+    "root": {
+        "path": "rootfs",
+        "readonly": true
+    },
+    "terminal": true,
+        "env": [
+            "TZ=America/New_York",
+            "APPLICATION_NAME=YouTube",  
+            "APPLICATION_LAUNCH_PARAMETERS=eyJHV19JUCI6IiIsImFyZ3MiOnt9LCJjb250ZXh0Ijp7InNvdXJjZSI6ImFwcHMtcmFpbC1sYXVuY2gifSwib3JpZ2luIjoiRVBHIn0=",
+            "APPLICATION_LAUNCH_METHOD=EPG",                                                                                        
+            "APPLICATION_TOKEN=1330f125-e806-4b1e-8ad8-35539b4fa13b",                                                               
+            "DEVICE_FRIENDLYNAME=Living Room",                                                                                      
+            "DEVICE_MODEL_NUM=ELTE11MWR",                                                                                           
+            "PARTNER_ID=xglobal",                                                                                                   
+            "REGION=USA",                                                                                                           
+            "LANG=en_US",                                                                                                           
+            "XDG_RUNTIME_DIR=/tmp",
+            "WAYLAND_DISPLAY=westeros",
+            "WESTEROS_SINK_VIRTUAL_WIDTH=1920",                                                                                     
+            "WESTEROS_SINK_VIRTUAL_HEIGHT=1080",                                                                                    
+            "QT_WAYLAND_CLIENT_BUFFER_INTEGRATION=wayland-egl",                                                                     
+            "QT_WAYLAND_SHELL_INTEGRATION=wl-simple-shell",          
+            "QT_WAYLAND_INPUTDEVICE_INTEGRATION=skyq-input",         
+            "QT_QPA_PLATFORM=wayland-sky-rdk",                 
+            "WESTEROS_SINK_AMLOGIC_USE_DMABUF=1",              
+            "WESTEROS_GL_USE_AMLOGIC_AVSYNC=1",                
+            "WESTEROS_SINK_USE_FREERUN=1",                     
+            "WESTEROS_GL_MODE=3840x2160x60",                   
+            "WESTEROS_GL_GRAPHICS_MAX_SIZE=1920x1080",         
+            "WESTEROS_GL_USE_REFRESH_LOCK=1",                                          
+            "ESSRMGR_APPID=YouTube",                           
+            "CLIENT_IDENTIFIER=YouTube",                                                                                            
+            "WESTEROS_SINK_USE_ESSRMGR=1",                                                                                          
+            "APPLICATION_DIAL_NAME=YouTube",                                                                                        
+            "ADDITIONAL_DATA_URL=http%3A%2F%2F127.0.0.1%3A8009%2F954de18a-af3a-4502-9e63-cfaf1655c1a5%2FYouTube%2Fdial_data",       
+            "DIAL_USN=uuid:sky-dial-server-a84a631e48a4::urn:dial-multiscreen-org:service:dial:1",                                  
+            "ETHAN_LOGGING_PIPE=3",                                                                                                 
+            "BREAKPAD_FD=4"                                                                                                 
+        ],
+"etc" :
+{
+  "hosts" : [ "127.0.0.1\tlocalhost" ],
+  "ld-preload" : [],
+  "services" :
+  [
+    "ftp\t\t21/tcp",
+    "domain\t\t53/tcp",
+    "domain\t\t53/udp",
+    "http\t\t80/tcp\t\twww",
+    "http\t\t80/udp",
+    "ntp\t\t123/udp",
+    "https\t\t443/tcp",
+    "https\t\t443/udp"
+  ]
+},
+        "gpu":{
+            "enable":true,
+            "memLimit": 367001600 
+        }, 
+        "vpu":{
+            "enable":true
+        }, 
+        "console": {
+            "path": "/tmp/container.log",
+            "limit": 1048576
+        },
+        "cpu" :
+        {    
+            "cores" : "1,2,3"
+        },
+        "network": "nat",
+        "user": {
+            "uid": 30490,
+            "gid": 30000
+        },
+"rdkPlugins" :
+{
+  "appservicesrdk" :
+  {
+    "data" :
+    {
+      "additionalPorts" : [ 8009 ],
+      "setMenu" : "local-services-2"
+    },
+    "dependsOn" : [ "networking" ]
+  },
+  "ionmemory" :
+  {
+    "data" :
+    {
+      "defaultLimit" : 268435456,
+      "heaps" : []
+    }
+  },
+  "minidump" :
+  {
+    "data" :
+    {
+      "destinationPath" : "/opt/secure/minidumps"
+    },
+    "required" : false
+  },
+  "networking" :
+  {
+    "data" :
+    {
+      "dnsmasq" : true,
+      "ipv4" : true,
+      "ipv6" : true,
+      "type" : "nat"
+    },
+    "required" : true
+  },
+  "thunder" :
+  {
+    "data" :
+    {
+      "bearerUrl" : "http://local-services-2.sky.com"
+    },
+    "dependsOn" : [ "networking" ]
+  }
+}
+}
