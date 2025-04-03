@@ -1,0 +1,16 @@
+{
+  "$schema": "plugin.schema.json",
+  "info": {
+    "title": "PackageManager Plugin",
+    "callsign": "PackageManager",
+    "locator": "libThunderPackageManager.so",
+    "status": "alpha",
+    "description": [
+      "The PackageManager plugin allows installation of packages to the system from a remote repository."
+    ],
+    "version": "1.0"
+  },
+  "interface": {
+    "$ref": "{interfacedir}/PackageManager.json"
+  }
+}
