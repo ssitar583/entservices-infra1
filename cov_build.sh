@@ -213,6 +213,7 @@ cmake -G Ninja -S entservices-infra -B build/entservices-infra \
                       -include ${PWD}/entservices-testframework/Tests/mocks/pkg.h \
                       -include ${PWD}/entservices-testframework/Tests/mocks/maintenanceMGR.h \
                       -include ${PWD}/entservices-testframework/Tests/mocks/secure_wrappermock.h \
+                      -include ${PWD}/entservices-testframework/Tests/mocks/libusb.h \
                       --coverage -Wall -Werror -Wno-error=format \
                       -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog \
                       -DENABLE_TELEMETRY_LOGGING -DUSE_IARMBUS \
