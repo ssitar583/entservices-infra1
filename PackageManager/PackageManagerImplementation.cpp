@@ -113,7 +113,7 @@ namespace Plugin {
         LOGINFO("ConfigLine=%s", service->ConfigLine().c_str());
         PackageManagerImplementation::Configuration config;
         config.FromString(service->ConfigLine());
-        config.downloadDir.ToString(downloadDir);
+        downloadDir = config.downloadDir;
         LOGINFO("downloadDir=%s", downloadDir.c_str());
 
         return result;
