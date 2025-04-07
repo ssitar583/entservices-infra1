@@ -128,8 +128,11 @@ mkdir -p headers/audiocapturemgr
 mkdir -p headers/rdk/ds
 mkdir -p headers/rdk/iarmbus
 mkdir -p headers/rdk/iarmmgrs-hal
+mkdir -p headers/rdk/halif
+mkdir -p headers/rdk/halif/deepsleep-manager
 mkdir -p headers/ccec/drivers
 mkdir -p headers/network
+mkdir -p headers/proc
 echo "dir created successfully"
 echo "======================================================================================"
 
@@ -167,6 +170,7 @@ touch rdk/iarmmgrs-hal/sysMgr.h
 touch network/wifiSrvMgrIarmIf.h
 touch network/netsrvmgrIarm.h
 touch libudev.h
+touch libusb.h
 touch rfcapi.h
 touch rbus.h
 touch telemetry_busmessage_sender.h
