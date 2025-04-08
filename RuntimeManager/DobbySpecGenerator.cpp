@@ -22,6 +22,8 @@
 #include "UtilsLogging.h"
 #include <sys/mount.h>
 #include <fstream>
+#include <sstream>
+#include <bitset>
 
 namespace WPEFramework
 {
@@ -31,11 +33,11 @@ namespace Plugin
 namespace 
 {
     const std::string WESTEROS_SOCKET_MOUNT_POINT = "/tmp/westeros";
-    const std::string APPS_PATH_MOUNT_POINT = "/package";
     const std::string RUNTIME_PATH_MOUNT_POINT = "/runtime";
 
-    const int DEFAULT_MEM_LIMIT = 41943040;
-    const int GPU_MEM_LIMIT = 367001600;
+    const int NONHOMEAPP_MEM_LIMIT = 524288000;
+    const int NONHOMEAPP_GPUMEM_LIMIT = 367001600;
+
     const size_t CONTAINER_LOG_CAP = 65536;
 }
 
@@ -49,7 +51,7 @@ DobbySpecGenerator::~DobbySpecGenerator()
     LOGINFO("~DobbySpecGenerator()");
 }
 
-bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, string& resultSpec)
+bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig, string& resultSpec)
 {
     LOGINFO("DobbySpecGenerator::generate()");
     resultSpec = "";
@@ -70,42 +72,65 @@ bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, string
    
     Json::Value spec;
     spec["version"] = "1.1";
-    spec["cwd"] = APPS_PATH_MOUNT_POINT;
+    spec["memLimit"] = getSysMemoryLimit(config);
 
-    {
-        Json::Value args(Json::arrayValue);
-        for (const string& arg : config.mArgs)
-            args.append(arg);
-        spec["args"] = std::move(args);
-    }
-    
-    {
-        Json::Value consoleObj;
-        consoleObj["limit"] = CONTAINER_LOG_CAP;
-        consoleObj["path"] = "/tmp/container.log";
-        spec["console"] = std::move(consoleObj);
-    }
-
-    {
-        Json::Value user;
-        user["uid"] = config.mUserId;
-        user["gid"] = config.mGroupId;
-        spec["user"] = std::move(user);
-    }
-
+    Json::Value args(Json::arrayValue);
+    args.append(runtimeConfig.command);
+    //TODO : What if more args?
+    /*
+    for (const string& arg : config.mArgs)
+        args.append(arg);
+    */
+    spec["args"] = std::move(args);
+    spec["cwd"] = runtimeConfig.appPath;
     // if app uses graphics enable gpu and gpu mem limit
     if (shouldEnableGpu(config))
     {
         Json::Value gpuObj(Json::objectValue);
         gpuObj["enable"] = true;
-        gpuObj["memLimit"] = GPU_MEM_LIMIT;
+        gpuObj["memLimit"] = getGPUMemoryLimit();
         spec["gpu"] = std::move(gpuObj);
     }
+    spec["restartOnCrash"] = false;
 
-    spec["memLimit"] = getSysMemoryLimit(config);
-    spec["env"] = createEnvVars(config);
-    spec["mounts"] = createMounts(config);
-    spec["rdkPlugins"] = creteRdkPlugins(config);
+    Json::Value vpuObj;
+    vpuObj["enable"] = getVpuEnabled();
+    spec["vpu"] = std::move(vpuObj);
+    
+    Json::Value cpuObj;
+    cpuObj["cores"] = getCpuCores();
+    spec["cpu"] = std::move(cpuObj);
+
+    Json::Value consoleObj;
+    //TODO: limit, path properties are retrieved from app package and need to be populated here
+    consoleObj["limit"] = CONTAINER_LOG_CAP;
+    consoleObj["path"] = "/tmp/container.log";
+    spec["console"] = std::move(consoleObj);
+
+    Json::Value etcObj;
+    Json::Value hostsArray(Json::arrayValue);
+    Json::Value servicesArray(Json::arrayValue);
+    // always add a local host entry
+    hostsArray.append("127.0.0.1\tlocalhost");
+
+    // add some common services for the app
+    servicesArray.append("ftp\t\t21/tcp");
+    servicesArray.append("domain\t\t53/tcp");
+    servicesArray.append("domain\t\t53/udp");
+    servicesArray.append("http\t\t80/tcp\t\twww");
+    servicesArray.append("http\t\t80/udp");
+    servicesArray.append("ntp\t\t123/udp");
+    servicesArray.append("https\t\t443/tcp");
+    servicesArray.append("https\t\t443/udp");
+    //TODO Read for mapi capability from package and populate below for every mapi ports
+    //servicesArray.append("mapi\t\t" + std::to_string(port) + "/tcp");
+
+    //TODO: Based on soc and if broadcom, populate wayland-client and wayland-egl
+    Json::Value preloadsArray(Json::arrayValue);
+    etcObj["hosts"] = hostsArray;
+    etcObj["services"] = servicesArray;
+    etcObj["ld-preload"] = preloadsArray;
+    spec["etc"] = std::move(etcObj);
 
     // TODO: verify if we need EthanLog plugin, it seems it works in conjunction with AI 1.0
     // standard plugins are EthanLog and OCDM, OCDM is enabled if an app does not user rialto nad requires drm
@@ -113,7 +138,28 @@ bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, string
 
     // TODO: network field should not be needed, in dobby it just forces adding network plugin
     // verify, if we can safely remove it, as we always add network plugin
-    spec["network"] = "nat";
+    if (runtimeConfig.wanLanAccess)
+    {
+        spec["network"] = "nat";
+    }
+    else
+    {
+        spec["network"] = "private";
+    }
+    Json::Value userObj;
+    userObj["uid"] = config.mUserId;
+    userObj["gid"] = config.mGroupId;
+    spec["user"] = std::move(userObj);
+
+    // PENDING BELOW
+    // populate plugins
+    // populate rdkPlugins   
+    // populate mounts   
+    // populate env
+    spec["rdkPlugins"] = creteRdkPlugins(config);
+    spec["plugins"] = creteRdkPlugins(config);
+    spec["mounts"] = createMounts(config);
+    spec["env"] = createEnvVars(config);
 
     Json::FastWriter writer;
     resultSpec = writer.write(spec);
@@ -139,18 +185,18 @@ Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& co
     return env;
 }
 
-Json::Value DobbySpecGenerator::createMounts(const ApplicationConfiguration& config) const
+Json::Value DobbySpecGenerator::createMounts(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const
 {
     Json::Value mounts(Json::arrayValue);
 
     if (!config.mAppPath.empty())
     {
-        mounts.append(createBindMount(config.mAppPath, APPS_PATH_MOUNT_POINT, MS_BIND | MS_RDONLY | MS_NOSUID | MS_NODEV));
+        mounts.append(createBindMount(config.mAppPath, runtimeConfig.appPath, MS_BIND | MS_RDONLY | MS_NOSUID | MS_NODEV));
     }
 
     if (!config.mRuntimePath.empty())
     {
-        mounts.append(createBindMount(config.mRuntimePath, RUNTIME_PATH_MOUNT_POINT, MS_BIND | MS_RDONLY | MS_NOSUID | MS_NODEV));
+        mounts.append(createBindMount(config.mRuntimePath, runtimeConfig.runtimePath, MS_BIND | MS_RDONLY | MS_NOSUID | MS_NODEV));
     }
 
     // this is not needed, Dobby adds this mount
@@ -223,10 +269,75 @@ bool DobbySpecGenerator::shouldEnableGpu(const ApplicationConfiguration& config)
     return !config.mWesterosSocketPath.empty();
 }
 
-ssize_t DobbySpecGenerator::getSysMemoryLimit(const ApplicationConfiguration& /*config*/) const
+ssize_t DobbySpecGenerator::getSysMemoryLimit(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const
 {
-    // TODO mem limit should depend on application type
-    return DEFAULT_MEM_LIMIT;
+    ssize_t memoryLimit = runtimeConfig.systemMemoryLimit;
+    if (memoryLimit <= 0)
+    {
+        if (runtimeConfig.appType == ApplicationType::INTERACTIVE)
+	{
+            memoryLimit = NONHOMEAPP_MEM_LIMIT;  
+        }
+        //TODO: Add other application types
+    }
+    return memoryLimit;
+}
+
+ssize_t DobbySpecGenerator::getGPUMemoryLimit(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const
+{
+    ssize_t gpuMemoryLimit = runtimeConfig.gpuMemoryLimit;
+    if (gpuMemoryLimit <= 0)
+    {
+        if (runtimeConfig.appType == ApplicationType::INTERACTIVE)
+	{
+            gpuMemoryLimit = NONHOMEAPP_GPUMEM_LIMIT;
+        }
+        //TODO: Add other application types
+    }
+    return gpuMemoryLimit;
+}
+
+bool DobbySpecGenerator::getVpuEnabled(const ApplicationConfiguration& config) const
+{
+    //TODO: To return true, if below conditions are met:
+    // check if app is not system app
+    // rialto is not enabled
+    // vpus blacklist is not having app
+    
+    return true;
+}
+
+std::string DobbySpecGenerator::getCpuCores()
+{
+    //TODO: Populate cpu bitmask from config (aisettings.json)
+    
+    //std::bitset<32> cpuSetBitmask = mConfig->getAppsCpuSet();
+    //cpuSetBitmask &= ((0x1U << nCores) - 1);
+
+    // check the bitmask so that we have at least one core enabled
+    //if (cpuSetBitmask.none())
+    //{
+    //    cpuSetBitmask = ((0x1U << nCores) - 1);
+    //}
+
+    std::bitset<32> cpuSetBitmask = ((0x1U << nCores) - 1);
+    const int nCores = std::min(32, get_nprocs());
+    // create the json string for the cores to enable
+    std::ostringstream coresStream;
+    for (int core = 0; core < nCores; core++)
+    {
+        if (cpuSetBitmask.test(core))
+        {
+            coresStream << core << ",";
+        }
+    }
+
+    // get the string and remove trailing ','
+    std::string coresStr = coresStream.str();
+    if (!coresStr.empty())
+        coresStr.pop_back();
+
+    return coreStr;
 }
 
 Json::Value DobbySpecGenerator::creteRdkPlugins(const ApplicationConfiguration& config) const
