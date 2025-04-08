@@ -74,6 +74,7 @@ bool WindowManagerHandler::createDisplay(const string& appPath, const string& ap
     displayParams["client"] = runtimeAppId;
     displayParams["displayName"] = displayName;
     displayParams["focus"] = true;
+    displayParams["ownerId"] = 30490;
     string displayParamsString;
     displayParams.ToString(displayParamsString);
     Core::hresult createDisplayResult = mWindowManager->CreateDisplay(displayParamsString);
