@@ -650,7 +650,7 @@ err_ret:
             return status;
         }
 
-        bool RuntimeManagerImplementation::generate(const ApplicationConfiguration& /*config*/, std::string& dobbySpec)
+        bool RuntimeManagerImplementation::generate(const ApplicationConfiguration& *config, RuntimeConfig& runtimeConfig, std::string& dobbySpec)
         {
             ApplicationConfiguration testConfig;
             testConfig.mArgs = {"sleep", "600"};
@@ -659,7 +659,7 @@ err_ret:
             testConfig.mGroupId = 1000;
         
             DobbySpecGenerator generator;
-            generator.generate(testConfig, dobbySpec);
+            generator.generate(testConfig, runtimeConfig, dobbySpec);
 
             return true;
         }
@@ -698,14 +698,20 @@ err_ret:
             std::string dobbySpec;
             AppStorageInfo appStorageInfo;
 
+            //PENDING - This needs to be populated via argument
+            RuntimeConfig runtimeConfig;
+
             /* Below code to be enabled once dobbySpec generator ticket is ready */
             ApplicationConfiguration config;
             config.mAppId = appId;
             config.mAppInstanceId = appInstanceId;
             config.mAppPath = {appPath};
             config.mRuntimePath = runtimePath;
-            config.mUserId = userId;
-            config.mGroupId = groupId;
+            //TODO Generate userid and groupid
+            //config.mUserId = userId;
+            //config.mGroupId = groupId;
+            config.mUserId = 30490;
+            config.mGroupId = 30000;
 
             if (envVars)
             {
@@ -790,7 +796,7 @@ err_ret:
                 status = Core::ERROR_GENERAL;
             }
             /* Generate dobbySpec */
-            else if (false == RuntimeManagerImplementation::generate(config, dobbySpec))
+            else if (false == RuntimeManagerImplementation::generate(config, runtimeConfig, dobbySpec))
             {
                 LOGERR("Failed to generate dobbySpec");
                 status = Core::ERROR_GENERAL;

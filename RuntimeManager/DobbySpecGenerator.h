@@ -24,6 +24,7 @@
 // or just path (without quotation, if quotation disabled using path.SetQuoted(false))
 #include <json/json.h>
 #include "tracing/Logging.h"
+#include "RuntimeConfig.h"
 
 namespace WPEFramework
 {
@@ -38,11 +39,11 @@ namespace Plugin
             DobbySpecGenerator();
             virtual ~DobbySpecGenerator();
 
-            bool generate(const ApplicationConfiguration& config, string& outputJsonString);
+            bool generate(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig, string& outputJsonString);
 
         private:
             Json::Value createEnvVars(const ApplicationConfiguration& config) const;
-            Json::Value createMounts(const ApplicationConfiguration& config) const;
+            Json::Value createMounts(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
             Json::Value creteRdkPlugins(const ApplicationConfiguration& config) const;
             Json::Value createMinidumpPlugin(const ApplicationConfiguration& config) const;
             Json::Value createAppServiceSDKPlugin(const ApplicationConfiguration& config) const;
@@ -53,8 +54,15 @@ namespace Plugin
 
             bool shouldEnableGpu(const ApplicationConfiguration& config) const;
 
-            ssize_t getSysMemoryLimit(const ApplicationConfiguration& config) const;
-
+            ssize_t getSysMemoryLimit(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
+            ssize_t getGPUMemoryLimit(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
+            bool getVpuEnabled(const ApplicationConfiguration& config) const;
+	    std::string getCpuCores();
+            void populateClassicPlugins(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig, Json::Value& spec);
+            Json::Value createEthanLogPlugin(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
+            Json::Value createIonMemoryPlugin(bool enable) const;
+            Json::Value createThunderPlugin(bool enable, const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
+            Json::Value createOpenCDMPlugin(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
     };
 } /* namespace Plugin */
 } /* namespace WPEFramework */

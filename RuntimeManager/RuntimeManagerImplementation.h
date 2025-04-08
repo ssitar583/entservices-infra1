@@ -29,7 +29,7 @@
 #include <interfaces/IStorageManager.h>
 #include <condition_variable>
 #include "ApplicationConfiguration.h"
-
+#include "RuntimeConfig.h"
 
 namespace WPEFramework
 {
@@ -188,7 +188,7 @@ namespace WPEFramework
                 void releaseStorageManagerPluginObject();
                 void setRunningState(bool state);
                 bool getRunningState();
-                static bool generate(const ApplicationConfiguration& config, std::string& dobbySpec);
+                static bool generate(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig, std::string& dobbySpec);
                 Core::hresult handleContainerRequest(const std::string& appInstanceId, OCIRequestType type, ContainerRequestData& containerReqData);
                 void updateContainerInfo(OCIRequestType type, const std::string& appInstanceId, const OCIContainerRequest& request, ContainerRequestData& containerReqData);
                 void printContainerInfo();
