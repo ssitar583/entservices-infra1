@@ -459,11 +459,11 @@ Core::hresult AppManagerImplementation::LaunchApp(const string& appId , const st
     mAdminLock.Lock();
     if (nullptr != mLifecycleInterfaceConnector)
     {
-        status = packageLock(appId, packageData, lockReason);
-        if (status == Core::ERROR_NONE)
-        {
+        //status = packageLock(appId, packageData, lockReason);
+        //if (status == Core::ERROR_NONE)
+        //{
             status = mLifecycleInterfaceConnector->launch(appId, intent, launchArgs);
-        }
+        //}
     }
     mAdminLock.Unlock();
 
@@ -618,11 +618,11 @@ Core::hresult AppManagerImplementation::PreloadApp(const string& appId , const s
     mAdminLock.Lock();
     if (nullptr != mLifecycleInterfaceConnector)
     {
-        status = packageLock(appId, packageData, lockReason);
-        if (status == Core::ERROR_NONE)
-        {
+        //status = packageLock(appId, packageData, lockReason);
+        //if (status == Core::ERROR_NONE)
+        //{
             status = mLifecycleInterfaceConnector->preLoadApp(appId, launchArgs, error);
-        }
+        //}
     }
     mAdminLock.Unlock();
 
