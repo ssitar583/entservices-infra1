@@ -120,7 +120,7 @@ std::pair<std::string, std::string> WindowManagerHandler::generateDisplayName()
         name.first = "/tmp";
     }
 
-    std::ifstream f("/opt/demo/testspec");
+    std::ifstream f("/usr/bin/demo/testspec");
     if (f.good())
     {
         name.second.assign("testdisplay");
