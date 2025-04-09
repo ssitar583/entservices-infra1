@@ -246,7 +246,8 @@ namespace Plugin {
         NotifyInstallStatus(packageId, version, InstallState::INSTALLING);
 
         #ifdef USE_LIBPACKAGE
-        packageImpl->Install(packageId, version, fileLocator);
+        uint32_t rc = packageImpl->Install(packageId, version, fileLocator);
+        state = (rc == 0) ? InstallState::INSTALLED : InstallState::INSTALLATION_BLOCKED;     // XXX: INSTALLATION_FAILED ?!
         #endif
 
         NotifyInstallStatus(packageId, version, state);
@@ -367,18 +368,23 @@ namespace Plugin {
         LOGDBG("id: %s ver: %s reason=%d", packageId.c_str(), version.c_str(), lockReason);
 
         #ifdef USE_LIBPACKAGE
-        if(isLocked(packageId, version))  {
-            ++mLockCount;
+        bool locked = false;
+        string gatewayMetadataPath;
+        uint32_t rc = GetLockedInfo(packageId, version, unpackedPath, configMetadata, gatewayMetadataPath, locked);
+
+        if (locked)  {
+            lockId = ++mLockCount[packageId];
         } else {
             u_int32_t rc = packageImpl->Lock(packageId, version, unpackedPath);
             if (rc == 0) {
-                lockId = ++mLockCount;
-                LOGDBG("Locked id: %s ver: %s", packageId.c_str(), version.c_str());
+                lockId = ++mLockCount[packageId];
+                LOGDBG("Locked id: %s ver: %s path: %s", packageId.c_str(), version.c_str(), unpackedPath.c_str());
             } else {
                 LOGERR("Lock Failed id: %s ver: %s", packageId.c_str(), version.c_str());
             }
         }
         #endif
+        LOGDBG("id: %s ver: %s lock count:%d", packageId.c_str(), version.c_str(), mLockCount[packageId]);
 
         return result;
     }
@@ -389,14 +395,13 @@ namespace Plugin {
         LOGDBG("id: %s ver: %s", packageId.c_str(), version.c_str());
 
         #ifdef USE_LIBPACKAGE
-        if (mLockCount) {
+        if (--mLockCount[packageId] == 0) {
             packageImpl->Unlock(packageId, version);
-            --mLockCount;
         } else {
             LOGERR("Never Locked (mLockCount is 0) id: %s ver: %s", packageId.c_str(), version.c_str());
         }
-
         #endif
+        LOGDBG("id: %s ver: %s lock count:%d", packageId.c_str(), version.c_str(), mLockCount[packageId]);
 
         return result;
     }
