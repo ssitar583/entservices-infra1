@@ -1,9 +1,0 @@
-name: auto trigger1
-on:
-  push:
-    branches: [ main, 'sprint/**', 'release/**', develop ]
-  pull_request:
-    branches: [ main, 'sprint/**', 'release/**', develop ]
-jobs:
-  trigger-verification:
-    uses: rdkcentral/entservices-deviceanddisplay/.github/workflows/L2-tests.yml@l2tests
