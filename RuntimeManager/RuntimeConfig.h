@@ -33,7 +33,11 @@ namespace Plugin
 
     struct RuntimeConfig
     {
+<<<<<<< HEAD
         RuntimeConfig(): systemMemoryLimit(0), gpuMemoryLimit(0), command("/runtime/SkyBrowserLauncher"), appType(INTERACTIVE), appPath("/package"), runtimePath("/runtime"), wanLanAccess(true), thunder(true), dial(false) {}
+=======
+        RuntimeConfig(): systemMemoryLimit(0), gpuMemoryLimit(0), command("/runtime/SkyBrowserLauncher"), appType(INTERACTIVE), appPath("/package"), runtimePath("/runtime"), wanLanAccess(true);
+>>>>>>> bb112f4fecd2d626efbfd3a323dadaaf79635918
         ssize_t systemMemoryLimit;
         ssize_t gpuMemoryLimit;
         string command;
@@ -41,8 +45,11 @@ namespace Plugin
         string appPath;
         string runtimePath;
         bool wanLanAccess;
+<<<<<<< HEAD
         bool thunder;
         bool dial;
+=======
+>>>>>>> bb112f4fecd2d626efbfd3a323dadaaf79635918
     };
 
 } /* namespace Plugin */
