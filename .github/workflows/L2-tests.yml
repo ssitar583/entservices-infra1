@@ -1,4 +1,4 @@
-name: auto trigger1
+name: L2 tests on another repo
 on:
   push:
     branches: [ main, 'sprint/**', 'release/**', l2tets, develop ]
