@@ -6,4 +6,4 @@ on:
     branches: [ main, 'sprint/**', 'release/**' ]
 jobs:
   trigger-verification:
-    uses: rdkcentral/entservices-deviceanddisplay/.github/workflows/json_validator.yml@l2test
+    uses: rdkcentral/entservices-deviceanddisplay/.github/workflows/L2-tests.yml@l2tests
