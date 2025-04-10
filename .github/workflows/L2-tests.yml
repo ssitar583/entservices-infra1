@@ -6,11 +6,10 @@ on:
     branches: [ main, 'sprint/**', 'release/**', develop ]
 jobs:
   L2-tests:
-     uses: rdkcentral/entservices-testframework/.github/workflows/L2-tests.yml@l2tests
-     with:
-          repository: rdkcentral/entservices-testframework
-          path: entservices-testframework
-          ref: l2tests
-          token: ${{ secrets.RDKCM_RDKE }}
+     uses: rdkcentral/entservices-deviceanddisplay/.github/workflows/L2-tests.yml@l2tests
+     secrets:
+        RDKCM_RDKE: ${{ secrets.RDKCM_RDKE }}
+  L1-tests:
+     uses: rdkcentral/entservices-deviceanddisplay/.github/workflows/L1-tests.yml@l2tests
      secrets:
         RDKCM_RDKE: ${{ secrets.RDKCM_RDKE }}
