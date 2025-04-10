@@ -42,12 +42,12 @@ namespace Plugin
             bool generate(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig, string& outputJsonString);
 
         private:
-            Json::Value createEnvVars(const ApplicationConfiguration& config) const;
+            Json::Value createEnvVars(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
             Json::Value createMounts(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
-            Json::Value creteRdkPlugins(const ApplicationConfiguration& config) const;
-            Json::Value createMinidumpPlugin(const ApplicationConfiguration& config) const;
-            Json::Value createAppServiceSDKPlugin(const ApplicationConfiguration& config) const;
-            Json::Value createNetworkPlugin(const ApplicationConfiguration& config) const;
+            Json::Value createRdkPlugins(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
+            Json::Value createMinidumpPlugin() const;
+            Json::Value createAppServiceSDKPlugin(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
+            Json::Value createNetworkPlugin(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
             Json::Value createBindMount(const std::string &source,
                                         const std::string &destination,
                                         unsigned long options) const;
@@ -60,9 +60,16 @@ namespace Plugin
 	    std::string getCpuCores();
             void populateClassicPlugins(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig, Json::Value& spec);
             Json::Value createEthanLogPlugin(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
-            Json::Value createIonMemoryPlugin(bool enable) const;
-            Json::Value createThunderPlugin(bool enable, const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
+            Json::Value createIonMemoryPlugin() const;
+            Json::Value createThunderPlugin(const ApplicationConfiguration& config) const;
             Json::Value createOpenCDMPlugin(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
+            Json::Value createPrivateDataMount(RuntimeConfig& runtimeConfig) const;
+            Json::Value createFkpsMounts(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
+            Json::Value createTmpfsMount(const std::filesystem::path &mntDestination,
+                                 unsigned long mntOptions) const;
+            Json::Value mIonMemoryPluginData;
+	    std::string mPackageMountPoint;
+	    std::string mRuntimeMountPoint;
     };
 } /* namespace Plugin */
 } /* namespace WPEFramework */

@@ -24,6 +24,7 @@
 #include <fstream>
 #include <sstream>
 #include <bitset>
+#include <set>
 
 namespace WPEFramework
 {
@@ -37,13 +38,15 @@ namespace
 
     const int NONHOMEAPP_MEM_LIMIT = 524288000;
     const int NONHOMEAPP_GPUMEM_LIMIT = 367001600;
+    const int ION_DEFAULT_HEAP_QUOTA_LIMIT = 268435456;
 
     const size_t CONTAINER_LOG_CAP = 65536;
 }
 
-DobbySpecGenerator::DobbySpecGenerator()
+DobbySpecGenerator::DobbySpecGenerator(): mIonMemoryPluginData(Json::objectValue), mPackageMountPoint("/package"), mRuntimeMountPoint("/runtime")
 {
     LOGINFO("DobbySpecGenerator()");
+    initialiseIonHeapsJson();
 }
 
 DobbySpecGenerator::~DobbySpecGenerator()
@@ -152,14 +155,9 @@ bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, Runtim
     spec["user"] = std::move(userObj);
 
     spec["plugins"] = populateClassicPlugins(config, runtimeConfig);
-
-    // PENDING BELOW
-    // populate rdkPlugins   
-    // populate mounts   
-    // populate env
-    spec["rdkPlugins"] = creteRdkPlugins(config);
-    spec["mounts"] = createMounts(config);
-    spec["env"] = createEnvVars(config);
+    spec["rdkPlugins"] = createRdkPlugins(config, runtimeConfig);
+    spec["mounts"] = createMounts(config, runtimeConfig);
+    spec["env"] = createEnvVars(config, runtimeConfig);
 
     Json::FastWriter writer;
     resultSpec = writer.write(spec);
@@ -167,21 +165,83 @@ bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, Runtim
     return true;
 }
 
-Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& config) const
+Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const
 {
     Json::Value env(Json::arrayValue);
+    env.append(std::string("APPLICATION_NAME=") + config.mAppId.str());
     
-    for (const std::string& str : config.mEnvVars)
+//"APPLICATION_LAUNCH_PARAMETERS=eyJHV19JUCI6IiIsImFyZ3MiOnt9LCJjb250ZXh0Ijp7InNvdXJjZSI6ImFwcHMtcmFpbC1sYXVuY2gifSwib3JpZ2luIjoiRVBHIn0=",
+//"APPLICATION_LAUNCH_METHOD=EPG",
+//"APPLICATION_TOKEN=1ae0cc31-7d6e-4d2a-bf15-5522126c1b2e",
+//"DEVICE_FRIENDLYNAME=Living Room",
+//"DEVICE_MODEL_NUM=ELTE11MWR",
+//"PARTNER_ID=xglobal",
+//"REGION=USA",
+//"LANG=en_US",
+//"ADDITIONAL_DATA_URL=http%3A%2F%2F127.0.0.1%3A8009%2Fe6486224-8058-49c2-936b-4f5a87c45bb2%2FYouTube%2Fdial_data",
+//"DIAL_USN=uuid:sky-dial-server-a84a631e48a4::urn:dial-multiscreen-org:service:dial:1"
+
+    for (const std::string& str : runtimeConfig.envVariables)
     {
         env.append(str);
     }
 
     if (!config.mWesterosSocketPath.empty())
     {
-		env.append("XDG_RUNTIME_DIR=/tmp");
-		env.append("WAYLAND_DISPLAY=westeros");
-    }
+        env.append("XDG_RUNTIME_DIR=/tmp");
+        env.append("WAYLAND_DISPLAY=westeros");
+        env.append("WESTEROS_SINK_VIRTUAL_WIDTH=1920");
+        env.append("WESTEROS_SINK_VIRTUAL_HEIGHT=1080");
+        env.append("QT_WAYLAND_CLIENT_BUFFER_INTEGRATION=wayland-egl");
+        env.append("QT_WAYLAND_SHELL_INTEGRATION=wl-simple-shell");
+        env.append("QT_WAYLAND_INPUTDEVICE_INTEGRATION=skyq-input");
+        env.append("QT_QPA_PLATFORM=wayland-sky-rdk");
 
+        //TODO Find the place where it is populated from appsservice
+        env.append("WESTEROS_SINK_AMLOGIC_USE_DMABUF=1");
+        env.append("WESTEROS_GL_USE_AMLOGIC_AVSYNC=1");
+        env.append("WESTEROS_SINK_USE_FREERUN=1");
+        env.append("WESTEROS_GL_MODE=3840x2160x60");
+        env.append("WESTEROS_GL_GRAPHICS_MAX_SIZE=1920x1080");
+        env.append("WESTEROS_GL_USE_REFRESH_LOCK=1");
+    }
+    //TODO: If broadcom soc
+    //WESTEROS_VPC_BRIDGE=westeros
+    //TODO: This is true by default
+    if (runtimeConfig.resourceManagerClientEnabled)
+    {
+        env.append("ESSRMGR_APPID=" + config.mAppId.str());
+        env.append("CLIENT_IDENTIFIER=" + config.mAppId.str());
+        if (!config.mWesterosSocketPath.empty())
+        {
+            env.append("WESTEROS_SINK_USE_ESSRMGR=1");
+        }
+    }	     
+
+    if (runtimeConfig.dial)
+    {
+        std::string dialId = runtimeConfig.dialId;
+        if (dialId.empty())
+            dialId = config.mAppId.str();
+
+        env.append(std::string("APPLICATION_DIAL_NAME=") + dialId);
+        //TODO: Need dial config get from somewhere
+        //std::ostringstream dataUrlStream;
+        //dataUrlStream << "http://127.0.0.1:"
+        //              << mDialConfig->getDialServerPort() << '/'
+        //              << mDialConfig->getDialServerPathPrefix() << '/'
+        //              << dialId << '/'
+        //              << "dial_data";
+
+        //const std::string dataUrl = AICommon::encodeURL(dataUrlStream.str());
+        //env.append(std::string("ADDITIONAL_DATA_URL=") + dataUrl);
+
+        //env.append(std::string("DIAL_USN=") + mDialConfig->getDialUsn());
+	const std::string dataUrl("http%3A%2F%2F127.0.0.1%3A8009%2Fe6486224-8058-49c2-936b-4f5a87c45bb2%2FYouTube%2Fdial_data");
+	const std::string dialUsn("uuid:sky-dial-server-a84a631e48a4::urn:dial-multiscreen-org:service:dial:1");
+        env.append(std::string("ADDITIONAL_DATA_URL=") + dataUrl);
+        env.append(std::string("DIAL_USN=") + dialUsn);
+    }
     return env;
 }
 
@@ -189,14 +249,14 @@ Json::Value DobbySpecGenerator::createMounts(const ApplicationConfiguration& con
 {
     Json::Value mounts(Json::arrayValue);
 
-    if (!config.mAppPath.empty())
+    if (!runtimeConfig.appPath.empty())
     {
-        mounts.append(createBindMount(config.mAppPath, runtimeConfig.appPath, MS_BIND | MS_RDONLY | MS_NOSUID | MS_NODEV));
+        mounts.append(createBindMount(runtimeConfig.appPath, mPackageMountPoint, MS_BIND | MS_RDONLY | MS_NOSUID | MS_NODEV));
     }
 
-    if (!config.mRuntimePath.empty())
+    if (!runtimeConfig.runtimePath.empty())
     {
-        mounts.append(createBindMount(config.mRuntimePath, runtimeConfig.runtimePath, MS_BIND | MS_RDONLY | MS_NOSUID | MS_NODEV));
+        mounts.append(createBindMount(runtimeConfig.runtimePath, mRuntimeMountPoint, MS_BIND | MS_RDONLY | MS_NOSUID | MS_NODEV));
     }
 
     // this is not needed, Dobby adds this mount
@@ -206,7 +266,11 @@ Json::Value DobbySpecGenerator::createMounts(const ApplicationConfiguration& con
     // }
 
     // TODO add extra mounts from config
+    mounts.append(createBindMount("/etc/ssl/certs", "/etc/ssl/certs",
+                               (MS_BIND | MS_RDONLY | MS_NOSUID | MS_NODEV)));
 
+    mounts.append(createPrivateDataMount(runtimeConfig));
+    mounts.append(createFkpsMounts(config, runtimeConfig));
     return mounts;
 }
 
@@ -340,44 +404,44 @@ std::string DobbySpecGenerator::getCpuCores()
     return coreStr;
 }
 
-Json::Value DobbySpecGenerator::creteRdkPlugins(const ApplicationConfiguration& config) const
+Json::Value DobbySpecGenerator::createRdkPlugins(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const
 {
     Json::Value rdkPluginsObj(Json::objectValue);
-
-/*
-    // add ION memory limiting (ION memory is used for GPU and media buffers)
-    pluginsArray.append(createIonMemoryPlugin(true));
-
     //TODO: Appsservice plugin is not needed for sure?
-    
-    if (runtimeConfig.thunder)
-    {
-        pluginsArray.append(createThunderPlugin(true, config, runtimeConfig));
-    }
-
-    //TODO: Nat holepuncher, multicast socket plugin, credentialmanager plugin, httpproxy
-*/
     if (!config.mPorts.empty())
     {
-        rdkPluginsObj["appservicesrdk"] = createAppServiceSDKPlugin(config);
+        rdkPluginsObj["appservicesrdk"] = createAppServiceSDKPlugin(config, runtimeconfig);
     }
-
-    rdkPluginsObj["minidump"] = createMinidumpPlugin(config);
-
     // TODO create ionplugin on xione
+    rdkPluginsObj["ionmemory"] = createIonMemoryPlugin();
 
-    rdkPluginsObj["networking"] = createNetworkPlugin(config);
+    rdkPluginsObj["minidump"] = createMinidumpPlugin();
 
+
+    rdkPluginsObj["networking"] = createNetworkPlugin(config, runtimeConfig);
+    if (runtimeConfig.thunder)
+    {
+        rdkPluginsObj["thunder"] = createThunderPlugin(config);
+    }
+    //TODO: Nat holepuncher, multicast socket plugin, credentialmanager plugin, httpproxy
     return rdkPluginsObj;
 }
 
-Json::Value DobbySpecGenerator::createMinidumpPlugin(const ApplicationConfiguration& config) const
+Json::Value DobbySpecGenerator::createMinidumpPlugin() const
 {
     Json::Value pluginObj(Json::objectValue);
+    static const Json::StaticString minidumpPath("/opt/minidumps");
+    static const Json::StaticString minidumpSecurePath("/opt/secure/minidumps");
 
     pluginObj["required"] = false;
-    pluginObj["data"]["destinationPath"] = "/opt/minidumps";
-
+    if (access("/tmp/.SecureDumpDisable", R_OK) == 0)
+    {
+        pluginObj["data"]["destinationPath"] = minidumpPath;
+    }
+    else
+    {
+        pluginObj["data"]["destinationPath"] = minidumpSecurePath;
+    }
     return pluginObj;
 }
 
@@ -406,7 +470,7 @@ Json::Value DobbySpecGenerator::createAppServiceSDKPlugin(const ApplicationConfi
     return pluginObj;
 }
 
-Json::Value DobbySpecGenerator::createNetworkPlugin(const ApplicationConfiguration& config) const
+Json::Value DobbySpecGenerator::createNetworkPlugin(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const
 {
     Json::Value pluginObj(Json::objectValue);
 
@@ -414,7 +478,7 @@ Json::Value DobbySpecGenerator::createNetworkPlugin(const ApplicationConfigurati
 
     Json::Value dataObj(Json::objectValue);
 
-    if (config.mWanLanAccess)
+    if (runtimeConfig.wanLanAccess)
     {
         dataObj["type"] = "nat";
         dataObj["dnsmasq"] = true;
@@ -426,8 +490,35 @@ Json::Value DobbySpecGenerator::createNetworkPlugin(const ApplicationConfigurati
     }
 
     dataObj["ipv4"] = true;
-    dataObj["ipv6"] = false; // TODO need a switch for this
+    //TODO: Need to read config to enable ipv6 or not
+    dataObj["ipv6"] = false;
 
+    //TODO May or may not need these parameters
+    /*
+    // add NAT holepunch support if requested (only for non-html apps)
+    if (appPackage->hasCapability(IPackage::Capability::NatHolePunch) &&
+        isAllowedHolePunch(appPackage))
+    {
+        data["portForwarding"]["hostToContainer"] = createHolePunchArray(appPackage);
+    }
+
+    // add multicast forwarding - primarily used for netflix MDX
+    if (appPackage->hasCapability(IPackage::Capability::MulticastForward))
+    {
+        data["multicastForwarding"] = createMulticastGroupsArray(appPackage);
+    }
+
+    // add inter-container communication
+    if (appPackage->hasCapability(IPackage::Capability::LocalSocketServer) ||
+        appPackage->hasCapability(IPackage::Capability::LocalSocketClient))
+    {
+        Json::Value interContainerArray = createInterContainerArray(appPackage);
+        if (!interContainerArray.empty())
+        {
+            data[interContainer] = std::move(interContainerArray);
+        }
+    }
+    */
     pluginObj["data"] = std::move(dataObj);
 
     return pluginObj;
@@ -493,15 +584,31 @@ Json::Value DobbySpecGenerator::createEthanLogPlugin(const ApplicationConfigurat
     return plugin;
 }
 
-Json::Value DobbySpecGenerator::createIonMemoryPlugin(bool enable) const
+Json::Value DobbySpecGenerator::createIonMemoryPlugin() const
 {
     Json::Value plugin(Json::objectValue);
+    static const Json::StaticString data("data");
+    plugin[data] = mIonMemoryPluginData;
     return plugin;
 }
 
-Json::Value DobbySpecGenerator::createThunderPlugin(bool enable, const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const
+Json::Value DobbySpecGenerator::createThunderPlugin(const ApplicationConfiguration& config) const
 {
+    static const Json::StaticString dependsOn("dependsOn");
+    static const Json::StaticString bearerUrl("bearerUrl");
+    static const Json::StaticString data("data");
+    static const Json::StaticString localServices2("http://local-services-2.sky.com");
+    static const Json::StaticString localServices5("http://local-services-5.sky.com");
+
     Json::Value plugin(Json::objectValue);
+    Json::Value dependencies(Json::arrayValue);
+    dependencies.append("networking");
+    plugin[dependsOn] = std::move(dependencies);
+
+    //TODO: Check for localservices1,localservices2,localservices3,localservices4
+    //plugin[data][bearerUrl] = localServices5;
+    plugin[data][bearerUrl] = localServices2;
+
     return plugin;
 }
 
@@ -518,5 +625,209 @@ Json::Value DobbySpecGenerator::createOpenCDMPlugin(const ApplicationConfigurati
     return plugin;
 }
 
+void DobbySpecGenerator::initialiseIonHeapsJson()
+{
+    Json::Value heapsArray(Json::arrayValue);
+    //TODO: Get ion heap quotas and default heap quota
+    /*
+    for (const auto &heapQuota : mConfig->getIonHeapQuotas())
+    {
+        Json::Value heapObject(Json::objectValue);
+        heapObject["name"] = heapQuota.first;
+        heapObject["limit"] = heapQuota.second;
+
+        heapsArray.append(std::move(heapObject));
+    }
+
+    mIonMemoryPluginData["defaultLimit"] = mConfig->getIonHeapDefaultQuota();
+    */
+    mIonMemoryPluginData["defaultLimit"] = ION_DEFAULT_HEAP_QUOTA_LIMIT;
+    mIonMemoryPluginData["heaps"] = std::move(heapsArray);
+}
+
+Json::Value DobbySpecGenerator::createPrivateDataMount(RuntimeConfig& runtimeConfig) const
+{
+    static const Json::StaticString source("source");
+    static const Json::StaticString destination("destination");
+    static const Json::StaticString type("type");
+    static const Json::StaticString loop("loop");
+    static const Json::StaticString fstype("fstype");
+    static const Json::StaticString ext4("ext4");
+    static const Json::StaticString options("options");
+
+    static const Json::StaticString nosuid("nosuid");
+    static const Json::StaticString nodev("nodev");
+    static const Json::StaticString noexec("noexec");
+
+    Json::Value mount(Json::objectValue);
+    //TODO: Read data image from package manager from here
+    /*
+    const std::string sourcePath = package->privateDataImagePath();
+    */
+    const std::string sourcePath("/media/apps/sky/packages/YouTube/data.img");
+    if (sourcePath.empty())
+    {
+        return Json::nullValue;
+    }
+
+    mount[source] = sourcePath;
+    mount[destination] = "/home/private";
+    mount[type] = loop;
+    mount[fstype] = ext4;
+
+    Json::Value optionsArray(Json::arrayValue);
+    optionsArray.append(nosuid);
+    optionsArray.append(nodev);
+    optionsArray.append(noexec);
+    mount[options] = optionsArray;
+
+    return mount;
+}
+
+Json::Value DobbySpecGenerator::createFkpsMounts(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const
+{
+    Json::Value fkpsMounts(Json::arrayValue);
+
+    // TODO: get the list of fkps files from app config from package manager
+    // get the list of FKPS files to map, this comes from the apps config.xml
+    /*
+    std::optional<std::set<std::string>> fkpsFiles =
+        package->capabilityValueSet(packagemanager::IPackage::Capability::FkpsAccess);
+    */
+    std::optional<std::set<std::string>> fkpsFiles = {
+        "/opt/drm/ffffffff00000001.key",
+        "/opt/drm/ffffffff00000001.sha",
+        "/opt/drm/ffffffff00000001.keyinfo",
+        "/opt/drm/ffffffff00000002.bin",
+        "/opt/drm/ffffffff00000002.sha",
+        "/opt/drm/ffffffff00000004.bin",
+        "/opt/drm/ffffffff00000004.sha",
+        "/opt/drm/ffffffff00000006.bin",
+        "/opt/drm/ffffffff00000006.sha",
+        "/opt/drm/ffffffff00000007.bin",
+        "/opt/drm/ffffffff00000008.bin",
+        "/opt/drm/ffffffff00000009.key",
+        "/opt/drm/ffffffff00000009.sha",
+        "/opt/drm/ffffffff00000009.keyinfo",
+        "/opt/drm/ffffffff0000000a.sha",
+        "/opt/drm/ffffffff0000000a.bin",
+        "/opt/drm/0381000003810001.key",
+        "/opt/drm/0381000003810001.keyinfo",
+        "/opt/drm/0381000003810001.sha",
+        "/opt/drm/0381000003810002.key",
+        "/opt/drm/0381000003810002.keyinfo",
+        "/opt/drm/0381000003810003.key",
+        "/opt/drm/0381000003810003.keyinfo",
+        "/opt/drm/0681000006810001.bin"
+    };
+    if (!fkpsFiles || fkpsFiles->empty())
+        return fkpsMounts;
+
+    // iterate through the files and make sure they're accessible
+    const std::string fkpsPathPrefix("/opt/drm/");
+    for (const std::string &fkpsFile : fkpsFiles.value())
+    {
+        const std::filesystem::path fkpsFilePath = fkpsPathPrefix + fkpsFile;
+
+        // check if the file exists
+        struct stat details;
+        if (stat(fkpsFilePath.c_str(), &details) != 0)
+        {
+            if (errno == ENOENT)
+            {
+                printf("missing FKPS file '%s', won't map into container",
+                            fkpsFilePath.c_str());
+            }
+            else
+            {
+                printf("failed to set FKPS file '%s' %d",
+                                 fkpsFilePath.c_str(), errno);
+            }
+
+            continue;
+        }
+
+        // check the group owner matches the app
+        if ((details.st_gid != config.mGroupId) &&
+            (chown(fkpsFilePath.c_str(), -1, config.mGroupId) != 0))
+        {
+            printf("failed to change group owner of '%s' %d",
+                             fkpsFilePath.c_str(), errno);
+        }
+
+        // and that the group perms are set to r--
+        if (((details.st_mode & S_IRGRP) != S_IRGRP) &&
+            (chmod(fkpsFilePath.c_str(), ((details.st_mode | S_IRGRP) & ALLPERMS)) != 0))
+        {
+            printf("failed to set file permissions to 0%03o for '%s' %d",
+                             ((details.st_mode & ~S_IRWXG) | S_IRGRP), fkpsFilePath.c_str(), errno);
+        }
+
+        // finally add a bind mount for them
+        fkpsMounts.append(createBindMount(fkpsFilePath, fkpsFilePath,
+                                          (MS_BIND | MS_RDONLY | MS_NOSUID | MS_NODEV | MS_NOEXEC)));
+    }
+
+    // additional tmpfs mount apparently required for YT certification
+    fkpsMounts.append(createTmpfsMount("/opt/drm/vault",
+                                       (MS_NOSUID | MS_NODEV | MS_NOEXEC)));
+
+    return fkpsMounts;
+}
+
+Json::Value DobbySpecGenerator::createTmpfsMount(const std::filesystem::path &mntDestination,
+                                                 unsigned long mntOptions) const
+{
+    static const Json::StaticString source("source");
+    static const Json::StaticString destination("destination");
+    static const Json::StaticString type("type");
+    static const Json::StaticString tmpfs("tmpfs");
+    static const Json::StaticString options("options");
+
+    static const Json::StaticString nosuid("nosuid");
+    static const Json::StaticString nodev("nodev");
+    static const Json::StaticString noexec("noexec");
+    static const Json::StaticString noatime("noatime");
+    static const Json::StaticString relatime("relatime");
+    static const Json::StaticString strictatime("strictatime");
+    static const Json::StaticString sync("sync");
+    static const Json::StaticString nodiratime("nodiratime");
+    static const Json::StaticString size("size=65536k");
+    static const Json::StaticString indoes("nr_inodes=8k");
+    Json::Value mount(Json::objectValue);
+
+    mount[type] = tmpfs;
+    mount[source] = tmpfs;
+    mount[destination] = mntDestination.string();
+
+    Json::Value optionsArray(Json::arrayValue);
+
+    if (mntOptions & MS_NOSUID)
+        optionsArray.append(nosuid);
+    if (mntOptions & MS_NODEV)
+        optionsArray.append(nodev);
+    if (mntOptions & MS_NOEXEC)
+        optionsArray.append(noexec);
+
+    if (mntOptions & MS_SYNCHRONOUS)
+        optionsArray.append(sync);
+
+    if (mntOptions & MS_NODIRATIME)
+        optionsArray.append(nodiratime);
+
+    if (mntOptions & MS_NOATIME)
+        optionsArray.append(noatime);
+    if (mntOptions & MS_RELATIME)
+        optionsArray.append(relatime);
+    if (mntOptions & MS_STRICTATIME)
+        optionsArray.append(strictatime);
+
+    optionsArray.append(size);
+    optionsArray.append(indoes);
+
+    mount[options] = std::move(optionsArray);
+
+    return mount;
+}
 } // namespace Plugin
 } // namespace WPEFramework

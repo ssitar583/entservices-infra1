@@ -20,6 +20,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace WPEFramework
 {
@@ -33,7 +34,7 @@ namespace Plugin
 
     struct RuntimeConfig
     {
-        RuntimeConfig(): systemMemoryLimit(0), gpuMemoryLimit(0), command("/runtime/SkyBrowserLauncher"), appType(INTERACTIVE), appPath("/package"), runtimePath("/runtime"), wanLanAccess(true), thunder(true), dial(false) {}
+        RuntimeConfig(): systemMemoryLimit(0), gpuMemoryLimit(0), command("/runtime/SkyBrowserLauncher"), appType(INTERACTIVE), appPath("/package"), runtimePath("/runtime"), wanLanAccess(true), thunder(true), dial(true), resourceManagerClientEnabled(true), dialName(""), envVariables() {}
         ssize_t systemMemoryLimit;
         ssize_t gpuMemoryLimit;
         string command;
@@ -43,6 +44,9 @@ namespace Plugin
         bool wanLanAccess;
         bool thunder;
         bool dial;
+        bool resourceManagerClientEnabled;
+        string dialName;
+        std::vector<std::string> envVariables;
     };
 
 } /* namespace Plugin */
