@@ -1,7 +1,7 @@
 name: auto trigger1
 on:
   push:
-    branches: [ main, 'sprint/**', 'release/**', l2tets ]
+    branches: [ main, 'sprint/**', 'release/**', l2tets, develop ]
   pull_request:
     branches: [ main, 'sprint/**', 'release/**' ]
 jobs:
