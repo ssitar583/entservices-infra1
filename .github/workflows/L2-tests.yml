@@ -6,7 +6,7 @@ on:
     branches: [ main, 'sprint/**', 'release/**', develop ]
 jobs:
   L2-tests:
-     uses: .github/workflows/L2-tests.yml@l2tests
+     uses: rdkcentral/entservices-testframework/.github/workflows/L2-tests.yml@l2tests
      with:
           repository: rdkcentral/entservices-testframework
           path: entservices-testframework
