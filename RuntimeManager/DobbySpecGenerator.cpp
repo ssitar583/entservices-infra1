@@ -25,6 +25,7 @@
 #include <sstream>
 #include <bitset>
 #include <set>
+#include <sys/sysinfo.h>
 
 namespace WPEFramework
 {
@@ -75,29 +76,32 @@ bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, Runtim
    
     Json::Value spec;
     spec["version"] = "1.1";
-    spec["memLimit"] = getSysMemoryLimit(config);
+    spec["memLimit"] = getSysMemoryLimit(config, runtimeConfig);
 
     Json::Value args(Json::arrayValue);
     args.append(runtimeConfig.command);
+    args.append("600");//MADANA	
     //TODO : What if more args?
     /*
     for (const string& arg : config.mArgs)
         args.append(arg);
     */
     spec["args"] = std::move(args);
-    spec["cwd"] = runtimeConfig.appPath;
+    spec["cwd"] = mPackageMountPoint;
     // if app uses graphics enable gpu and gpu mem limit
+    // MADANA TEST
+    /*
     if (shouldEnableGpu(config))
-    {
+    {*/
         Json::Value gpuObj(Json::objectValue);
         gpuObj["enable"] = true;
-        gpuObj["memLimit"] = getGPUMemoryLimit();
+        gpuObj["memLimit"] = getGPUMemoryLimit(config, runtimeConfig);
         spec["gpu"] = std::move(gpuObj);
-    }
+    //}
     spec["restartOnCrash"] = false;
 
     Json::Value vpuObj;
-    vpuObj["enable"] = getVpuEnabled();
+    vpuObj["enable"] = getVpuEnabled(config);
     spec["vpu"] = std::move(vpuObj);
     
     Json::Value cpuObj;
@@ -154,7 +158,8 @@ bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, Runtim
     userObj["gid"] = config.mGroupId;
     spec["user"] = std::move(userObj);
 
-    spec["plugins"] = populateClassicPlugins(config, runtimeConfig);
+    //spec["plugins"] = populateClassicPlugins(config, runtimeConfig);
+    populateClassicPlugins(config, runtimeConfig, spec);
     spec["rdkPlugins"] = createRdkPlugins(config, runtimeConfig);
     spec["mounts"] = createMounts(config, runtimeConfig);
     spec["env"] = createEnvVars(config, runtimeConfig);
@@ -168,7 +173,7 @@ bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, Runtim
 Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const
 {
     Json::Value env(Json::arrayValue);
-    env.append(std::string("APPLICATION_NAME=") + config.mAppId.str());
+    env.append(std::string("APPLICATION_NAME=") + config.mAppId);
     
 //"APPLICATION_LAUNCH_PARAMETERS=eyJHV19JUCI6IiIsImFyZ3MiOnt9LCJjb250ZXh0Ijp7InNvdXJjZSI6ImFwcHMtcmFpbC1sYXVuY2gifSwib3JpZ2luIjoiRVBHIn0=",
 //"APPLICATION_LAUNCH_METHOD=EPG",
@@ -210,8 +215,8 @@ Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& co
     //TODO: This is true by default
     if (runtimeConfig.resourceManagerClientEnabled)
     {
-        env.append("ESSRMGR_APPID=" + config.mAppId.str());
-        env.append("CLIENT_IDENTIFIER=" + config.mAppId.str());
+        env.append("ESSRMGR_APPID=" + config.mAppId);
+        env.append("CLIENT_IDENTIFIER=" + config.mAppId);
         if (!config.mWesterosSocketPath.empty())
         {
             env.append("WESTEROS_SINK_USE_ESSRMGR=1");
@@ -222,7 +227,7 @@ Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& co
     {
         std::string dialId = runtimeConfig.dialId;
         if (dialId.empty())
-            dialId = config.mAppId.str();
+            dialId = config.mAppId;
 
         env.append(std::string("APPLICATION_DIAL_NAME=") + dialId);
         //TODO: Need dial config get from somewhere
@@ -270,7 +275,7 @@ Json::Value DobbySpecGenerator::createMounts(const ApplicationConfiguration& con
                                (MS_BIND | MS_RDONLY | MS_NOSUID | MS_NODEV)));
 
     mounts.append(createPrivateDataMount(runtimeConfig));
-    mounts.append(createFkpsMounts(config, runtimeConfig));
+    createFkpsMounts(config, runtimeConfig, mounts);
     return mounts;
 }
 
@@ -384,8 +389,8 @@ std::string DobbySpecGenerator::getCpuCores()
     //    cpuSetBitmask = ((0x1U << nCores) - 1);
     //}
 
-    std::bitset<32> cpuSetBitmask = ((0x1U << nCores) - 1);
     const int nCores = std::min(32, get_nprocs());
+    std::bitset<32> cpuSetBitmask = ((0x1U << nCores) - 1);
     // create the json string for the cores to enable
     std::ostringstream coresStream;
     for (int core = 0; core < nCores; core++)
@@ -401,7 +406,7 @@ std::string DobbySpecGenerator::getCpuCores()
     if (!coresStr.empty())
         coresStr.pop_back();
 
-    return coreStr;
+    return coresStr;
 }
 
 Json::Value DobbySpecGenerator::createRdkPlugins(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const
@@ -410,7 +415,7 @@ Json::Value DobbySpecGenerator::createRdkPlugins(const ApplicationConfiguration&
     //TODO: Appsservice plugin is not needed for sure?
     if (!config.mPorts.empty())
     {
-        rdkPluginsObj["appservicesrdk"] = createAppServiceSDKPlugin(config, runtimeconfig);
+        rdkPluginsObj["appservicesrdk"] = createAppServiceSDKPlugin(config, runtimeConfig);
     }
     // TODO create ionplugin on xione
     rdkPluginsObj["ionmemory"] = createIonMemoryPlugin();
@@ -524,16 +529,16 @@ Json::Value DobbySpecGenerator::createNetworkPlugin(const ApplicationConfigurati
     return pluginObj;
 }
 
-void DobbySpecGenerator::populateClassicPlugins(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig, Json::Value& spec) const
+void DobbySpecGenerator::populateClassicPlugins(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig, Json::Value& spec)
 {
-    Json::Value pluginsArray(Json::arrayValue)
+    Json::Value pluginsArray(Json::arrayValue);
     // enable the logging plugin
     pluginsArray.append(createEthanLogPlugin(config, runtimeConfig));
     
     //TODO: if webapp or not needed rialto. how to get these info?
     pluginsArray.append(createOpenCDMPlugin(config, runtimeConfig));
 
-    spec[plugins] = std::move(pluginsArray);
+    spec["plugins"] = std::move(pluginsArray);
 }
 
 Json::Value DobbySpecGenerator::createEthanLogPlugin(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const
@@ -684,9 +689,8 @@ Json::Value DobbySpecGenerator::createPrivateDataMount(RuntimeConfig& runtimeCon
     return mount;
 }
 
-Json::Value DobbySpecGenerator::createFkpsMounts(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const
+void DobbySpecGenerator::createFkpsMounts(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig, Json::Value& spec) const
 {
-    Json::Value fkpsMounts(Json::arrayValue);
 
     // TODO: get the list of fkps files from app config from package manager
     // get the list of FKPS files to map, this comes from the apps config.xml
@@ -694,40 +698,44 @@ Json::Value DobbySpecGenerator::createFkpsMounts(const ApplicationConfiguration&
     std::optional<std::set<std::string>> fkpsFiles =
         package->capabilityValueSet(packagemanager::IPackage::Capability::FkpsAccess);
     */
-    std::optional<std::set<std::string>> fkpsFiles = {
-        "/opt/drm/ffffffff00000001.key",
-        "/opt/drm/ffffffff00000001.sha",
-        "/opt/drm/ffffffff00000001.keyinfo",
-        "/opt/drm/ffffffff00000002.bin",
-        "/opt/drm/ffffffff00000002.sha",
-        "/opt/drm/ffffffff00000004.bin",
-        "/opt/drm/ffffffff00000004.sha",
-        "/opt/drm/ffffffff00000006.bin",
-        "/opt/drm/ffffffff00000006.sha",
-        "/opt/drm/ffffffff00000007.bin",
-        "/opt/drm/ffffffff00000008.bin",
-        "/opt/drm/ffffffff00000009.key",
-        "/opt/drm/ffffffff00000009.sha",
-        "/opt/drm/ffffffff00000009.keyinfo",
-        "/opt/drm/ffffffff0000000a.sha",
-        "/opt/drm/ffffffff0000000a.bin",
-        "/opt/drm/0381000003810001.key",
-        "/opt/drm/0381000003810001.keyinfo",
-        "/opt/drm/0381000003810001.sha",
-        "/opt/drm/0381000003810002.key",
-        "/opt/drm/0381000003810002.keyinfo",
-        "/opt/drm/0381000003810003.key",
-        "/opt/drm/0381000003810003.keyinfo",
-        "/opt/drm/0681000006810001.bin"
+    std::set<std::string> fkpsFiles = {
+        "ffffffff00000001.key",
+        "ffffffff00000001.sha",
+        "ffffffff00000001.keyinfo",
+        "ffffffff00000002.bin",
+        "ffffffff00000002.sha",
+        "ffffffff00000004.bin",
+        "ffffffff00000004.sha",
+        "ffffffff00000006.bin",
+        "ffffffff00000006.sha",
+        "ffffffff00000007.bin",
+        "ffffffff00000008.bin",
+        "ffffffff00000009.key",
+        "ffffffff00000009.sha",
+        "ffffffff00000009.keyinfo",
+        "ffffffff0000000a.sha",
+        "ffffffff0000000a.bin",
+        "0381000003810001.key",
+        "0381000003810001.keyinfo",
+        "0381000003810001.sha",
+        "0381000003810002.key",
+        "0381000003810002.keyinfo",
+        "0381000003810003.key",
+        "0381000003810003.keyinfo",
+        "0681000006810001.bin"
     };
-    if (!fkpsFiles || fkpsFiles->empty())
-        return fkpsMounts;
+//TODO: Check size is 0
+
+    if (fkpsFiles.empty())
+        return;
 
     // iterate through the files and make sure they're accessible
     const std::string fkpsPathPrefix("/opt/drm/");
-    for (const std::string &fkpsFile : fkpsFiles.value())
+    for (std::set<std::string>::iterator it=fkpsFiles.begin(); it!=fkpsFiles.end(); ++it)
+    //for (const std::string &fkpsFile : fkpsFiles.value())
     {
-        const std::filesystem::path fkpsFilePath = fkpsPathPrefix + fkpsFile;
+	std::string fkpsFile = *it;      
+        const std::string fkpsFilePath = fkpsPathPrefix + fkpsFile;
 
         // check if the file exists
         struct stat details;
@@ -764,18 +772,17 @@ Json::Value DobbySpecGenerator::createFkpsMounts(const ApplicationConfiguration&
         }
 
         // finally add a bind mount for them
-        fkpsMounts.append(createBindMount(fkpsFilePath, fkpsFilePath,
+        spec.append(createBindMount(fkpsFilePath, fkpsFilePath,
                                           (MS_BIND | MS_RDONLY | MS_NOSUID | MS_NODEV | MS_NOEXEC)));
     }
 
     // additional tmpfs mount apparently required for YT certification
-    fkpsMounts.append(createTmpfsMount("/opt/drm/vault",
+    spec.append(createTmpfsMount("/opt/drm/vault",
                                        (MS_NOSUID | MS_NODEV | MS_NOEXEC)));
 
-    return fkpsMounts;
 }
 
-Json::Value DobbySpecGenerator::createTmpfsMount(const std::filesystem::path &mntDestination,
+Json::Value DobbySpecGenerator::createTmpfsMount(const std::string &mntDestination,
                                                  unsigned long mntOptions) const
 {
     static const Json::StaticString source("source");
@@ -798,7 +805,7 @@ Json::Value DobbySpecGenerator::createTmpfsMount(const std::filesystem::path &mn
 
     mount[type] = tmpfs;
     mount[source] = tmpfs;
-    mount[destination] = mntDestination.string();
+    mount[destination] = mntDestination;
 
     Json::Value optionsArray(Json::arrayValue);
 

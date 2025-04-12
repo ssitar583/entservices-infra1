@@ -25,13 +25,14 @@
 #include <json/json.h>
 #include "tracing/Logging.h"
 #include "RuntimeConfig.h"
-
+#include <string>
+#include "ApplicationConfiguration.h"
 namespace WPEFramework
 {
 namespace Plugin
 {
 
-    struct ApplicationConfiguration;
+//    struct ApplicationConfiguration;
 
     class DobbySpecGenerator
     {
@@ -64,9 +65,10 @@ namespace Plugin
             Json::Value createThunderPlugin(const ApplicationConfiguration& config) const;
             Json::Value createOpenCDMPlugin(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
             Json::Value createPrivateDataMount(RuntimeConfig& runtimeConfig) const;
-            Json::Value createFkpsMounts(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
-            Json::Value createTmpfsMount(const std::filesystem::path &mntDestination,
+            void createFkpsMounts(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig, Json::Value& spec) const;
+            Json::Value createTmpfsMount(const std::string &mntDestination,
                                  unsigned long mntOptions) const;
+            void initialiseIonHeapsJson();
             Json::Value mIonMemoryPluginData;
 	    std::string mPackageMountPoint;
 	    std::string mRuntimeMountPoint;

@@ -650,13 +650,14 @@ err_ret:
             return status;
         }
 
-        bool RuntimeManagerImplementation::generate(const ApplicationConfiguration& *config, RuntimeConfig& runtimeConfig, std::string& dobbySpec)
+        bool RuntimeManagerImplementation::generate(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig, std::string& dobbySpec)
         {
             ApplicationConfiguration testConfig;
             testConfig.mArgs = {"sleep", "600"};
             testConfig.mAppPath = "/tmp";
-            testConfig.mUserId = 1000;
-            testConfig.mGroupId = 1000;
+            testConfig.mUserId = 30490;
+            testConfig.mGroupId = 30000;
+            testConfig.mWesterosSocketPath = "/tmp/westeros";
         
             DobbySpecGenerator generator;
             generator.generate(testConfig, runtimeConfig, dobbySpec);

@@ -195,6 +195,7 @@ namespace WPEFramework
                 Exchange::IRuntimeManager::RuntimeState getRuntimeState(const string& appInstanceId);
                 Core::hresult getAppStorageInfo(const string& appId, AppStorageInfo& appStorageInfo);
 
+
             private: /* members */
                 mutable Core::CriticalSection mRuntimeManagerImplLock;
                 std::mutex mContainerLock;
