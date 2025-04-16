@@ -246,7 +246,8 @@ namespace Plugin {
         NotifyInstallStatus(packageId, version, InstallState::INSTALLING);
 
         #ifdef USE_LIBPACKAGE
-        packagemanager::Result pmResult = packageImpl->Install(packageId, version, fileLocator);
+        packagemanager::ConfigMetaData configMetadata;
+        packagemanager::Result pmResult = packageImpl->Install(packageId, version, fileLocator, configMetadata);
         if (pmResult != packagemanager::SUCCESS) {
             result = Core::ERROR_GENERAL;
         }
@@ -384,7 +385,8 @@ namespace Plugin {
         if (locked)  {
             lockId = ++mLockCount[packageId];
         } else {
-            packagemanager::Result pmResult = packageImpl->Lock(packageId, version, unpackedPath);
+            packagemanager::ConfigMetaData configMetadata;
+            packagemanager::Result pmResult = packageImpl->Lock(packageId, version, unpackedPath, configMetadata);
             if (pmResult == packagemanager::SUCCESS) {
                 lockId = ++mLockCount[packageId];
                 LOGDBG("Locked id: %s ver: %s", packageId.c_str(), version.c_str());
