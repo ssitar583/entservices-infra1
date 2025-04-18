@@ -89,15 +89,13 @@ bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, Runtim
     spec["args"] = std::move(args);
     spec["cwd"] = mPackageMountPoint;
     // if app uses graphics enable gpu and gpu mem limit
-    // MADANA TEST
-    /*
     if (shouldEnableGpu(config))
-    {*/
+    {
         Json::Value gpuObj(Json::objectValue);
         gpuObj["enable"] = true;
         gpuObj["memLimit"] = getGPUMemoryLimit(config, runtimeConfig);
         spec["gpu"] = std::move(gpuObj);
-    //}
+    }
     spec["restartOnCrash"] = false;
 
     Json::Value vpuObj;
@@ -269,12 +267,6 @@ Json::Value DobbySpecGenerator::createMounts(const ApplicationConfiguration& con
     {
         mounts.append(createBindMount(runtimeConfig.runtimePath, mRuntimeMountPoint, MS_BIND | MS_RDONLY | MS_NOSUID | MS_NODEV));
     }
-
-    // this is not needed, Dobby adds this mount
-    // if (!config.mWesterosSocketPath.empty())
-    // {
-    //     mounts.append(createBindMount(config.mWesterosSocketPath, WESTEROS_SOCKET_MOUNT_POINT, MS_BIND | MS_NOSUID | MS_NODEV | MS_NOEXEC));
-    // }
 
     // TODO add extra mounts from config
     mounts.append(createBindMount("/etc/ssl/certs", "/etc/ssl/certs",

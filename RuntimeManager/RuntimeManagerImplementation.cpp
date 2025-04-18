@@ -695,37 +695,28 @@ err_ret:
             //PENDING - This needs to be populated via argument
             RuntimeConfig runtimeConfig;
 
-            /* Below code to be enabled once dobbySpec generator ticket is ready */
             ApplicationConfiguration config;
             config.mAppId = appId;
             config.mAppInstanceId = appInstanceId;
-            config.mAppPath = {appPath};
-            config.mRuntimePath = runtimePath;
-            //TODO Generate userid and groupid
-            //config.mUserId = userId;
-            //config.mGroupId = groupId;
-	   
-            config.mUserId = 30490;
-            FILE* fp = fopen("/tmp/appuid", "r");
-	    if (fp != NULL)
-	    {
-	        char* line = NULL;
-		size_t len = 0;
-		while ((getline(&line, &len, fp)) != -1)
-                {
-		    config.mUserId = atoi(line);
-		    break;
-		}
-		fclose(fp);
-            }
-            config.mGroupId = 30000;
+
+            uint32_t uid, gid;
+            generateUserId(uid, gid); 
+            config.mUserId = uid;
+            config.mGroupId = gid;
 
             if (envVars)
             {
                 std::string envVar;
                 while (envVars->Next(envVar))
                 {
-                    config.mEnvVars.push_back(envVar);
+                    if (envVar.find("XDG_RUNTIME_DIR=") == 0)
+                    {
+                        xdgRuntimeDir = envVar.substr(strlen("XDG_RUNTIME_DIR="));
+                    }
+                    else if (envVar.find("WAYLAND_DISPLAY=") == 0)
+                    {
+                        waylandDisplay = envVar.substr(strlen("WAYLAND_DISPLAY="));
+                    }
                 }
             }
 
@@ -762,25 +753,11 @@ err_ret:
             {
                 LOGERR("envVars is null inside Run()");
             }
-            else
-            {
-                for (const std::string &envVar : config.mEnvVars)
-                {
-                    LOGINFO("Inside Run() - Found: %s", envVar.c_str());
-                    if (envVar.find("XDG_RUNTIME_DIR=") == 0)
-                    {
-                        xdgRuntimeDir = envVar.substr(strlen("XDG_RUNTIME_DIR="));
-                    }
-                    else if (envVar.find("WAYLAND_DISPLAY=") == 0)
-                    {
-                        waylandDisplay = envVar.substr(strlen("WAYLAND_DISPLAY="));
-                    }
 
-                    if (!xdgRuntimeDir.empty() && !waylandDisplay.empty())
-                    {
-                        break;
-                    }
-                }
+            if (!xdgRuntimeDir.empty() && !waylandDisplay.empty())
+            {
+                std::string westerosSocket = xdgRuntimeDir + "/" + waylandDisplay;
+                config.mWesterosSocketPath = westerosSocket;
             }
 
             if (!appId.empty())
@@ -795,7 +772,6 @@ err_ret:
                 }
             }
 
-            config.mWesterosSocketPath = "/tmp/westeros";//MADAN
             if (xdgRuntimeDir.empty() || waylandDisplay.empty())
             {
                 LOGERR("Missing required environment variables: XDG_RUNTIME_DIR=%s, WAYLAND_DISPLAY=%s",
@@ -971,6 +947,25 @@ err_ret:
             LOGINFO("Unmount Implementation - Stub!");
 
             return status;
+        }
+
+        void RuntimeManagerImplementation::generateUserId(uint32_t& userId, uint32_t& groupId)
+        {
+            //TODO Generate userid and groupid in random way
+            userId = 30490;
+            FILE* fp = fopen("/tmp/appuid", "r");
+            if (fp != NULL)
+            {
+                char* line = NULL;
+        	size_t len = 0;
+        	while ((getline(&line, &len, fp)) != -1)
+                {
+        	    userId = atoi(line);
+        	    break;
+        	}
+        	fclose(fp);
+            }
+            groupId = 30000;
         }
     } /* namespace Plugin */
 } /* namespace WPEFramework */

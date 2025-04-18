@@ -211,6 +211,7 @@ namespace WPEFramework
                 void dispatchEvent(RuntimeEventType, const JsonValue &params);
                 void Dispatch(RuntimeEventType event, const JsonValue params);
                 void OCIContainerWorkerThread(void);
+                void generateUserId(uint32_t& userId, uint32_t& groupId);
 
                 friend class Job;
 
