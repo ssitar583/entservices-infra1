@@ -21,6 +21,7 @@
 #include "ApplicationConfiguration.h"
 #include "UtilsLogging.h"
 #include <sys/mount.h>
+#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <bitset>
@@ -80,7 +81,6 @@ bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, Runtim
 
     Json::Value args(Json::arrayValue);
     args.append(runtimeConfig.command);
-    args.append("600");//MADANA	
     //TODO : What if more args?
     /*
     for (const string& arg : config.mArgs)
@@ -167,6 +167,12 @@ bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, Runtim
     Json::FastWriter writer;
     resultSpec = writer.write(spec);
     LOGINFO("spec: '%s'\n", resultSpec.c_str());
+
+    std::ofstream generatedSpecFile;
+    generatedSpecFile.open("/tmp/generatedSpec.json");
+    generatedSpecFile << resultSpec.c_str();
+    generatedSpecFile.close();
+
     return true;
 }
 

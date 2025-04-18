@@ -652,15 +652,8 @@ err_ret:
 
         bool RuntimeManagerImplementation::generate(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig, std::string& dobbySpec)
         {
-            ApplicationConfiguration testConfig;
-            testConfig.mArgs = {"sleep", "600"};
-            testConfig.mAppPath = "/tmp";
-            testConfig.mUserId = 30490;
-            testConfig.mGroupId = 30000;
-            testConfig.mWesterosSocketPath = "/tmp/westeros";
-        
             DobbySpecGenerator generator;
-            generator.generate(testConfig, runtimeConfig, dobbySpec);
+            generator.generate(config, runtimeConfig, dobbySpec);
 
             return true;
         }
@@ -711,7 +704,20 @@ err_ret:
             //TODO Generate userid and groupid
             //config.mUserId = userId;
             //config.mGroupId = groupId;
+	   
             config.mUserId = 30490;
+            FILE* fp = fopen("/tmp/appuid", "r");
+	    if (fp != NULL)
+	    {
+	        char* line = NULL;
+		size_t len = 0;
+		while ((getline(&line, &len, fp)) != -1)
+                {
+		    config.mUserId = atoi(line);
+		    break;
+		}
+		fclose(fp);
+            }
             config.mGroupId = 30000;
 
             if (envVars)
@@ -789,6 +795,7 @@ err_ret:
                 }
             }
 
+            config.mWesterosSocketPath = "/tmp/westeros";//MADAN
             if (xdgRuntimeDir.empty() || waylandDisplay.empty())
             {
                 LOGERR("Missing required environment variables: XDG_RUNTIME_DIR=%s, WAYLAND_DISPLAY=%s",

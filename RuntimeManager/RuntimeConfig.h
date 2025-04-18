@@ -34,7 +34,7 @@ namespace Plugin
 
     struct RuntimeConfig
     {
-        RuntimeConfig(): systemMemoryLimit(0), gpuMemoryLimit(0), command("sleep"), appType(INTERACTIVE), appPath("/opt/youtube/YouTube.T18IAl"), runtimePath("/opt/youtube/com.sky.cobalt.Hn7UUm"), wanLanAccess(true), thunder(true), dial(true), resourceManagerClientEnabled(true), dialId(""), envVariables() {}
+        RuntimeConfig(): systemMemoryLimit(0), gpuMemoryLimit(0), command("/runtime/SkyBrowserLauncher"), appType(INTERACTIVE), appPath("/opt/youtube/YouTube.T18IAl"), runtimePath("/opt/youtube/com.sky.cobalt.Hn7UUm"), wanLanAccess(true), thunder(true), dial(true), resourceManagerClientEnabled(true), dialId(""), envVariables() {}
         ssize_t systemMemoryLimit;
         ssize_t gpuMemoryLimit;
         string command;
