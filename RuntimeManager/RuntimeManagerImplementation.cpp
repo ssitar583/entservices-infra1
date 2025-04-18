@@ -655,7 +655,7 @@ err_ret:
             ApplicationConfiguration testConfig;
             testConfig.mArgs = {"sleep", "600"};
             testConfig.mAppPath = "/tmp";
-            testConfig.mUserId = 30490;
+            testConfig.mUserId = 30087;
             testConfig.mGroupId = 30000;
             testConfig.mWesterosSocketPath = "/tmp/westeros";
         
@@ -711,7 +711,20 @@ err_ret:
             //TODO Generate userid and groupid
             //config.mUserId = userId;
             //config.mGroupId = groupId;
+	   
             config.mUserId = 30490;
+            FILE* fp = fopen("/tmp/appuid", "r");
+	    if (fp != NULL)
+	    {
+	        char* line = NULL;
+		size_t len = 0;
+		while ((getline(&line, &len, fp)) != -1)
+                {
+		    config.mUserId = atoi(line);
+		    break;
+		}
+		fclose(fp);
+            }
             config.mGroupId = 30000;
 
             if (envVars)

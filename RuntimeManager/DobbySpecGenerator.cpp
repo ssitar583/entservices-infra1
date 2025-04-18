@@ -80,7 +80,6 @@ bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, Runtim
 
     Json::Value args(Json::arrayValue);
     args.append(runtimeConfig.command);
-    args.append("600");//MADANA	
     //TODO : What if more args?
     /*
     for (const string& arg : config.mArgs)
