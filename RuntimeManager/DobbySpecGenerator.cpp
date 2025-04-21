@@ -188,7 +188,6 @@ Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& co
 //"REGION=USA",
 //"LANG=en_US",
 //"ADDITIONAL_DATA_URL=http%3A%2F%2F127.0.0.1%3A8009%2Fe6486224-8058-49c2-936b-4f5a87c45bb2%2FYouTube%2Fdial_data",
-//"DIAL_USN=uuid:sky-dial-server-a84a631e48a4::urn:dial-multiscreen-org:service:dial:1"
 
     for (const std::string& str : runtimeConfig.envVariables)
     {
@@ -203,8 +202,6 @@ Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& co
         env.append("WESTEROS_SINK_VIRTUAL_HEIGHT=1080");
         env.append("QT_WAYLAND_CLIENT_BUFFER_INTEGRATION=wayland-egl");
         env.append("QT_WAYLAND_SHELL_INTEGRATION=wl-simple-shell");
-        env.append("QT_WAYLAND_INPUTDEVICE_INTEGRATION=skyq-input");
-        env.append("QT_QPA_PLATFORM=wayland-sky-rdk");
 
         //TODO Find the place where it is populated from appsservice
         env.append("WESTEROS_SINK_AMLOGIC_USE_DMABUF=1");
@@ -246,8 +243,8 @@ Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& co
         //env.append(std::string("ADDITIONAL_DATA_URL=") + dataUrl);
 
         //env.append(std::string("DIAL_USN=") + mDialConfig->getDialUsn());
-	const std::string dataUrl("http%3A%2F%2F127.0.0.1%3A8009%2Fe6486224-8058-49c2-936b-4f5a87c45bb2%2FYouTube%2Fdial_data");
-	const std::string dialUsn("uuid:sky-dial-server-a84a631e48a4::urn:dial-multiscreen-org:service:dial:1");
+	const std::string dataUrl("");
+	const std::string dialUsn("");
         env.append(std::string("ADDITIONAL_DATA_URL=") + dataUrl);
         env.append(std::string("DIAL_USN=") + dialUsn);
     }
@@ -600,8 +597,8 @@ Json::Value DobbySpecGenerator::createThunderPlugin(const ApplicationConfigurati
     static const Json::StaticString dependsOn("dependsOn");
     static const Json::StaticString bearerUrl("bearerUrl");
     static const Json::StaticString data("data");
-    static const Json::StaticString localServices2("http://local-services-2.sky.com");
-    static const Json::StaticString localServices5("http://local-services-5.sky.com");
+    static const Json::StaticString localServices2("");
+    static const Json::StaticString localServices5("");
 
     Json::Value plugin(Json::objectValue);
     Json::Value dependencies(Json::arrayValue);
@@ -667,7 +664,7 @@ Json::Value DobbySpecGenerator::createPrivateDataMount(RuntimeConfig& runtimeCon
     /*
     const std::string sourcePath = package->privateDataImagePath();
     */
-    const std::string sourcePath("/media/apps/sky/packages/YouTube/data.img");
+    const std::string sourcePath("");
     if (sourcePath.empty())
     {
         return Json::nullValue;
