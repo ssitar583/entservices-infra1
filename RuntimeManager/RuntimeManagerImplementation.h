@@ -58,37 +58,31 @@ namespace WPEFramework
                     RUNTIME_OCI_REQUEST_METHOD_UNMOUNT
                 };
 
-                typedef struct _ContainerRequestData
+                typedef struct _ResponseData
                 {
-                    std::string dobbySpec = "";
-                    std::string command = "";
-                    std::string westerosSocket = "";
                     std::string getInfo = "";
-                    std::string key = "";
-                    std::string value = "";
                     int32_t descriptor = -1;
-                } ContainerRequestData;
+                } ResponseData;
 
                 struct OCIContainerRequest
                 {
-                    OCIContainerRequest(OCIRequestType type, const std::string& containerId, const ContainerRequestData& containerReqData);
+                    OCIContainerRequest();
                     ~OCIContainerRequest();
 
                     OCIRequestType mRequestType;
                     std::string mContainerId;
+                    std::string mAppInstanceId;
                     std::string mDobbySpec;
                     std::string mCommand;
                     std::string mWesterosSocket;
                     sem_t mSemaphore;
-                    std::string mGetInfo;
                     Core::hresult mResult;
-
-                    int32_t mDescriptor;
                     bool mSuccess;
                     std::string mErrorReason;
                     std::string mRequestId;
                     std::string mAnnotateKey;
                     std::string mAnnotateKeyValue;
+                    ResponseData mResponseData;
                 };
 
                 typedef struct _RuntimeAppInfo
@@ -98,6 +92,7 @@ namespace WPEFramework
                     std::string appPath;
                     std::string runtimePath;
                     uint32_t descriptor;
+                    std::string getInfo;
                     Exchange::IRuntimeManager::RuntimeState containerState;
                 } RuntimeAppInfo;
 
@@ -186,8 +181,8 @@ namespace WPEFramework
                 void setRunningState(bool state);
                 bool getRunningState();
                 static bool generate(const ApplicationConfiguration& config, std::string& dobbySpec);
-                Core::hresult handleContainerRequest(const std::string& appInstanceId, OCIRequestType type, ContainerRequestData& containerReqData);
-                void updateContainerInfo(OCIRequestType type, const std::string& appInstanceId, const OCIContainerRequest& request, ContainerRequestData& containerReqData);
+                Core::hresult handleContainerRequest(OCIContainerRequest& request);
+                void updateContainerInfo(std::shared_ptr<OCIContainerRequest>&  requestData);
                 void printContainerInfo();
                 Exchange::IRuntimeManager::RuntimeState getRuntimeState(const string& appInstanceId);
 
