@@ -186,7 +186,6 @@ namespace WPEFramework
                 static bool generate(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig, std::string& dobbySpec);
                 Core::hresult handleContainerRequest(OCIContainerRequest& request);
                 void updateContainerInfo(std::shared_ptr<OCIContainerRequest>&  requestData);
-
                 void printContainerInfo();
                 Exchange::IRuntimeManager::RuntimeState getRuntimeState(const string& appInstanceId);
                 Core::hresult getAppStorageInfo(const string& appId, AppStorageInfo& appStorageInfo);
