@@ -377,12 +377,16 @@ namespace Plugin {
         LOGDBG("id: %s ver: %s reason=%d", packageId.c_str(), version.c_str(), lockReason);
 
         #ifdef USE_LIBPACKAGE
-        if(isLocked(packageId, version))  {
-            ++mLockCount;
+        bool locked = false;
+        string gatewayMetadataPath;
+        uint32_t rc = GetLockedInfo(packageId, version, unpackedPath, configMetadata, gatewayMetadataPath, locked);
+
+        if (locked)  {
+            lockId = ++mLockCount[packageId];
         } else {
             packagemanager::Result pmResult = packageImpl->Lock(packageId, version, unpackedPath);
             if (pmResult == packagemanager::SUCCESS) {
-                lockId = ++mLockCount;
+                lockId = ++mLockCount[packageId];
                 LOGDBG("Locked id: %s ver: %s", packageId.c_str(), version.c_str());
             } else {
                 LOGERR("Lock Failed id: %s ver: %s", packageId.c_str(), version.c_str());
@@ -390,6 +394,7 @@ namespace Plugin {
             }
         }
         #endif
+        LOGDBG("id: %s ver: %s lock count:%d", packageId.c_str(), version.c_str(), mLockCount[packageId]);
 
         return result;
     }
@@ -400,16 +405,17 @@ namespace Plugin {
         LOGDBG("id: %s ver: %s", packageId.c_str(), version.c_str());
 
         #ifdef USE_LIBPACKAGE
-        if (mLockCount) {
+        if (mLockCount[packageId]) {
             packagemanager::Result pmResult = packageImpl->Unlock(packageId, version);
             if (pmResult != packagemanager::SUCCESS) {
                 result = Core::ERROR_GENERAL;
             }
-            --mLockCount;
+            --mLockCount[packageId];
         } else {
             LOGERR("Never Locked (mLockCount is 0) id: %s ver: %s", packageId.c_str(), version.c_str());
         }
         #endif
+        LOGDBG("id: %s ver: %s lock count:%d", packageId.c_str(), version.c_str(), mLockCount[packageId]);
 
         return result;
     }
@@ -452,7 +458,7 @@ namespace Plugin {
                     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
                     status = mHttpClient->downloadFile(di->GetUrl(), di->GetFileLocator(), di->GetRateLimit());
                     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-                    LOGTRACE("Download status=%d code=%ld time=%ld ms", status,
+                    LOGTRACE("Download status=%d code=%ld time=%lld ms", status,
                         mHttpClient->getStatusCode(),
                         std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
                     if ( status == HttpClient::Status::Success || mHttpClient->getStatusCode() == 404) {  // XXX: other status codes
@@ -515,7 +521,7 @@ namespace Plugin {
 
     PackageManagerImplementation::DownloadInfoPtr PackageManagerImplementation::getNext() {
         std::lock_guard<std::mutex> lock(mMutex);
-        LOGTRACE("mDownloadQueue.size = %ld\n", mDownloadQueue.size());
+        LOGTRACE("mDownloadQueue.size = %d\n", mDownloadQueue.size());
         if (!mDownloadQueue.empty() && mInprogressDowload == nullptr) {
             mInprogressDowload = mDownloadQueue.front();
             mDownloadQueue.pop_front();
