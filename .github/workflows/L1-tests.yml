@@ -2,7 +2,7 @@ name: L1-tests
 
 on:
   push:
-    branches: [ main, develop, 'sprint/**', 'release/**' ]
+    branches: [ main, develop, 'sprint/**', 'release/**', 'feature/*' ]
   pull_request:
     branches: [ main, develop, 'sprint/**', 'release/**' ]
 
@@ -210,6 +210,7 @@ jobs:
           headers/ccec/drivers
           headers/network
           headers/proc
+          headers/libusb
           &&
           cd headers
           &&
@@ -247,7 +248,7 @@ jobs:
           network/wifiSrvMgrIarmIf.h
           network/netsrvmgrIarm.h
           libudev.h
-          libusb.h
+          libusb/libusb.h
           rfcapi.h
           rbus.h
           motionDetector.h
@@ -297,7 +298,7 @@ jobs:
           -I $GITHUB_WORKSPACE/Thunder/Source/core
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/devicesettings.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Iarm.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/libusb.h
+          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/libusb/libusb.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Rfc.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/RBus.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Telemetry.h
@@ -368,7 +369,6 @@ jobs:
           -I $GITHUB_WORKSPACE/Thunder/Source/core
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/devicesettings.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Iarm.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/libusb.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Rfc.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/RBus.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Telemetry.h
