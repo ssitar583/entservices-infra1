@@ -2,7 +2,7 @@ name: L2-tests
 
 on:
   push:
-    branches: [ main, develop, 'sprint/**', 'release/**' ]
+    branches: [ main, develop, 'sprint/**', 'release/**', 'feature/*' ]
   pull_request:
     branches: [ main, develop, 'sprint/**', 'release/**' ]
 
@@ -170,6 +170,7 @@ jobs:
           headers/rdk/iarmmgrs-hal
           headers/systemservices
           headers/systemservices/proc
+          headers/libusb
           &&
           cd headers
           &&
@@ -203,7 +204,7 @@ jobs:
           rfcapi.h
           rbus.h
           libudev.h
-          libusb.h
+          libusb/libusb.h
           systemservices/proc/readproc.h
           systemservices/secure_wrapper.h
           systemaudioplatform.h
@@ -283,7 +284,7 @@ jobs:
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/RBus.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Udev.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Wraps.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/libusb.h
+          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/libusb/libusb.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/maintenanceMGR.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/pkg.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/secure_wrappermock.h
