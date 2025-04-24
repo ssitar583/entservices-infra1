@@ -161,7 +161,7 @@ namespace WPEFramework
                 virtual Core::hresult Register(Exchange::IRuntimeManager::INotification *notification) override;
                 virtual Core::hresult Unregister(Exchange::IRuntimeManager::INotification *notification) override;
 
-                virtual Core::hresult Run(const string& appId, const string& appInstanceId, const string& appPath, const string& runtimePath, IStringIterator* const& envVars, const uint32_t userId, const uint32_t groupId, IValueIterator* const& ports, IStringIterator* const& paths, IStringIterator* const& debugSettings);
+                virtual Core::hresult Run(const string& appId, const string& appInstanceId, const string& appPath, const string& runtimePath, IStringIterator* const& envVars, const uint32_t userId, const uint32_t groupId, IValueIterator* const& ports, IStringIterator* const& paths, IStringIterator* const& debugSettings, const WPEFramework::Exchange::RuntimeConfig& runtimeConfigObject) override;
                 virtual Core::hresult Hibernate(const string& appInstanceId) override;
                 virtual Core::hresult Wake(const string& appInstanceId, const RuntimeState runtimeState) override;
                 virtual Core::hresult Suspend(const string& appInstanceId) override;
@@ -183,7 +183,7 @@ namespace WPEFramework
                 void releaseStorageManagerPluginObject();
                 void setRunningState(bool state);
                 bool getRunningState();
-                static bool generate(const ApplicationConfiguration& config, std::string& dobbySpec);
+                static bool generate(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig, std::string& dobbySpec);
                 Core::hresult handleContainerRequest(OCIContainerRequest& request);
                 void updateContainerInfo(std::shared_ptr<OCIContainerRequest>&  requestData);
 
@@ -206,6 +206,7 @@ namespace WPEFramework
                 void dispatchEvent(RuntimeEventType, const JsonValue &params);
                 void Dispatch(RuntimeEventType event, const JsonValue params);
                 void OCIContainerWorkerThread(void);
+                void generateUserId(uint32_t& userId, uint32_t& groupId);
 
                 friend class Job;
 
