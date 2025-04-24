@@ -224,7 +224,7 @@ namespace WPEFramework
             // Notifies appropriate API Gateway when an app is about to be loaded
             // Lifecycle manager will create the appInstanceId once the app is loaded.  Ripple is responsible for creating a token. 
             Core::hresult status = Core::ERROR_NONE;
-            ApplicationContext* context = getContext(appId, "");
+            ApplicationContext* context = getContext("", appId);
             if (nullptr == context)
 	    {
                 context = new ApplicationContext(appId);
@@ -302,13 +302,29 @@ namespace WPEFramework
             context->setTargetLifecycleState(Exchange::ILifecycleManager::LifecycleState::TERMINATING);
             context->setApplicationKillParams(false);
 
-            success = RequestHandler::getInstance()->terminate(context, false, errorReason);
-            if (!success)
-	    {
+           success = RequestHandler::getInstance()->terminate(context, false, errorReason);
+           if (!success)
+           {
                 status = Core::ERROR_GENERAL;
-	    }
+           }
+           else
+           {
+               std::list<ApplicationContext*>::iterator iter = mLoadedApplications.end();
+               for (iter = mLoadedApplications.begin(); iter != mLoadedApplications.end(); iter++)
+               {
+                   if (context == *iter)
+                   {
+                       break;
+                   }
+               }
+               if (iter != mLoadedApplications.end())
+               {
+                   delete context;
+                   mLoadedApplications.erase(iter);
+               }
+           }
             return status;
-        }
+         }
         
         Core::hresult LifecycleManagerImplementation::KillApp(const string& appInstanceId, string& errorReason, bool& success)
         {

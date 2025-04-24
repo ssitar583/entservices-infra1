@@ -338,7 +338,7 @@ Core::hresult AppManagerImplementation::packageLock(const string& appId, Package
         Core::hresult status = Core::ERROR_GENERAL;
         bool result = false;
         Exchange::IPackageInstaller::IPackageIterator* packages;
-        bool loaded = true;
+        bool loaded = false;
 
         if (nullptr != mLifecycleInterfaceConnector)
         {

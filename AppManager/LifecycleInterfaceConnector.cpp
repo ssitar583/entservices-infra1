@@ -137,7 +137,7 @@ namespace WPEFramework
 
             string appPath = "";
             string appConfig = "";
-            string runtimeAppId = "";
+            string runtimeAppId = appId;
             string runtimePath = "";
             string runtimeConfig = "";
             string environmentVars = "";
@@ -342,7 +342,7 @@ namespace WPEFramework
         {
             uint32_t status = Core::ERROR_GENERAL;
             std::string appInstanceId = "";
-            Exchange::IAppManager::AppLifecycleState targetLifecycleState = Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN;
+//            Exchange::IAppManager::AppLifecycleState targetLifecycleState = Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN;
             AppManagerImplementation* appManagerImplInstance = AppManagerImplementation::getInstance();
             bool success = false;
             std::string errorReason = "";
@@ -360,10 +360,10 @@ namespace WPEFramework
                     {
                         foundAppId = true;
                         appInstanceId = appIterator->second.appInstanceId;
-                        targetLifecycleState = appIterator->second.currentAppState;
+//                        targetLifecycleState = appIterator->second.currentAppState;
 
                         /* Check targetLifecycleState is in RUNNING state */
-                        if(targetLifecycleState == Exchange::IAppManager::AppLifecycleState::APP_STATE_RUNNING)
+//                        if(targetLifecycleState == Exchange::IAppManager::AppLifecycleState::APP_STATE_RUNNING)
                         {
                             if (nullptr != mLifecycleManagerRemoteObject)
                             {

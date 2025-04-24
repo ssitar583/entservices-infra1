@@ -380,6 +380,7 @@ namespace Plugin {
         bool locked = false;
         string gatewayMetadataPath;
         uint32_t rc = GetLockedInfo(packageId, version, unpackedPath, configMetadata, gatewayMetadataPath, locked);
+        (void)rc;
 
         if (locked)  {
             lockId = ++mLockCount[packageId];

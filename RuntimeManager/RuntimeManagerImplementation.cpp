@@ -644,16 +644,17 @@ err_ret:
             return status;
         }
 
-        bool RuntimeManagerImplementation::generate(const ApplicationConfiguration& /*config*/, std::string& dobbySpec)
+        bool RuntimeManagerImplementation::generate(const ApplicationConfiguration& config, std::string& dobbySpec)
         {
+#if 0
             ApplicationConfiguration testConfig;
             testConfig.mArgs = {"sleep", "600"};
             testConfig.mAppPath = "/tmp";
             testConfig.mUserId = 1000;
             testConfig.mGroupId = 1000;
-
+#endif
             DobbySpecGenerator generator;
-            generator.generate(testConfig, dobbySpec);
+            generator.generate(config, dobbySpec);
 
             return true;
         }
@@ -751,18 +752,27 @@ err_ret:
                     if (envVar.find("XDG_RUNTIME_DIR=") == 0)
                     {
                         xdgRuntimeDir = envVar.substr(strlen("XDG_RUNTIME_DIR="));
+                        LOGINFO("Inside Run() xdgRuntimeDir: %s", xdgRuntimeDir.c_str());
+                        config.mAppPath = std::string(xdgRuntimeDir);
+                        LOGINFO("Inside Run() xdgRuntimeDir: %s", xdgRuntimeDir.c_str());
                     }
                     else if (envVar.find("WAYLAND_DISPLAY=") == 0)
                     {
                         waylandDisplay = envVar.substr(strlen("WAYLAND_DISPLAY="));
+                        config.mArgs = {"sleep", "600"};
+                        LOGINFO("Inside Run() waylandDisplay: %s", waylandDisplay.c_str());
                     }
 
                     if (!xdgRuntimeDir.empty() && !waylandDisplay.empty())
                     {
+                        config.mWesterosSocketPath = xdgRuntimeDir + "/" + waylandDisplay;
                         break;
                     }
                 }
             }
+
+            LOGINFO("xdgRuntimeDir: %s", xdgRuntimeDir.c_str());
+            LOGINFO("waylandDisplay: %s", waylandDisplay.c_str());
 
             if (!appId.empty())
             {

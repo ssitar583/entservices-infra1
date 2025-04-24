@@ -94,7 +94,7 @@ bool RuntimeManagerHandler::run(const string& appId, const string& appInstanceId
     // -- debugSettings - [] //for vbn builds
     // -- paths - paths to set in container - path for XDG_RUNTIME_DIR
     
-    uint32_t userId = 0, groupId = 0;
+    uint32_t userId = 30490, groupId = 1000;
     std::list<string> environmentVarsList, debugSettingsList, pathsList;
     std::list<uint32_t> portsList;
 
