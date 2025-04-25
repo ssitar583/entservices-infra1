@@ -544,6 +544,8 @@ jobs:
           '*/Tests/headers/*'
           '*/Tests/mocks/*'
           '*/Tests/L1Tests/tests/*'
+          '*/com/*'
+          '*/core/*'
           -o filtered_coverage.info
           &&
           genhtml
