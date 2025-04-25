@@ -36,7 +36,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
-find_package(jsoncpp)
+#find_package(jsoncpp)
 
 add_library(${MODULE_NAME} SHARED
         RuntimeManager.cpp
