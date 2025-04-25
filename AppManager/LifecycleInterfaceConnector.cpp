@@ -137,7 +137,7 @@ namespace WPEFramework
 
             string appPath = "";
             string appConfig = "";
-            string runtimeAppId = appId;
+            string runtimeAppId = "";
             string runtimePath = "";
             string runtimeConfig = "";
             string environmentVars = "";

@@ -28,11 +28,7 @@ message("CMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}")
 if (LIB_PACKAGE)
     message("LIB_PACKAGE=${LIB_PACKAGE}")
     add_compile_options ( -DUSE_LIBPACKAGE )
-    set(CMAKE_CXX_STANDARD  17)
-
-    # libPackage should install the .h in install dir    
     include_directories(${SYSROOT_PATH}/${CMAKE_INSTALL_PREFIX}/include/Package)
-    include_directories(${SYSROOT_PATH}/${CMAKE_INSTALL_PREFIX}/include/Package/common)
     set(LIB_PACKAGE_LIBRARY "${SYSROOT_PATH}/${CMAKE_INSTALL_PREFIX}/lib/libPackage.so")
 endif()
 
