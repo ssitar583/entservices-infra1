@@ -583,6 +583,7 @@ jobs:
           '*/Tests/L2Tests/*'
           '*/googlemock/*'
           '*/googletest/*'
+          '*/sqlite/*'
           -o filtered_coverage.info
           &&
           genhtml
