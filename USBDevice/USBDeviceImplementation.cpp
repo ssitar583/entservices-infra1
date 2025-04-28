@@ -862,7 +862,7 @@ uint32_t USBDeviceImplementation::getUSBDeviceStructFromDeviceDescriptor(libusb_
 /**
  * Register a notification callback
  */
-uint32_t USBDeviceImplementation::Register(Exchange::IUSBDevice::INotification *notification)
+Core::hresult USBDeviceImplementation::Register(Exchange::IUSBDevice::INotification *notification)
 {
     ASSERT (nullptr != notification);
 
@@ -884,7 +884,7 @@ uint32_t USBDeviceImplementation::Register(Exchange::IUSBDevice::INotification *
 /**
  * Unregister a notification callback
  */
-uint32_t USBDeviceImplementation::Unregister(Exchange::IUSBDevice::INotification *notification )
+Core::hresult USBDeviceImplementation::Unregister(Exchange::IUSBDevice::INotification *notification )
 {
     uint32_t status = Core::ERROR_GENERAL;
 
@@ -951,7 +951,7 @@ void USBDeviceImplementation::Dispatch(Event event, const Exchange::IUSBDevice::
      _adminLock.Unlock();
 }
 
-uint32_t USBDeviceImplementation::GetDeviceList(IUSBDeviceIterator*& devices) const
+Core::hresult USBDeviceImplementation::GetDeviceList(IUSBDeviceIterator*& devices) const
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::list<Exchange::IUSBDevice::USBDevice> usbDeviceList;
@@ -1006,7 +1006,7 @@ uint32_t USBDeviceImplementation::GetDeviceList(IUSBDeviceIterator*& devices) co
     return status;
 }
 
-uint32_t USBDeviceImplementation::GetDeviceInfo(const string &deviceName, USBDeviceInfo& deviceInfo) const
+Core::hresult USBDeviceImplementation::GetDeviceInfo(const string &deviceName, USBDeviceInfo& deviceInfo) const
 {
     uint32_t status = Core::ERROR_GENERAL;
     libusb_device **devs = nullptr;
@@ -1074,7 +1074,7 @@ uint32_t USBDeviceImplementation::GetDeviceInfo(const string &deviceName, USBDev
     return status;
 }
 
-uint32_t USBDeviceImplementation::BindDriver(const string &deviceName) const
+Core::hresult USBDeviceImplementation::BindDriver(const string &deviceName) const
 {
     uint32_t status = Core::ERROR_GENERAL;
     libusb_device **devs = nullptr;
@@ -1159,7 +1159,7 @@ uint32_t USBDeviceImplementation::BindDriver(const string &deviceName) const
     return status;
 }
 
-uint32_t USBDeviceImplementation::UnbindDriver(const string &deviceName) const
+Core::hresult USBDeviceImplementation::UnbindDriver(const string &deviceName) const
 {
     uint32_t status = Core::ERROR_GENERAL;
     libusb_device **devs = nullptr;
