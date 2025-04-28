@@ -1177,6 +1177,7 @@ uint32_t USBDeviceImplementation::UnbindDriver(const string &deviceName) const
     ssize_t devCount = 0;
     int retValue = LIBUSB_SUCCESS;
     libusb_device_handle *devHandle = nullptr;
+    int index = 0;
 
     _adminLock.Lock();
 
@@ -1188,12 +1189,11 @@ uint32_t USBDeviceImplementation::UnbindDriver(const string &deviceName) const
 
     if (devCount > 0)
     {
-        for (int index = 0; index < devCount; index++)
+        for (index = 0; index < devCount; index++)
         {
             char usbDeviceName[10] = {0};
 
             (void)sprintf(usbDeviceName, "%03d/%03d", libusb_get_bus_number(devs[index]), libusb_get_device_address(devs[index]));
-
             if (deviceName.compare(string(usbDeviceName)) != 0)
             {
                 continue;
@@ -1252,6 +1252,25 @@ uint32_t USBDeviceImplementation::UnbindDriver(const string &deviceName) const
     }
     _adminLock.Unlock();
 
+    if (Core::ERROR_NONE == status)
+    {
+        Exchange::IUSBDevice::USBDevice usbDevice = {0};
+        status = USBDeviceImplementation::instance()->getUSBDeviceStructFromDeviceDescriptor(devs[index], &usbDevice);
+        if (Core::ERROR_NONE == status)
+        {
+            LOGINFO ("usbDevice.deviceClass: %u usbDevice.deviceSubclass:%u usbDevice.deviceName:%s devicePath:%s",
+                usbDevice.deviceClass,
+                usbDevice.deviceSubclass,
+                usbDevice.deviceName.c_str(),
+                usbDevice.devicePath.c_str());
+
+            USBDeviceImplementation::instance()->Dispatch(USBDeviceImplementation::Event::USBDEVICE_HOTPLUG_EVENT_DEVICE_LEFT, usbDevice);
+        }
+        else
+        {
+            LOGWARN ("getUSBDeviceStructFromDeviceDescriptor Failed");
+        }
+    }
     return status;
 }
 } // namespace Plugin
