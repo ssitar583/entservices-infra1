@@ -78,6 +78,7 @@ namespace WPEFramework
                mCurrentservice = nullptr;
             }
 
+
             if (nullptr != mStorageManagerObject)
             {
                 releaseStorageManagerPluginObject();
