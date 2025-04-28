@@ -24,7 +24,6 @@
 // or just path (without quotation, if quotation disabled using path.SetQuoted(false))
 #include <json/json.h>
 #include "tracing/Logging.h"
-#include "RuntimeConfig.h"
 #include <string>
 #include "ApplicationConfiguration.h"
 namespace WPEFramework

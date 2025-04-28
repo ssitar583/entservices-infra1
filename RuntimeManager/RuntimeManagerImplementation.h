@@ -29,7 +29,6 @@
 #include <interfaces/IStorageManager.h>
 #include <condition_variable>
 #include "ApplicationConfiguration.h"
-#include "RuntimeConfig.h"
 
 namespace WPEFramework
 {
