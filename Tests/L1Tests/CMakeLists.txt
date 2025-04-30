@@ -107,6 +107,7 @@ endmacro()
 
 # PLUGIN_USBDEVICE
 set (USBDEVICE_INC ${CMAKE_SOURCE_DIR}/../entservices-infra/USBDevice ${CMAKE_SOURCE_DIR}/../entservices-infra/helpers)
+set (USBDEVICE_LIBS ${NAMESPACE}USBDevice ${NAMESPACE}USBDeviceImplementation)
 add_plugin_test_ex(PLUGIN_USBDEVICE tests/test_USBDevice.cpp "${USBDEVICE_INC}" "${NAMESPACE}USBDevice")
 
 add_library(${MODULE_NAME} SHARED ${TEST_SRC})
