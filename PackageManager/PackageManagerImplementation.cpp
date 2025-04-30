@@ -414,11 +414,11 @@ namespace Plugin {
         return result;
     }
 
-    Core::hresult PackageManagerImplementation::Config(const string &packageId, const string &version, string &config) {
+    Core::hresult PackageManagerImplementation::Config(const string &packageId, const string &version, Exchange::RuntimeConfig& configMetadata) {
         Core::hresult result = Core::ERROR_NONE;
 
         LOGTRACE();
-        config = "foo";
+        // XXX: will return configMetadata after metaDAta caching is done
 
         return result;
     }
@@ -468,7 +468,7 @@ namespace Plugin {
 
     // IPackageHandler methods
     Core::hresult PackageManagerImplementation::Lock(const string &packageId, const string &version, const Exchange::IPackageHandler::LockReason &lockReason,
-        uint32_t &lockId, string &unpackedPath, string& configMetadata, string& appMetadata
+        uint32_t &lockId, string &unpackedPath, Exchange::RuntimeConfig& configMetadata, string& appMetadata
         )
     {
         Core::hresult result = Core::ERROR_NONE;
@@ -479,20 +479,33 @@ namespace Plugin {
         bool locked = false;
         string gatewayMetadataPath;
         if (GetLockedInfo(packageId, version, unpackedPath, configMetadata, gatewayMetadataPath, locked) == Core::ERROR_NONE) {
+/*
             if (locked)  {
                 lockId = ++mLockCount[packageId];
             } else {
-                packagemanager::ConfigMetaData configMetadata;
-                packagemanager::Result pmResult = packageImpl->Lock(packageId, version, unpackedPath, configMetadata);
+*/
+                packagemanager::ConfigMetaData config;
+                packagemanager::Result pmResult = packageImpl->Lock(packageId, version, unpackedPath, config);
                 if (pmResult == packagemanager::SUCCESS) {
                     lockId = ++mLockCount[packageId];
                     LOGDBG("Locked id: %s ver: %s", packageId.c_str(), version.c_str());
+                    configMetadata.dial = config.dial;
+                    configMetadata.wanLanAccess = config.wanLanAccess;
+                    configMetadata.thunder = config.thunder;
+                    configMetadata.systemMemoryLimit = config.systemMemoryLimit;
+                    configMetadata.gpuMemoryLimit = config.gpuMemoryLimit;
+
+                    configMetadata.userId = config.userId;
+                    configMetadata.groupId = config.groupId;
+                    configMetadata.dataImageSize = config.dataImageSize;
+                    printf("MADANA IN PACKAGE MANAGER dial[%d] wanLanAccess[%d] thunder[%d] systemMemoryLimit[%d] gpuMemoryLimit[%d] userId[%d] groupId[%d] dataImageSize[%d] \n", configMetadata.dial, configMetadata.wanLanAccess, configMetadata.thunder, configMetadata.systemMemoryLimit, configMetadata.gpuMemoryLimit, configMetadata.userId, configMetadata.groupId, configMetadata.dataImageSize);
+		    fflush(stdout);
                 } else {
                     LOGERR("Lock Failed id: %s ver: %s", packageId.c_str(), version.c_str());
                     result = Core::ERROR_GENERAL;
                 }
-            }
-        }
+//            }
+       }
         #endif
         LOGDBG("id: %s ver: %s lock count:%d", packageId.c_str(), version.c_str(), mLockCount[packageId]);
 
@@ -521,11 +534,12 @@ namespace Plugin {
     }
 
     Core::hresult PackageManagerImplementation::GetLockedInfo(const string &packageId, const string &version,
-        string &unpackedPath, string& configMetadata, string& gatewayMetadataPath, bool &locked) {
+        string &unpackedPath, Exchange::RuntimeConfig& configMetadata, string& gatewayMetadataPath, bool &locked) {
 
         Core::hresult result = Core::ERROR_NONE;
 
         LOGDBG("id: %s ver: %s", packageId.c_str(), version.c_str());
+        // XXX: will return configMetadata after metaDAta caching is done
 
         #ifdef USE_LIBPACKAGE
         packagemanager::Result pmResult = packageImpl->GetLockInfo(packageId, version, unpackedPath, locked);
