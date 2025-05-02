@@ -145,7 +145,7 @@ namespace WPEFramework
             {
                 string containerId = std::string(RUNTIME_APP_PORTAL) + (request.mAppInstanceId);
                 int ret = -1;
-
+                LOGINFO("handleContainerRequest containerId %s",containerId.c_str());
                 std::shared_ptr<OCIContainerRequest> requestData(&request, [](OCIContainerRequest*) {
                 });
                 LOGINFO("handleContainerRequest pushback start");
