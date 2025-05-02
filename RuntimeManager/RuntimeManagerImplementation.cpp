@@ -138,7 +138,7 @@ namespace WPEFramework
         Core::hresult RuntimeManagerImplementation::handleContainerRequest(OCIContainerRequest& request)
         {
             Core::hresult status = Core::ERROR_GENERAL;
-
+            LOGINFO("handleContainerRequest Start");
             if (!request.mAppInstanceId.empty())
             {
                 string containerId = std::string(RUNTIME_APP_PORTAL) + (request.mAppInstanceId);
@@ -146,7 +146,7 @@ namespace WPEFramework
 
                 std::shared_ptr<OCIContainerRequest> requestData(&request, [](OCIContainerRequest*) {
                 });
-
+                LOGINFO("handleContainerRequest pushback requestData");
                 mContainerLock.lock();
                 requestData->mContainerId = std::move(containerId);
                 mContainerRequest.push_back(requestData);
@@ -301,6 +301,7 @@ namespace WPEFramework
 
                 if (!mContainerRequest.empty())
                 {
+                    LOGINFO("OCICOntainerThread");
                     request = mContainerRequest.front();
                     mContainerRequest.erase(mContainerRequest.begin());
                     if (nullptr == request)
@@ -322,6 +323,7 @@ namespace WPEFramework
 
                     if (nullptr != ociContainerObject)
                     {
+                        LOGINFO("OCIContainerThread with requestType");
                         switch (request->mRequestType)
                         {
                             case OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_RUN:
