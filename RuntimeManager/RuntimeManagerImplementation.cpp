@@ -302,7 +302,9 @@ namespace WPEFramework
             {
                 LOGINFO("OCIContainerThread getRunningState %d",getRunningState());
                 std::unique_lock<std::mutex> lock(mContainerLock);
-                mContainerQueueCV.wait(lock, [this] {return !mContainerRequest.empty() || !getRunningState();});
+                mContainerQueueCV.wait(lock, [this] {
+                    LOGINFO("getRunningState %d size %d",getRunningState(),mContainerRequest.size());
+                    return !mContainerRequest.empty() || !getRunningState();});
                 LOGINFO("either getRunningState is false or containerrequest is not empty");
                 if (!mContainerRequest.empty())
                 {
