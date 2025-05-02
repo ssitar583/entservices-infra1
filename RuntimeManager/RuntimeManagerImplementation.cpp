@@ -148,12 +148,14 @@ namespace WPEFramework
 
                 std::shared_ptr<OCIContainerRequest> requestData(&request, [](OCIContainerRequest*) {
                 });
-                LOGINFO("handleContainerRequest pushback requestData");
+                LOGINFO("handleContainerRequest pushback start");
                 mContainerLock.lock();
                 requestData->mContainerId = std::move(containerId);
+                LOGINFO("handleContainerRequest pushback requestData");
                 mContainerRequest.push_back(requestData);
                 mContainerLock.unlock();
                 mContainerQueueCV.notify_one();
+                LOGINFO("handleContainerRequest pushback End");
 
                 do
                 {
