@@ -88,12 +88,14 @@ namespace WPEFramework
         void RuntimeManagerImplementation::setRunningState(bool state)
         {
             Core::SafeSyncType<Core::CriticalSection> lock(mRuntimeManagerImplLock);
+            LOGINFO("SetRunningState %d",state);
             sRunning = state;
         }
 
         bool RuntimeManagerImplementation::getRunningState()
         {
             Core::SafeSyncType<Core::CriticalSection> lock(mRuntimeManagerImplLock);
+            LOGINFO("getRunningState %d",sRunning);
             return sRunning;
         }
 
@@ -296,6 +298,7 @@ namespace WPEFramework
 
             while (getRunningState())
             {
+                LOGINFO("OCIContainerThread getRunningState %d",getRunningState);
                 std::unique_lock<std::mutex> lock(mContainerLock);
                 mContainerQueueCV.wait(lock, [this] {return !mContainerRequest.empty() || !getRunningState();});
 
