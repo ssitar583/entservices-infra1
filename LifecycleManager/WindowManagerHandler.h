@@ -48,6 +48,7 @@ namespace Plugin {
                 END_INTERFACE_MAP
 
                 virtual void OnUserInactivity(const double minutes) override;
+                virtual void OnReady(std::string appId) override;
 
             private:
                 WindowManagerHandler& _parent;
@@ -63,9 +64,6 @@ namespace Plugin {
         public:
             bool initialize(PluginHost::IShell* service, IEventHandler* eventHandler);
 	    void terminate();
-            bool createDisplay(const string& appPath, const string& appConfig, const string& runtimeAppId, const string& runtimePath, const string& runtimeConfig, const string& launchArgs, const string& displayName, string& errorReason);
-            std::pair<std::string, std::string> generateDisplayName();
-            void generateUserId(uint32_t& userId, uint32_t& groupId);
         private:
             Exchange::IRDKWindowManager* mWindowManager;
 	    Core::Sink<WindowManagerNotification> mWindowManagerNotification;

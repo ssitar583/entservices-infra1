@@ -20,6 +20,7 @@
 #include "LifecycleManagerImplementation.h"
 #include "RequestHandler.h"
 #include "UtilsJsonRpc.h"
+#include <semaphore.h>
 
 namespace WPEFramework
 {
@@ -218,7 +219,7 @@ namespace WPEFramework
             return status;
         }
         
-        Core::hresult LifecycleManagerImplementation::SpawnApp(const string& appId, const string& appPath, const string& appConfig, const string& runtimeAppId, const string& runtimePath, const string& runtimeConfig, const string& launchIntent, const string& environmentVars, const bool enableDebugger, const LifecycleState targetLifecycleState, const string& launchArgs, string& appInstanceId, string& errorReason, bool& success)
+        Core::hresult LifecycleManagerImplementation::SpawnApp(const string& appId, const string& appPath, const string& appConfig, const string& runtimeAppId, const string& runtimePath, const string& runtimeConfig, const string& launchIntent, const string& environmentVars, const bool enableDebugger, const LifecycleState targetLifecycleState, const WPEFramework::Exchange::RuntimeConfig& runtimeConfigObject, const string& launchArgs, string& appInstanceId, string& errorReason, bool& success)
         {
 	    // Launches an app.  This will be an asynchronous call.
             // Notifies appropriate API Gateway when an app is about to be loaded
@@ -228,24 +229,7 @@ namespace WPEFramework
             if (nullptr == context)
 	    {
                 context = new ApplicationContext(appId);
-                WindowManagerHandler* windowManagerHandler = RequestHandler::getInstance()->getWindowManagerHandler();
-                std::pair<std::string, std::string> displayDetails;
-                if (nullptr != windowManagerHandler)
-                {
-                    displayDetails = windowManagerHandler->generateDisplayName();
-		    if (displayDetails.first.empty() || displayDetails.second.empty())
-		    {
-                        if (nullptr != context)
-		        {
-                            delete context;
-                        }
-                        errorReason = "unable to get display details for application launch";
-                        status = Core::ERROR_GENERAL;
-                        success = false;
-                        return status;
-		    }
-                }
-                context->setApplicationLaunchParams(appId, appPath, appConfig, runtimeAppId, runtimePath, runtimeConfig, launchIntent, environmentVars, enableDebugger, launchArgs, displayDetails.first, displayDetails.second);
+                context->setApplicationLaunchParams(appId, appPath, appConfig, runtimeAppId, runtimePath, runtimeConfig, launchIntent, environmentVars, enableDebugger, launchArgs, targetLifecycleState, runtimeConfigObject);
 		mLoadedApplications.push_back(context);
 	    }
             context->setTargetLifecycleState(targetLifecycleState);
@@ -416,6 +400,13 @@ namespace WPEFramework
             Core::hresult status = Core::ERROR_NONE;
 	    printf("[LifecycleManager] Received appReady event for [%s] \n", appId.c_str());
 	    fflush(stdout);
+            ApplicationContext* context = getContext("", appId);
+            if (nullptr == context)
+	    {
+                status = Core::ERROR_GENERAL;
+                return status;
+	    }
+            sem_post(&context->mAppReadySemaphore);
 	    return status;
 	}
 
@@ -451,7 +442,7 @@ namespace WPEFramework
             activate = (closeReason == KILL_AND_ACTIVATE);		    
 
             ApplicationLaunchParams& launchParams = context->getApplicationLaunchParams();
-	    status = SpawnApp(launchParams.mAppId, launchParams.mAppPath, launchParams.mAppConfig, launchParams.mRuntimeAppId, launchParams.mRuntimePath, launchParams.mRuntimeConfig, launchParams.mLaunchIntent, launchParams.mEnvironmentVars, launchParams.mEnableDebugger, activate?Exchange::ILifecycleManager::LifecycleState::ACTIVE:Exchange::ILifecycleManager::LifecycleState::RUNNING, launchParams.mLaunchArgs, appInstanceId, errorReason, success);
+	    status = SpawnApp(launchParams.mAppId, launchParams.mAppPath, launchParams.mAppConfig, launchParams.mRuntimeAppId, launchParams.mRuntimePath, launchParams.mRuntimeConfig, launchParams.mLaunchIntent, launchParams.mEnvironmentVars, launchParams.mEnableDebugger, activate?Exchange::ILifecycleManager::LifecycleState::ACTIVE:Exchange::ILifecycleManager::LifecycleState::RUNNING, launchParams.mRuntimeConfigObject, launchParams.mLaunchArgs, appInstanceId, errorReason, success);
 	    return status;
 	}
 
@@ -549,6 +540,23 @@ namespace WPEFramework
                     }
                 }            
 	    }
+	    else if (eventName.compare("onStateChanged") == 0)
+	    {
+                string appInstanceId = data["appInstanceId"];
+                Exchange::IRuntimeManager::RuntimeState runtimeState = data["state"];
+                if (Exchange::IRuntimeManager::RuntimeState::RUNTIME_STATE_RUNNING == runtimeState)
+		{
+                    ApplicationContext* context = getContext(appInstanceId, "");
+                    if (nullptr == context)
+                    {
+		        printf("Received state change event for app which is not available\n");
+	                fflush(stdout);	    
+                    }
+                    else
+		    {
+                        sem_post(&context->mAppRunningSemaphore);
+		    }
+            }
 	}
 
     } /* namespace Plugin */
