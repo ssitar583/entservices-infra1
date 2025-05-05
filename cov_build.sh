@@ -50,4 +50,3 @@ cmake -G Ninja -S "$GITHUB_WORKSPACE" -B build/entservices-infra \
 
 cmake --build build/entservices-infra --target install
 echo "======================================================================================"
-exit 0
