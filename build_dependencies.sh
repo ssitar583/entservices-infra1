@@ -33,7 +33,7 @@ git clone --branch R4.4.1 https://github.com/rdkcentral/Thunder.git
 
 git clone --branch main https://github.com/rdkcentral/entservices-apis.git
 
-git clone https://github.com/rdkcentral/entservices-testframework.git
+git clone https://$GITHUB_TOKEN@github.com/rdkcentral/entservices-testframework.git
 
 ############################
 # Build Thunder-Tools
@@ -111,6 +111,7 @@ mkdir -p headers/rdk/halif/deepsleep-manager
 mkdir -p headers/ccec/drivers
 mkdir -p headers/network
 mkdir -p headers/proc
+mkdir -p headers/libusb
 echo "dir created successfully"
 echo "======================================================================================"
 
@@ -148,7 +149,7 @@ touch rdk/iarmmgrs-hal/sysMgr.h
 touch network/wifiSrvMgrIarmIf.h
 touch network/netsrvmgrIarm.h
 touch libudev.h
-touch libusb.h
+touch libusb/libusb.h
 touch rfcapi.h
 touch rbus.h
 touch telemetry_busmessage_sender.h
