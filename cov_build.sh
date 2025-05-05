@@ -39,7 +39,6 @@ cmake -G Ninja -S "$GITHUB_WORKSPACE" -B build/entservices-infra \
 -include ${GITHUB_WORKSPACE}/entservices-testframework/Tests/mocks/pkg.h \
 -include ${GITHUB_WORKSPACE}/entservices-testframework/Tests/mocks/maintenanceMGR.h \
 -include ${GITHUB_WORKSPACE}/entservices-testframework/Tests/mocks/secure_wrappermock.h \
--include ${GITHUB_WORKSPACED}/entservices-testframework/Tests/mocks/libusb.h \
 --coverage -Wall -Werror -Wno-error=format \
 -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog \
 -DENABLE_TELEMETRY_LOGGING -DUSE_IARMBUS \
