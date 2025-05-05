@@ -266,10 +266,10 @@ bool AppManagerImplementation::createOrUpdatePackageInfoByAppId(const string& ap
             it->second.packageInfo.appMetadata     = packageData.appMetadata;
 
             LOGINFO("Existing package entry updated for appId: %s " \
-                    "version: %s lockId: %d unpackedPath: %s configMetadata: %s appMetadata: %s",
+                    "version: %s lockId: %d unpackedPath: %s appMetadata: %s",
                     appId.c_str(), it->second.packageInfo.version.c_str(),
                     it->second.packageInfo.lockId, it->second.packageInfo.unpackedPath.c_str(),
-                    it->second.packageInfo.configMetadata.c_str(), it->second.packageInfo.appMetadata.c_str());
+                    it->second.packageInfo.appMetadata.c_str());
         }
         else
         {
@@ -281,10 +281,10 @@ bool AppManagerImplementation::createOrUpdatePackageInfoByAppId(const string& ap
             mAppInfo[appId].packageInfo.appMetadata     = packageData.appMetadata;
 
             LOGINFO("Created new package entry for appId: %s " \
-                    "version: %s lockId: %d unpackedPath: %s configMetadata: %s appMetadata: %s",
+                    "version: %s lockId: %d unpackedPath: %s appMetadata: %s",
                     appId.c_str(), mAppInfo[appId].packageInfo.version.c_str(),
                     mAppInfo[appId].packageInfo.lockId, mAppInfo[appId].packageInfo.unpackedPath.c_str(),
-                    mAppInfo[appId].packageInfo.configMetadata.c_str(), mAppInfo[appId].packageInfo.appMetadata.c_str());
+                    mAppInfo[appId].packageInfo.appMetadata.c_str());
         }
         result = true;
     }
@@ -305,8 +305,8 @@ bool AppManagerImplementation::fetchPackageInfoByAppId(const string& appId, Pack
             packageData.configMetadata    = it->second.packageInfo.configMetadata;
             packageData.appMetadata       = it->second.packageInfo.appMetadata;
             LOGINFO("Fetching package entry updated for appId: %s " \
-                    "version: %s lockId: %d unpackedPath: %s configMetadata: %s appMetadata: %s",
-                    appId.c_str(), packageData.version.c_str(), packageData.lockId, packageData.unpackedPath.c_str(), packageData.configMetadata.c_str(), packageData.appMetadata.c_str());
+                    "version: %s lockId: %d unpackedPath: %s appMetadata: %s",
+                    appId.c_str(), packageData.version.c_str(), packageData.lockId, packageData.unpackedPath.c_str(), packageData.appMetadata.c_str());
             result = true;
         }
         return result;
@@ -321,8 +321,8 @@ bool AppManagerImplementation::removeAppInfoByAppId(const string &appId)
     if (it != mAppInfo.end())
     {
         LOGINFO("Existing package entry updated for appId: %s " \
-                "version: %s lockId: %d unpackedPath: %s configMetadata: %s appMetadata: %s",
-                appId.c_str(), it->second.packageInfo.version.c_str(), it->second.packageInfo.lockId, it->second.packageInfo.unpackedPath.c_str(), it->second.packageInfo.configMetadata.c_str(), it->second.packageInfo.appMetadata.c_str());
+                "version: %s lockId: %d unpackedPath: %s appMetadata: %s",
+                appId.c_str(), it->second.packageInfo.version.c_str(), it->second.packageInfo.lockId, it->second.packageInfo.unpackedPath.c_str(), it->second.packageInfo.appMetadata.c_str());
         mAppInfo.erase(appId);
         result = true;
     } 
@@ -374,8 +374,8 @@ Core::hresult AppManagerImplementation::packageLock(const string& appId, Package
                         if(status == Core::ERROR_NONE)
                         {
                             LOGINFO("Fetching package entry updated for appId: %s " \
-                            "version: %s lockId: %d unpackedPath: %s configMetadata: %s appMetadata: %s",
-                            appId.c_str(), packageData.version.c_str(), packageData.lockId, packageData.unpackedPath.c_str(), packageData.configMetadata.c_str(), packageData.appMetadata.c_str());
+                            "version: %s lockId: %d unpackedPath: %s appMetadata: %s",
+                            appId.c_str(), packageData.version.c_str(), packageData.lockId, packageData.unpackedPath.c_str(), packageData.appMetadata.c_str());
                             result = createOrUpdatePackageInfoByAppId(appId, packageData);
                             if (false == result)
                             {
@@ -460,9 +460,28 @@ Core::hresult AppManagerImplementation::LaunchApp(const string& appId , const st
     if (nullptr != mLifecycleInterfaceConnector)
     {
         status = packageLock(appId, packageData, lockReason);
+        WPEFramework::Exchange::RuntimeConfig runtimeConfig = packageData.configMetadata;
+/*
+        runtimeConfig.dial = true;
+        runtimeConfig.wanLanAccess = true;
+        runtimeConfig.thunder = true;
+        runtimeConfig.systemMemoryLimit = 0;
+        runtimeConfig.gpuMemoryLimit = 0;
+        runtimeConfig.envVars = "";
+        runtimeConfig.userId = 0;
+        runtimeConfig.groupId = 0;
+        runtimeConfig.dataImageSize = 0;
+*/
+        //NEWLY ADDED BELOW
+        runtimeConfig.resourceManagerClientEnabled = true;
+        runtimeConfig.dialId = "";
+        runtimeConfig.command = "/runtime/SkyBrowserLauncher";
+        runtimeConfig.appType = 1;
+        runtimeConfig.appPath = "/opt/youtube/YouTube.T18IAl";
+        runtimeConfig.runtimePath = "/opt/youtube/com.sky.cobalt.Hn7UUm";
         if (status == Core::ERROR_NONE)
         {
-            status = mLifecycleInterfaceConnector->launch(appId, intent, launchArgs);
+            status = mLifecycleInterfaceConnector->launch(appId, intent, launchArgs, runtimeConfig);
         }
     }
     mAdminLock.Unlock();
@@ -611,6 +630,7 @@ Core::hresult AppManagerImplementation::SendIntent(const string& appId , const s
 Core::hresult AppManagerImplementation::PreloadApp(const string& appId , const string& launchArgs ,string& error)
 {
     Core::hresult status = Core::ERROR_GENERAL;
+
     PackageInfo packageData;
     Exchange::IPackageHandler::LockReason lockReason = Exchange::IPackageHandler::LockReason::LAUNCH;
     LOGINFO(" PreloadApp enter with appId %s", appId.c_str());
@@ -619,9 +639,28 @@ Core::hresult AppManagerImplementation::PreloadApp(const string& appId , const s
     if (nullptr != mLifecycleInterfaceConnector)
     {
         status = packageLock(appId, packageData, lockReason);
+        WPEFramework::Exchange::RuntimeConfig& runtimeConfig = packageData.configMetadata;
+/*
+        runtimeConfig.dial = true;
+        runtimeConfig.wanLanAccess = true;
+        runtimeConfig.thunder = true;
+        runtimeConfig.systemMemoryLimit = 0;
+        runtimeConfig.gpuMemoryLimit = 0;
+        runtimeConfig.envVars = "";
+        runtimeConfig.userId = 0;
+        runtimeConfig.groupId = 0;
+        runtimeConfig.dataImageSize = 0;
+*/
+        //NEWLY ADDED BELOW
+        runtimeConfig.resourceManagerClientEnabled = true;
+        runtimeConfig.dialId = "";
+        runtimeConfig.command = "/runtime/SkyBrowserLauncher";
+        runtimeConfig.appType = 1;
+        runtimeConfig.appPath = "/opt/youtube/YouTube.T18IAl";
+        runtimeConfig.runtimePath = "/opt/youtube/com.sky.cobalt.Hn7UUm";
         if (status == Core::ERROR_NONE)
         {
-            status = mLifecycleInterfaceConnector->preLoadApp(appId, launchArgs, error);
+            status = mLifecycleInterfaceConnector->preLoadApp(appId, launchArgs, runtimeConfig, error);
         }
     }
     mAdminLock.Unlock();

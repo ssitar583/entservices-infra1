@@ -50,7 +50,6 @@ namespace WPEFramework
         bool RequestHandler::initialize(PluginHost::IShell* service, IEventHandler* eventHandler)
 	{
 	    bool ret = false;
-            StateHandler::initialize();
 	    mEventHandler = eventHandler;	
             mRippleHandler = new RippleHandler();
             ret = mRippleHandler->initialize(eventHandler);

@@ -338,6 +338,7 @@ namespace WPEFramework
                                     LOGERR("Failed to StartContainerFromDobbySpec");
                                     request->mErrorReason = "Failed to StartContainerFromDobbySpec";
                                 }
+                                //TODO: Emit onStarted Running after onStarted received from OCIContainer
                             }
                             break;
 
@@ -644,10 +645,10 @@ err_ret:
             return status;
         }
 
-        bool RuntimeManagerImplementation::generate(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig, std::string& dobbySpec)
+        bool RuntimeManagerImplementation::generate(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfigObject, std::string& dobbySpec)
         {
             DobbySpecGenerator generator;
-            generator.generate(config, runtimeConfig, dobbySpec);
+            generator.generate(config, runtimeConfigObject, dobbySpec);
 
             return true;
         }
@@ -677,7 +678,7 @@ err_ret:
             return runtimeState;
         }
 
-        Core::hresult RuntimeManagerImplementation::Run(const string& appId, const string& appInstanceId, const string& appPath, const string& runtimePath, IStringIterator* const& envVars, const uint32_t userId, const uint32_t groupId, IValueIterator* const& ports, IStringIterator* const& paths, IStringIterator* const& debugSettings)
+        Core::hresult RuntimeManagerImplementation::Run(const string& appId, const string& appInstanceId, const string& appPath, const string& runtimePath, IStringIterator* const& envVars, const uint32_t userId, const uint32_t groupId, IValueIterator* const& ports, IStringIterator* const& paths, IStringIterator* const& debugSettings, const WPEFramework::Exchange::RuntimeConfig& runtimeConfigObject)
         {
             Core::hresult status = Core::ERROR_GENERAL;
             RuntimeAppInfo runtimeAppInfo;
@@ -686,9 +687,7 @@ err_ret:
             std::string dobbySpec;
             AppStorageInfo appStorageInfo;
 
-            //PENDING - This needs to be populated via argument
-            RuntimeConfig runtimeConfig;
-
+            //TODO: Emit onStarting event
             ApplicationConfiguration config;
             config.mAppId = appId;
             config.mAppInstanceId = appInstanceId;
@@ -697,22 +696,6 @@ err_ret:
             generateUserId(uid, gid); 
             config.mUserId = uid;
             config.mGroupId = gid;
-
-            if (envVars)
-            {
-                std::string envVar;
-                while (envVars->Next(envVar))
-                {
-                    if (envVar.find("XDG_RUNTIME_DIR=") == 0)
-                    {
-                        xdgRuntimeDir = envVar.substr(strlen("XDG_RUNTIME_DIR="));
-                    }
-                    else if (envVar.find("WAYLAND_DISPLAY=") == 0)
-                    {
-                        waylandDisplay = envVar.substr(strlen("WAYLAND_DISPLAY="));
-                    }
-                }
-            }
 
             if (ports)
             {
@@ -748,12 +731,6 @@ err_ret:
                 LOGERR("envVars is null inside Run()");
             }
 
-            if (!xdgRuntimeDir.empty() && !waylandDisplay.empty())
-            {
-                std::string westerosSocket = xdgRuntimeDir + "/" + waylandDisplay;
-                config.mWesterosSocketPath = westerosSocket;
-            }
-
             if (!appId.empty())
             {
                 appStorageInfo.userId = userId;
@@ -776,7 +753,7 @@ err_ret:
                 status = Core::ERROR_GENERAL;
             }
             /* Generate dobbySpec */
-            else if (false == RuntimeManagerImplementation::generate(config, runtimeConfig, dobbySpec))
+            else if (false == RuntimeManagerImplementation::generate(config, runtimeConfigObject, dobbySpec))
             {
                 LOGERR("Failed to generate dobbySpec");
                 status = Core::ERROR_GENERAL;

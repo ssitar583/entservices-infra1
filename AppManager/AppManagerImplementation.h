@@ -64,7 +64,7 @@ namespace Plugin {
             string version = "";
             uint32_t lockId = 0;
             string unpackedPath = "" ;
-            string configMetadata = "";
+	    WPEFramework::Exchange::RuntimeConfig configMetadata;
             string appMetadata = "";
         } PackageInfo;
 

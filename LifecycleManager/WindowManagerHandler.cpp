@@ -72,11 +72,13 @@ void WindowManagerHandler::WindowManagerNotification::OnUserInactivity(const dou
 {
 }
 
+//TODO
+/*
 void WindowManagerHandler::WindowManagerNotification::OnReady(std::string appId)
 {
     printf("MADANA Received onReady event for app[%s] \n", appId.c_str());
     fflush(stdout);
 }
-
+*/
 } // namespace Plugin
 } // namespace WPEFramework

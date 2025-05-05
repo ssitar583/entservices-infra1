@@ -56,7 +56,7 @@ DobbySpecGenerator::~DobbySpecGenerator()
     LOGINFO("~DobbySpecGenerator()");
 }
 
-bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig, string& resultSpec)
+bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig, string& resultSpec)
 {
     LOGINFO("DobbySpecGenerator::generate()");
     resultSpec = "";
@@ -174,7 +174,7 @@ bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, Runtim
     return true;
 }
 
-Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const
+Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const
 {
     Json::Value env(Json::arrayValue);
     env.append(std::string("APPLICATION_NAME=") + config.mAppId);
@@ -188,12 +188,23 @@ Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& co
 //"REGION=USA",
 //"LANG=en_US",
 //"ADDITIONAL_DATA_URL=http%3A%2F%2F127.0.0.1%3A8009%2Fe6486224-8058-49c2-936b-4f5a87c45bb2%2FYouTube%2Fdial_data",
+//"DIAL_USN=uuid:sky-dial-server-a84a631e48a4::urn:dial-multiscreen-org:service:dial:1"
 
+   JsonArray envInputArray;
+   envInputArray.FromString(runtimeConfig.envVars);
+   for (unsigned int i = 0; i < envInputArray.Length(); ++i)
+   {
+       std::string envInputItem = envInputArray[i].String();
+       env.append(envInputArray[i].String());
+   }
+
+//TODO: Populate properly
+/*
     for (const std::string& str : runtimeConfig.envVariables)
     {
         env.append(str);
     }
-
+*/
     if (!config.mWesterosSocketPath.empty())
     {
         env.append("XDG_RUNTIME_DIR=/tmp");
@@ -202,6 +213,8 @@ Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& co
         env.append("WESTEROS_SINK_VIRTUAL_HEIGHT=1080");
         env.append("QT_WAYLAND_CLIENT_BUFFER_INTEGRATION=wayland-egl");
         env.append("QT_WAYLAND_SHELL_INTEGRATION=wl-simple-shell");
+        env.append("QT_WAYLAND_INPUTDEVICE_INTEGRATION=skyq-input");
+        env.append("QT_QPA_PLATFORM=wayland-sky-rdk");
 
         //TODO Find the place where it is populated from appsservice
         env.append("WESTEROS_SINK_AMLOGIC_USE_DMABUF=1");
@@ -243,15 +256,15 @@ Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& co
         //env.append(std::string("ADDITIONAL_DATA_URL=") + dataUrl);
 
         //env.append(std::string("DIAL_USN=") + mDialConfig->getDialUsn());
-	const std::string dataUrl("");
-	const std::string dialUsn("");
+	const std::string dataUrl("http%3A%2F%2F127.0.0.1%3A8009%2Fe6486224-8058-49c2-936b-4f5a87c45bb2%2FYouTube%2Fdial_data");
+	const std::string dialUsn("uuid:sky-dial-server-a84a631e48a4::urn:dial-multiscreen-org:service:dial:1");
         env.append(std::string("ADDITIONAL_DATA_URL=") + dataUrl);
         env.append(std::string("DIAL_USN=") + dialUsn);
     }
     return env;
 }
 
-Json::Value DobbySpecGenerator::createMounts(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const
+Json::Value DobbySpecGenerator::createMounts(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const
 {
     Json::Value mounts(Json::arrayValue);
 
@@ -333,12 +346,12 @@ bool DobbySpecGenerator::shouldEnableGpu(const ApplicationConfiguration& config)
     return !config.mWesterosSocketPath.empty();
 }
 
-ssize_t DobbySpecGenerator::getSysMemoryLimit(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const
+ssize_t DobbySpecGenerator::getSysMemoryLimit(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const
 {
     ssize_t memoryLimit = runtimeConfig.systemMemoryLimit;
     if (memoryLimit <= 0)
     {
-        if (runtimeConfig.appType == ApplicationType::INTERACTIVE)
+        if (runtimeConfig.appType == 1) //TODO: Convert to enum
 	{
             memoryLimit = NONHOMEAPP_MEM_LIMIT;  
         }
@@ -347,12 +360,12 @@ ssize_t DobbySpecGenerator::getSysMemoryLimit(const ApplicationConfiguration& co
     return memoryLimit;
 }
 
-ssize_t DobbySpecGenerator::getGPUMemoryLimit(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const
+ssize_t DobbySpecGenerator::getGPUMemoryLimit(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const
 {
     ssize_t gpuMemoryLimit = runtimeConfig.gpuMemoryLimit;
     if (gpuMemoryLimit <= 0)
     {
-        if (runtimeConfig.appType == ApplicationType::INTERACTIVE)
+        if (runtimeConfig.appType == 1) //TODO: Convert to enum
 	{
             gpuMemoryLimit = NONHOMEAPP_GPUMEM_LIMIT;
         }
@@ -404,7 +417,7 @@ std::string DobbySpecGenerator::getCpuCores()
     return coresStr;
 }
 
-Json::Value DobbySpecGenerator::createRdkPlugins(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const
+Json::Value DobbySpecGenerator::createRdkPlugins(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const
 {
     Json::Value rdkPluginsObj(Json::objectValue);
     //TODO: Appsservice plugin is not needed for sure?
@@ -445,7 +458,7 @@ Json::Value DobbySpecGenerator::createMinidumpPlugin() const
     return pluginObj;
 }
 
-Json::Value DobbySpecGenerator::createAppServiceSDKPlugin(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const
+Json::Value DobbySpecGenerator::createAppServiceSDKPlugin(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const
 {
     //TODO: May need to check for any local services, dial port
     Json::Value pluginObj(Json::objectValue);
@@ -470,7 +483,7 @@ Json::Value DobbySpecGenerator::createAppServiceSDKPlugin(const ApplicationConfi
     return pluginObj;
 }
 
-Json::Value DobbySpecGenerator::createNetworkPlugin(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const
+Json::Value DobbySpecGenerator::createNetworkPlugin(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const
 {
     Json::Value pluginObj(Json::objectValue);
 
@@ -524,7 +537,7 @@ Json::Value DobbySpecGenerator::createNetworkPlugin(const ApplicationConfigurati
     return pluginObj;
 }
 
-void DobbySpecGenerator::populateClassicPlugins(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig, Json::Value& spec)
+void DobbySpecGenerator::populateClassicPlugins(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig, Json::Value& spec)
 {
     Json::Value pluginsArray(Json::arrayValue);
     // enable the logging plugin
@@ -536,7 +549,7 @@ void DobbySpecGenerator::populateClassicPlugins(const ApplicationConfiguration& 
     spec["plugins"] = std::move(pluginsArray);
 }
 
-Json::Value DobbySpecGenerator::createEthanLogPlugin(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const
+Json::Value DobbySpecGenerator::createEthanLogPlugin(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const
 {
     Json::Value plugin(Json::objectValue);
     static const Json::StaticString name("name");
@@ -597,8 +610,8 @@ Json::Value DobbySpecGenerator::createThunderPlugin(const ApplicationConfigurati
     static const Json::StaticString dependsOn("dependsOn");
     static const Json::StaticString bearerUrl("bearerUrl");
     static const Json::StaticString data("data");
-    static const Json::StaticString localServices2("");
-    static const Json::StaticString localServices5("");
+    static const Json::StaticString localServices2("http://local-services-2.sky.com");
+    static const Json::StaticString localServices5("http://local-services-5.sky.com");
 
     Json::Value plugin(Json::objectValue);
     Json::Value dependencies(Json::arrayValue);
@@ -612,7 +625,7 @@ Json::Value DobbySpecGenerator::createThunderPlugin(const ApplicationConfigurati
     return plugin;
 }
 
-Json::Value DobbySpecGenerator::createOpenCDMPlugin(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const
+Json::Value DobbySpecGenerator::createOpenCDMPlugin(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const
 {
     static const Json::StaticString name("name");
     static const Json::StaticString data("data");
@@ -645,7 +658,7 @@ void DobbySpecGenerator::initialiseIonHeapsJson()
     mIonMemoryPluginData["heaps"] = std::move(heapsArray);
 }
 
-Json::Value DobbySpecGenerator::createPrivateDataMount(RuntimeConfig& runtimeConfig) const
+Json::Value DobbySpecGenerator::createPrivateDataMount(const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const
 {
     static const Json::StaticString source("source");
     static const Json::StaticString destination("destination");
@@ -664,7 +677,7 @@ Json::Value DobbySpecGenerator::createPrivateDataMount(RuntimeConfig& runtimeCon
     /*
     const std::string sourcePath = package->privateDataImagePath();
     */
-    const std::string sourcePath("");
+    const std::string sourcePath("/media/apps/sky/packages/YouTube/data.img");
     if (sourcePath.empty())
     {
         return Json::nullValue;
@@ -684,7 +697,7 @@ Json::Value DobbySpecGenerator::createPrivateDataMount(RuntimeConfig& runtimeCon
     return mount;
 }
 
-void DobbySpecGenerator::createFkpsMounts(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig, Json::Value& spec) const
+void DobbySpecGenerator::createFkpsMounts(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig, Json::Value& spec) const
 {
 
     // TODO: get the list of fkps files from app config from package manager

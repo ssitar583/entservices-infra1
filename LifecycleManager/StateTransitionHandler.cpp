@@ -54,6 +54,7 @@ namespace WPEFramework
 
         bool StateTransitionHandler::initialize()
 	{
+            StateHandler::initialize();
             sem_init(&gRequestSemaphore, 0, 0);
             requestHandlerThread = std::thread([=]() {
                 bool isRunning = true;
@@ -71,12 +72,14 @@ namespace WPEFramework
                             gRequests.erase(gRequests.begin());
                             continue;
                         }
-                        bool success = StateHandler::changeState(request->mContext, request->mTargetState, errorReason);
+                        std::string errorReason;
+                        bool success = StateHandler::changeState(*request, errorReason);
                         if (!success)
                         {
                             printf("MADANA ERROR IN STATE TRANSITION ... \n");
 			    fflush(stdout);
-                            return false;
+                            //TODO: Decide on what to do on state transition error
+                            break;
                         }
                         gRequests.erase(gRequests.begin());
                     }
@@ -101,9 +104,10 @@ namespace WPEFramework
 
 	void StateTransitionHandler::addRequest(StateTransitionRequest& request)
 	{
-	   std::shared_ptr<StateTransitionRequest> request = std::make_shared<StateTransitionRequest>(request.context, request.targetLifecycleState);
+           //TODO: Pass contect and state as argument to function
+	   std::shared_ptr<StateTransitionRequest> stateTransitionRequest = std::make_shared<StateTransitionRequest>(request.mContext, request.mTargetState);
 	   gRequestMutex.lock();
-           gRequests.push_back(request);
+           gRequests.push_back(stateTransitionRequest);
 	   gRequestMutex.unlock();
            sem_post(&gRequestSemaphore);
 	}

@@ -442,7 +442,7 @@ namespace WPEFramework
             activate = (closeReason == KILL_AND_ACTIVATE);		    
 
             ApplicationLaunchParams& launchParams = context->getApplicationLaunchParams();
-	    status = SpawnApp(launchParams.mAppId, launchParams.mAppPath, launchParams.mAppConfig, launchParams.mRuntimeAppId, launchParams.mRuntimePath, launchParams.mRuntimeConfig, launchParams.mLaunchIntent, launchParams.mEnvironmentVars, launchParams.mEnableDebugger, activate?Exchange::ILifecycleManager::LifecycleState::ACTIVE:Exchange::ILifecycleManager::LifecycleState::RUNNING, launchParams.mRuntimeConfigObject, launchParams.mLaunchArgs, appInstanceId, errorReason, success);
+	    status = SpawnApp(launchParams.mAppId, launchParams.mAppPath, launchParams.mAppConfig, launchParams.mRuntimeAppId, launchParams.mRuntimePath, launchParams.mRuntimeConfig, launchParams.mLaunchIntent, launchParams.mEnvironmentVars, launchParams.mEnableDebugger, activate?Exchange::ILifecycleManager::LifecycleState::ACTIVE:Exchange::ILifecycleManager::LifecycleState::PAUSED, launchParams.mRuntimeConfigObject, launchParams.mLaunchArgs, appInstanceId, errorReason, success);
 	    return status;
 	}
 
@@ -543,7 +543,7 @@ namespace WPEFramework
 	    else if (eventName.compare("onStateChanged") == 0)
 	    {
                 string appInstanceId = data["appInstanceId"];
-                Exchange::IRuntimeManager::RuntimeState runtimeState = data["state"];
+                uint32_t runtimeState = data["state"].Number();
                 if (Exchange::IRuntimeManager::RuntimeState::RUNTIME_STATE_RUNNING == runtimeState)
 		{
                     ApplicationContext* context = getContext(appInstanceId, "");
@@ -556,6 +556,7 @@ namespace WPEFramework
 		    {
                         sem_post(&context->mAppRunningSemaphore);
 		    }
+                }
             }
 	}
 

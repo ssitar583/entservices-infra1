@@ -26,6 +26,8 @@
 #include "tracing/Logging.h"
 #include <string>
 #include "ApplicationConfiguration.h"
+#include <interfaces/IRuntimeManager.h>
+
 namespace WPEFramework
 {
 namespace Plugin
@@ -39,32 +41,32 @@ namespace Plugin
             DobbySpecGenerator();
             virtual ~DobbySpecGenerator();
 
-            bool generate(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig, string& outputJsonString);
+            bool generate(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig, string& outputJsonString);
 
         private:
-            Json::Value createEnvVars(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
-            Json::Value createMounts(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
-            Json::Value createRdkPlugins(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
+            Json::Value createEnvVars(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const;
+            Json::Value createMounts(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const;
+            Json::Value createRdkPlugins(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const;
             Json::Value createMinidumpPlugin() const;
-            Json::Value createAppServiceSDKPlugin(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
-            Json::Value createNetworkPlugin(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
+            Json::Value createAppServiceSDKPlugin(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const;
+            Json::Value createNetworkPlugin(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const;
             Json::Value createBindMount(const std::string &source,
                                         const std::string &destination,
                                         unsigned long options) const;
 
             bool shouldEnableGpu(const ApplicationConfiguration& config) const;
 
-            ssize_t getSysMemoryLimit(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
-            ssize_t getGPUMemoryLimit(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
+            ssize_t getSysMemoryLimit(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const;
+            ssize_t getGPUMemoryLimit(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const;
             bool getVpuEnabled(const ApplicationConfiguration& config) const;
 	    std::string getCpuCores();
-            void populateClassicPlugins(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig, Json::Value& spec);
-            Json::Value createEthanLogPlugin(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
+            void populateClassicPlugins(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig, Json::Value& spec);
+            Json::Value createEthanLogPlugin(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const;
             Json::Value createIonMemoryPlugin() const;
             Json::Value createThunderPlugin(const ApplicationConfiguration& config) const;
-            Json::Value createOpenCDMPlugin(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig) const;
-            Json::Value createPrivateDataMount(RuntimeConfig& runtimeConfig) const;
-            void createFkpsMounts(const ApplicationConfiguration& config, RuntimeConfig& runtimeConfig, Json::Value& spec) const;
+            Json::Value createOpenCDMPlugin(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const;
+            Json::Value createPrivateDataMount(const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const;
+            void createFkpsMounts(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig, Json::Value& spec) const;
             Json::Value createTmpfsMount(const std::string &mntDestination,
                                  unsigned long mntOptions) const;
             void initialiseIonHeapsJson();

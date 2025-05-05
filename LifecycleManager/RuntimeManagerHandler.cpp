@@ -101,8 +101,6 @@ bool RuntimeManagerHandler::run(const string& appId, const string& appInstanceId
 
     portsList.push_back(mFireboltAccessPort);
 
-    pathsList.push_back(xdgRuntimeDir);
-
     for (unsigned int i=0; i<environmentVarsArray.Length(); i++)
     {
         environmentVarsList.push_back(environmentVarsArray[i].String());
@@ -214,7 +212,7 @@ bool RuntimeManagerHandler::wake(const string& appInstanceId, Exchange::ILifecyc
     {
         runtimeState = Exchange::IRuntimeManager::RuntimeState::RUNTIME_STATE_SUSPENDED;
     }
-    else if ((state == Exchange::ILifecycleManager::LifecycleState::RUNNING) || (state == Exchange::ILifecycleManager::LifecycleState::ACTIVE))
+    else if ((state == Exchange::ILifecycleManager::LifecycleState::PAUSED) || (state == Exchange::ILifecycleManager::LifecycleState::ACTIVE))
     {
         runtimeState = Exchange::IRuntimeManager::RuntimeState::RUNTIME_STATE_RUNNING;
     }

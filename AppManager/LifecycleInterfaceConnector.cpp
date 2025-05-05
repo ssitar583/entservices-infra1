@@ -130,7 +130,7 @@ namespace WPEFramework
  * @Params  : const string& appId , const string& intent , const string& launchArgs
  * @return  : Core::hresult
  */
-        Core::hresult LifecycleInterfaceConnector::launch(const string& appId, const string& intent, const string& launchArgs)
+        Core::hresult LifecycleInterfaceConnector::launch(const string& appId, const string& intent, const string& launchArgs, WPEFramework::Exchange::RuntimeConfig& runtimeConfigObject)
         {
             Core::hresult status = Core::ERROR_GENERAL;
             AppManagerImplementation*appManagerImplInstance = AppManagerImplementation::getInstance();
@@ -158,6 +158,7 @@ namespace WPEFramework
                     AppManagerImplementation::PackageInfo packageData;
                     if(appManagerImplInstance->fetchPackageInfoByAppId(appId, packageData))
                     {
+                        //NEEDS CHANGE
                         appPath = packageData.unpackedPath;
                         LOGINFO("Got PackageAppInfo appPath :[%s]", appPath.c_str());
                     }
@@ -180,7 +181,7 @@ namespace WPEFramework
                 if (nullptr != mLifecycleManagerRemoteObject)
                 {
                     status = mLifecycleManagerRemoteObject->SpawnApp(appId, appPath, appConfig, runtimeAppId, runtimePath, runtimeConfig, intent, environmentVars,
-                                                                  enableDebugger, Exchange::ILifecycleManager::LifecycleState::ACTIVE, launchArgs, appInstanceId, errorReason, success);
+                                                                  enableDebugger, Exchange::ILifecycleManager::LifecycleState::ACTIVE, runtimeConfigObject, launchArgs, appInstanceId, errorReason, success);
 
                     if (status == Core::ERROR_NONE)
                     {
@@ -206,7 +207,7 @@ namespace WPEFramework
         }
 
         /* PreloadApp invokes it */
-        Core::hresult LifecycleInterfaceConnector::preLoadApp(const string& appId, const string& launchArgs, string& error)
+        Core::hresult LifecycleInterfaceConnector::preLoadApp(const string& appId, const string& launchArgs, WPEFramework::Exchange::RuntimeConfig& runtimeConfigObject, string& error)
         {
             Core::hresult status = Core::ERROR_GENERAL;
             AppManagerImplementation *appManagerImplInstance = AppManagerImplementation::getInstance();
@@ -255,7 +256,7 @@ namespace WPEFramework
                 if (nullptr != mLifecycleManagerRemoteObject)
                 {
                     status = mLifecycleManagerRemoteObject->SpawnApp(appId, appPath, appConfig, runtimeAppId, runtimePath, runtimeConfig, intent, environmentVars,
-                          enableDebugger, Exchange::ILifecycleManager::LifecycleState::RUNNING, launchArgs, appInstanceId, error, success);
+                          enableDebugger, Exchange::ILifecycleManager::LifecycleState::PAUSED, runtimeConfigObject, launchArgs, appInstanceId, error, success);
                     if (status == Core::ERROR_NONE)
                     {
                         LOGINFO("Update App Info");
@@ -553,18 +554,15 @@ namespace WPEFramework
             switch(state)
             {
                 case Exchange::ILifecycleManager::LifecycleState::INITIALIZING:
-                case Exchange::ILifecycleManager::LifecycleState::TERMINATEREQUESTED:
                 case Exchange::ILifecycleManager::LifecycleState::TERMINATING:
-                case Exchange::ILifecycleManager::LifecycleState::RUNNING:
+                case Exchange::ILifecycleManager::LifecycleState::PAUSED:
                     newState = Exchange::IAppManager::AppLifecycleState::APP_STATE_RUNNING;
                     break;
 
-                case Exchange::ILifecycleManager::LifecycleState::ACTIVATEREQUESTED:
                 case Exchange::ILifecycleManager::LifecycleState::ACTIVE:
                     newState = Exchange::IAppManager::AppLifecycleState::APP_STATE_ACTIVE;
                     break;
 
-                case Exchange::ILifecycleManager::LifecycleState::SUSPENDREQUESTED:
                 case Exchange::ILifecycleManager::LifecycleState::SUSPENDED:
                     newState = Exchange::IAppManager::AppLifecycleState::APP_STATE_SUSPENDED;
                     break;

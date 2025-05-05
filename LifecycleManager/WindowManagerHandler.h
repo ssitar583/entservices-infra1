@@ -48,7 +48,7 @@ namespace Plugin {
                 END_INTERFACE_MAP
 
                 virtual void OnUserInactivity(const double minutes) override;
-                virtual void OnReady(std::string appId) override;
+                //virtual void OnReady(std::string appId) override;
 
             private:
                 WindowManagerHandler& _parent;

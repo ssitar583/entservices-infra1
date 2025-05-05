@@ -160,8 +160,8 @@ namespace WPEFramework
 
         bool StateHandler::changeState(StateTransitionRequest& request, string& errorReason)
 	{
-            Exchange::ILifecycleManager::LifecycleState lifecycleState = request->mTargetState;
-            ApplicationContext* context = request->mContext;
+            Exchange::ILifecycleManager::LifecycleState lifecycleState = request.mTargetState;
+            ApplicationContext* context = request.mContext;
 
             if (!context)
 	    {
