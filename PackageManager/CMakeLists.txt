@@ -53,6 +53,7 @@ target_include_directories(${MODULE_NAME} PRIVATE
     ../helpers
     ${CURL_INCLUDE_DIR}
     ${CMAKE_SYSROOT}${CMAKE_INSTALL_PREFIX}/include/${NAMESPACE}/interfaces
+    /usr/include/jsoncpp
     )
 
 target_link_libraries(${MODULE_NAME} PRIVATE
@@ -60,6 +61,7 @@ target_link_libraries(${MODULE_NAME} PRIVATE
     ${NAMESPACE}Plugins::${NAMESPACE}Plugins
     ${CURL_LIBRARY}
     ${LIB_PACKAGE_LIBRARY}
+    jsoncpp
     )
 
 install(TARGETS ${MODULE_NAME}
