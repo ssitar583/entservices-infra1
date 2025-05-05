@@ -131,7 +131,10 @@ namespace WPEFramework
         SYSLOG(Logging::Shutdown, (string(_T("AppManager::Deinitialize"))));
 
         // Make sure the Activated and Deactivated are no longer called before we start cleaning up..
-        mCurrentService->Unregister(&mAppManagerNotification);
+        if (mCurrentService)
+        {
+            mCurrentService->Unregister(&mAppManagerNotification);
+        }
 
         if (nullptr != mAppManagerImpl)
         {
@@ -168,8 +171,11 @@ namespace WPEFramework
         }
 
         mConnectionId = 0;
-        mCurrentService->Release();
-        mCurrentService = nullptr;
+        if (mCurrentService)
+        {
+           mCurrentService->Release();
+           mCurrentService = nullptr;
+        }
         SYSLOG(Logging::Shutdown, (string(_T("AppManager de-initialised"))));
     }
 

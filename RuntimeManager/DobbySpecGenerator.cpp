@@ -88,6 +88,8 @@ bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, string
 
     {
         Json::Value user;
+        LOGINFO("config.mUserId: %u config.mGroupId: %u", config.mUserId, config.mGroupId);
+
         user["uid"] = config.mUserId;
         user["gid"] = config.mGroupId;
         spec["user"] = std::move(user);
@@ -124,7 +126,7 @@ bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, string
 Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& config) const
 {
     Json::Value env(Json::arrayValue);
-    
+
     for (const std::string& str : config.mEnvVars)
     {
         env.append(str);
@@ -134,6 +136,10 @@ Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& co
     {
 		env.append("XDG_RUNTIME_DIR=/tmp");
 		env.append("WAYLAND_DISPLAY=westeros");
+    }
+    else
+    {
+        LOGINFO("config.mWesterosSocketPath: %s", config.mWesterosSocketPath.c_str());
     }
 
     return env;
@@ -205,6 +211,11 @@ Json::Value DobbySpecGenerator::createBindMount(const std::string& source,
             // if the caller supplies a flag we don't support
             mountFlags &= ~mountFlag;
         }
+    }
+
+    if (!(mountFlags & MS_RDONLY))
+    {
+        mountOptions.append("rw");
     }
 
     // if there was a mount flag we didn't support display a warning

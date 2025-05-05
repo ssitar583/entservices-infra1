@@ -342,7 +342,6 @@ namespace WPEFramework
         {
             uint32_t status = Core::ERROR_GENERAL;
             std::string appInstanceId = "";
-//            Exchange::IAppManager::AppLifecycleState targetLifecycleState = Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN;
             AppManagerImplementation* appManagerImplInstance = AppManagerImplementation::getInstance();
             bool success = false;
             std::string errorReason = "";
@@ -360,26 +359,26 @@ namespace WPEFramework
                     {
                         foundAppId = true;
                         appInstanceId = appIterator->second.appInstanceId;
-//                        targetLifecycleState = appIterator->second.currentAppState;
 
-                        /* Check targetLifecycleState is in RUNNING state */
-//                        if(targetLifecycleState == Exchange::IAppManager::AppLifecycleState::APP_STATE_RUNNING)
+                        if (nullptr != mLifecycleManagerRemoteObject)
                         {
-                            if (nullptr != mLifecycleManagerRemoteObject)
+                            LOGINFO("AppId %s UnloadApp appInstanceId[%s]", appId.c_str(), appInstanceId.c_str());
+                            status = mLifecycleManagerRemoteObject->UnloadApp(appInstanceId, errorReason, success);
+                            if (status != Core::ERROR_NONE)
                             {
-                                 status = mLifecycleManagerRemoteObject->UnloadApp(appInstanceId, errorReason, success);
-                                if (status != Core::ERROR_NONE)
+                                if (!errorReason.empty())
                                 {
-                                    if (!errorReason.empty())
-                                    {
-                                        LOGERR("UnloadApp failed with error reason: %s", errorReason.c_str());
-                                    }
-                                    else
-                                    {
-                                        LOGERR("UnloadApp failed with an unknown error.");
-                                    }
+                                    LOGERR("UnloadApp AppId[%s] appInstanceId[%s] failed with error reason: %s", appId.c_str(), appInstanceId.c_str(), errorReason.c_str());
+                                }
+                                else
+                                {
+                                    LOGERR("UnloadApp AppId[%s] appInstanceId[%s] failed with an unknown error.", appId.c_str(), appInstanceId.c_str());
                                 }
                             }
+                        }
+                        else
+                        {
+                            LOGERR("mLifecycleManagerRemoteObject is null!");
                         }
                         break;
                     }
@@ -430,6 +429,7 @@ namespace WPEFramework
                 {
                     string errorReason{};
                     bool success{};
+                    LOGINFO("AppId %s KillApp appInstanceId[%s]", appId.c_str(), appInstanceId.c_str());
 
                     result = mLifecycleManagerRemoteObject->KillApp(appInstanceId, errorReason, success);
 
@@ -544,6 +544,7 @@ namespace WPEFramework
         void LifecycleInterfaceConnector::OnAppStateChanged(const string& appId, Exchange::ILifecycleManager::LifecycleState state, const string& errorReason)
         {
             string appInstanceId = "";
+            bool bUnknownState = false;
             Exchange::IAppManager::AppLifecycleState oldState = Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN;
             Exchange::IAppManager::AppLifecycleState newState = Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN;
             AppManagerImplementation*appManagerImplInstance = AppManagerImplementation::getInstance();
@@ -557,46 +558,58 @@ namespace WPEFramework
                 case Exchange::ILifecycleManager::LifecycleState::TERMINATING:
                 case Exchange::ILifecycleManager::LifecycleState::RUNNING:
                     newState = Exchange::IAppManager::AppLifecycleState::APP_STATE_RUNNING;
+                    LOGINFO("appId[%s] RUNNING State event LifecycleState[%u] AppLifecycleState[%u]", appId.c_str(), state, newState);
                     break;
 
                 case Exchange::ILifecycleManager::LifecycleState::ACTIVATEREQUESTED:
                 case Exchange::ILifecycleManager::LifecycleState::ACTIVE:
                     newState = Exchange::IAppManager::AppLifecycleState::APP_STATE_ACTIVE;
+                    LOGINFO("appId[%s] ACTIVE State event LifecycleState[%u] AppLifecycleState[%u]", appId.c_str(), state, newState);
                     break;
 
                 case Exchange::ILifecycleManager::LifecycleState::SUSPENDREQUESTED:
                 case Exchange::ILifecycleManager::LifecycleState::SUSPENDED:
                     newState = Exchange::IAppManager::AppLifecycleState::APP_STATE_SUSPENDED;
+                    LOGINFO("appId[%s] SUSPENDED State event LifecycleState[%u] AppLifecycleState[%u]", appId.c_str(), state, newState);
                     break;
 
                 default:
-                    LOGWARN("Unknown state %u", state);
+                    LOGWARN("appId[%s] Unknown state event LifecycleState[%u]", appId.c_str(), state);
+                    bUnknownState = true;
                     break;
             }
 
-            mAdminLock.Lock();
-            if (nullptr != appManagerImplInstance)
+            if (!bUnknownState)
             {
-                for ( std::map<std::string, AppManagerImplementation::AppInfo>::iterator it = appManagerImplInstance->mAppInfo.begin(); it != appManagerImplInstance->mAppInfo.end(); it++)
+                mAdminLock.Lock();
+                if (nullptr != appManagerImplInstance)
                 {
-                    if (it->first.compare(appId) == 0)
+                    for ( std::map<std::string, AppManagerImplementation::AppInfo>::iterator it = appManagerImplInstance->mAppInfo.begin(); it != appManagerImplInstance->mAppInfo.end(); it++)
                     {
-                        appInstanceId = it->second.appInstanceId;
-                        oldState = it->second.currentAppState;
-                        it->second.currentAppLifecycleState = state;
-                        if (oldState != newState)
+                        if (it->first.compare(appId) == 0)
                         {
-                            it->second.currentAppState = newState;
+                            appInstanceId = it->second.appInstanceId;
+                            oldState = it->second.currentAppState;
+                            it->second.currentAppLifecycleState = state;
+                            if (oldState != newState)
+                            {
+                                it->second.currentAppState = newState;
+                                LOGINFO("appId[%s] State changed oldState[%u] newState[%u]", appId.c_str(), oldState, newState);
+                            }
+                            else
+                            {
+                                LOGINFO("appId[%s] State unchanged oldState[%u] newState[%u]", appId.c_str(), oldState, newState);
+                            }
+                            break;
                         }
-                        break;
                     }
                 }
+                /*TODO: AppManager event notification to be handled in upcoming phase*/
+                mAdminLock.Unlock();
             }
-            /*TODO: AppManager event notification to be handled in upcoming phase*/
-            mAdminLock.Unlock();
         }
 
-        /* Returns appInstanceId for appId. Does not synchronize access to LoadedAppInfo.
+        /* Returns appInstanceId for appId. Does not synchronize access to AppInfo.
          * Caller should take care about the synchronization.
          */
         string LifecycleInterfaceConnector::GetAppInstanceId(const string& appId) const

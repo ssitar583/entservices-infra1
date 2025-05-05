@@ -213,11 +213,11 @@ Core::hresult AppManagerImplementation::createPackageManagerObject()
     {
         LOGERR("mCurrentservice is null \n");
     }
-    else if (nullptr == (mPackageManagerHandlerObject = mCurrentservice->QueryInterfaceByCallsign<WPEFramework::Exchange::IPackageHandler>("org.rdk.PackageManagerRDKEMS")))
+    else if ((nullptr == mPackageManagerHandlerObject) && (nullptr == (mPackageManagerHandlerObject = mCurrentservice->QueryInterfaceByCallsign<WPEFramework::Exchange::IPackageHandler>("org.rdk.PackageManagerRDKEMS"))))
     {
         LOGERR("mPackageManagerHandlerObject is null \n");
     }
-    else if (nullptr == (mPackageManagerInstallerObject = mCurrentservice->QueryInterfaceByCallsign<WPEFramework::Exchange::IPackageInstaller>("org.rdk.PackageManagerRDKEMS")))
+    else if ((nullptr == mPackageManagerInstallerObject) && (nullptr == (mPackageManagerInstallerObject = mCurrentservice->QueryInterfaceByCallsign<WPEFramework::Exchange::IPackageInstaller>("org.rdk.PackageManagerRDKEMS"))))
     {
         LOGERR("mPackageManagerInstallerObject is null \n");
     }
@@ -346,6 +346,18 @@ Core::hresult AppManagerImplementation::packageLock(const string& appId, Package
         }
         if(!loaded && status == Core::ERROR_NONE)
         {
+            /* Re-attempting to create package manager object, if the previous attempt failed (i.e., object is null) */
+            if (nullptr == mPackageManagerInstallerObject)
+            {
+                if (Core::ERROR_NONE != createPackageManagerObject())
+                {
+                    LOGERR("Failed to create createPackageManagerObject");
+                }
+                else
+                {
+                    LOGINFO("created createPackageManagerObject");
+                }
+            }
             if (nullptr != mPackageManagerInstallerObject)
             {
                 status = mPackageManagerInstallerObject->ListPackages(packages);

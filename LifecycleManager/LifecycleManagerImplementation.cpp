@@ -212,51 +212,65 @@ namespace WPEFramework
             loaded = false;
             ApplicationContext* context = getContext("", appId);
             if (nullptr != context)
-	    {
-                loaded = true;
+            {
+                Exchange::ILifecycleManager::LifecycleState lifecycleState = context->getCurrentLifecycleState();
+                LOGINFO("[LifecycleManager] Current LifecycleState: %u", lifecycleState);
+                if(lifecycleState == Exchange::ILifecycleManager::LifecycleState::TERMINATING)
+                {
+                    loaded = false;
+                }
+                else
+                {
+                    loaded = true;
+                }
             }
+            LOGINFO("[LifecycleManager] IsAppLoaded: %d", status);
+
             return status;
         }
         
         Core::hresult LifecycleManagerImplementation::SpawnApp(const string& appId, const string& appPath, const string& appConfig, const string& runtimeAppId, const string& runtimePath, const string& runtimeConfig, const string& launchIntent, const string& environmentVars, const bool enableDebugger, const LifecycleState targetLifecycleState, const string& launchArgs, string& appInstanceId, string& errorReason, bool& success)
         {
-	    // Launches an app.  This will be an asynchronous call.
+            // Launches an app.  This will be an asynchronous call.
             // Notifies appropriate API Gateway when an app is about to be loaded
             // Lifecycle manager will create the appInstanceId once the app is loaded.  Ripple is responsible for creating a token. 
             Core::hresult status = Core::ERROR_NONE;
             ApplicationContext* context = getContext("", appId);
             if (nullptr == context)
-	    {
+            {
+                LOGINFO("[LifecycleManager] Creating ApplicationContext appId: %s", appId.c_str());
                 context = new ApplicationContext(appId);
                 WindowManagerHandler* windowManagerHandler = RequestHandler::getInstance()->getWindowManagerHandler();
                 std::pair<std::string, std::string> displayDetails;
                 if (nullptr != windowManagerHandler)
                 {
                     displayDetails = windowManagerHandler->generateDisplayName();
-		    if (displayDetails.first.empty() || displayDetails.second.empty())
-		    {
+                    if (displayDetails.first.empty() || displayDetails.second.empty())
+                    {
                         if (nullptr != context)
-		        {
+                        {
                             delete context;
                         }
                         errorReason = "unable to get display details for application launch";
+                        LOGERR("[LifecycleManager] unable to get display details for appId: %s", appId.c_str());
                         status = Core::ERROR_GENERAL;
                         success = false;
                         return status;
-		    }
+                    }
                 }
                 context->setApplicationLaunchParams(appId, appPath, appConfig, runtimeAppId, runtimePath, runtimeConfig, launchIntent, environmentVars, enableDebugger, launchArgs, displayDetails.first, displayDetails.second);
-		mLoadedApplications.push_back(context);
-	    }
+                mLoadedApplications.push_back(context);
+            }
             context->setTargetLifecycleState(targetLifecycleState);
             context->setMostRecentIntent(launchIntent);
             success = RequestHandler::getInstance()->launch(context, launchIntent, targetLifecycleState, errorReason);
             if (!success)
-	    {
+            {
                 status = Core::ERROR_GENERAL;
-	    }
+                LOGERR("[LifecycleManager] Failed to launch appId: %s", appId.c_str());
+            }
             else
-	    {
+            {
                 appInstanceId = context->getAppInstanceId();
             }
             return status;
@@ -294,71 +308,79 @@ namespace WPEFramework
             Core::hresult status = Core::ERROR_NONE;
             ApplicationContext* context = getContext(appInstanceId, "");
             if (nullptr == context)
-	    {
+            {
+                LOGERR("[LifecycleManager] Unable to get context for appInstanceId: %s", appInstanceId.c_str());
                 status = Core::ERROR_GENERAL;
                 success = false;
                 return status;
-	    }
+            }
             context->setTargetLifecycleState(Exchange::ILifecycleManager::LifecycleState::TERMINATING);
             context->setApplicationKillParams(false);
 
-           success = RequestHandler::getInstance()->terminate(context, false, errorReason);
-           if (!success)
-           {
+            success = RequestHandler::getInstance()->terminate(context, false, errorReason);
+            if (!success)
+            {
+                LOGERR("[LifecycleManager] Fail to terminate appInstanceId: %s errorReason: %s", appInstanceId.c_str(), errorReason.c_str());
+
                 status = Core::ERROR_GENERAL;
-           }
-           else
-           {
-               std::list<ApplicationContext*>::iterator iter = mLoadedApplications.end();
-               for (iter = mLoadedApplications.begin(); iter != mLoadedApplications.end(); iter++)
-               {
-                   if (context == *iter)
-                   {
-                       break;
-                   }
-               }
-               if (iter != mLoadedApplications.end())
-               {
-                   delete context;
-                   mLoadedApplications.erase(iter);
-               }
-           }
+            }
+
+            /* Delete the context for appInstanceId even on failure - its state may already be set to 'TERMINATING' */
+            {
+                std::list<ApplicationContext*>::iterator iter = mLoadedApplications.end();
+                for (iter = mLoadedApplications.begin(); iter != mLoadedApplications.end(); iter++)
+                {
+                    if (context == *iter)
+                    {
+                        break;
+                    }
+                }
+                if (iter != mLoadedApplications.end())
+                {
+                    LOGERR("[LifecycleManager] Delete context for appInstanceId: %s", appInstanceId.c_str());
+                    delete context;
+                    mLoadedApplications.erase(iter);
+                }
+            }
             return status;
-         }
+        }
         
         Core::hresult LifecycleManagerImplementation::KillApp(const string& appInstanceId, string& errorReason, bool& success)
         {
             Core::hresult status = Core::ERROR_NONE;
             ApplicationContext* context = getContext(appInstanceId, "");
             if (nullptr == context)
-	    {
+    	    {
+                LOGERR("[LifecycleManager] Unable to get context for appInstanceId: %s", appInstanceId.c_str());
                 status = Core::ERROR_GENERAL;
                 success = false;
                 return status;
-	    }
+    	    }
             context->setTargetLifecycleState(Exchange::ILifecycleManager::LifecycleState::TERMINATING);
             context->setApplicationKillParams(true);
             success = RequestHandler::getInstance()->terminate(context, true, errorReason);
             if (success)
-	    {
-                std::list<ApplicationContext*>::iterator iter = mLoadedApplications.end();
-	        for (iter = mLoadedApplications.begin(); iter != mLoadedApplications.end(); iter++)
 	        {
+                std::list<ApplicationContext*>::iterator iter = mLoadedApplications.end();
+    	        for (iter = mLoadedApplications.begin(); iter != mLoadedApplications.end(); iter++)
+    	        {
                     if (context == *iter)
-	            {
-		        break;	    
+    	            {
+    		            break;	    
                     }
-	        }
-		if (iter != mLoadedApplications.end())
-		{
+    	        }
+        		if (iter != mLoadedApplications.end())
+        		{
+        		    LOGERR("[LifecycleManager] Delete context for appInstanceId: %s", appInstanceId.c_str());
                     delete context;
                     mLoadedApplications.erase(iter);
-		}
+        		}
             }
             else
-	    {
+    	    {
+                LOGERR("[LifecycleManager] Fail to terminate appInstanceId: %s errorReason: %s", appInstanceId.c_str(), errorReason.c_str());
                 status = Core::ERROR_GENERAL;
-	    }
+    	    }
             return status;
         }
         
