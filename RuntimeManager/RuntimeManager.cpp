@@ -125,6 +125,7 @@ namespace WPEFramework
 
                 // Stop processing:
                 RPC::IRemoteConnection* connection = service->RemoteConnection(mConnectionId);
+                LOGINFO("Runtimemanager source plugin release called");
                 VARIABLE_IS_NOT_USED uint32_t result = mRuntimeManagerImpl->Release();
                 LOGINFO("Deinitalise the RuntimeManager");
 
