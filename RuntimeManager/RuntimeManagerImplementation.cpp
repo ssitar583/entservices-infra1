@@ -153,6 +153,7 @@ namespace WPEFramework
                 requestData->mContainerId = std::move(containerId);
                 LOGINFO("handleContainerRequest pushback requestData");
                 mContainerRequest.push_back(requestData);
+                LOGINFO("handleContainerRequest pushback size mContainerRequest %d",mContainerRequest.size());
                 mContainerLock.unlock();
                 mContainerQueueCV.notify_one();
                 LOGINFO("handleContainerRequest pushback End");
