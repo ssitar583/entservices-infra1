@@ -370,7 +370,7 @@ Core::hresult AppManagerImplementation::packageLock(const string& appId, Package
                     }
                     if ((nullptr != mPackageManagerHandlerObject) && (!packageData.version.empty()))
                     {
-                        status = mPackageManagerHandlerObject->Lock(appId, packageData.version, lockReason, packageData.lockId, packageData.unpackedPath, packageData.configMetadata, packageData.appMetadata );
+                        //status = mPackageManagerHandlerObject->Lock(appId, packageData.version, lockReason, packageData.lockId, packageData.unpackedPath, packageData.configMetadata, packageData.appMetadata );
                         if(status == Core::ERROR_NONE)
                         {
                             LOGINFO("Fetching package entry updated for appId: %s " \
@@ -459,7 +459,7 @@ Core::hresult AppManagerImplementation::LaunchApp(const string& appId , const st
     mAdminLock.Lock();
     if (nullptr != mLifecycleInterfaceConnector)
     {
-        status = packageLock(appId, packageData, lockReason);
+     //   status = packageLock(appId, packageData, lockReason);
         if (status == Core::ERROR_NONE)
         {
             status = mLifecycleInterfaceConnector->launch(appId, intent, launchArgs);
@@ -533,7 +533,7 @@ Core::hresult AppManagerImplementation::TerminateApp(const string& appId )
             status = mLifecycleInterfaceConnector->terminateApp(appId);
             if(status == Core::ERROR_NONE)
             {
-                status = packageUnLock(appId);
+              //  status = packageUnLock(appId);
             }
         }
         mAdminLock.Unlock();
@@ -557,7 +557,7 @@ Core::hresult AppManagerImplementation::KillApp(const string& appId)
         status = mLifecycleInterfaceConnector->killApp(appId);
         if(status == Core::ERROR_NONE)
         {
-            status = packageUnLock(appId);
+           // status = packageUnLock(appId);
         }
     }
     mAdminLock.Unlock();
@@ -618,7 +618,7 @@ Core::hresult AppManagerImplementation::PreloadApp(const string& appId , const s
     mAdminLock.Lock();
     if (nullptr != mLifecycleInterfaceConnector)
     {
-        status = packageLock(appId, packageData, lockReason);
+        //status = packageLock(appId, packageData, lockReason);
         if (status == Core::ERROR_NONE)
         {
             status = mLifecycleInterfaceConnector->preLoadApp(appId, launchArgs, error);
