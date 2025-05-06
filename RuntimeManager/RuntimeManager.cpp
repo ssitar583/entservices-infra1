@@ -117,8 +117,10 @@ namespace WPEFramework
 
             if (nullptr != mRuntimeManagerImpl)
             {
+                LOGINFO("Deinitialize of RuntimeManager");
                 if (nullptr != mRuntimeManagerConfigure)
                 {
+                    LOGINFO("mRuntimeManagerConfigure Release");
                     mRuntimeManagerConfigure->Release();
                     mRuntimeManagerConfigure = nullptr;
                 }
@@ -149,6 +151,7 @@ namespace WPEFramework
             }
 
             mConnectionId = 0;
+            LOGINFO("mCurrentService Release");
             mCurrentService->Release();
             mCurrentService = nullptr;
             SYSLOG(Logging::Shutdown, (string(_T("RuntimeManager de-initialised"))));
