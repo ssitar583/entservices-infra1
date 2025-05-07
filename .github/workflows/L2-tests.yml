@@ -16,7 +16,7 @@ env:
 jobs:
   L2-tests:
     name: Build and run L2 tests
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         compiler: [ gcc, clang ]
@@ -88,8 +88,8 @@ jobs:
         with:
           repository: rdkcentral/entservices-testframework
           path: entservices-testframework
-          ref: develop
-          token: ${{ secrets.RDKCM_RDKE }}
+          ref: feature/RDK-L2-migration_TF
+          #token: ${{ secrets.RDKCM_RDKE }}
 
       - name: Apply patches ThunderTools
         run: |  
