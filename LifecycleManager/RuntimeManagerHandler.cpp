@@ -113,7 +113,7 @@ bool RuntimeManagerHandler::run(const string& appId, const string& appInstanceId
     envNewArray.Add(fireboltEndPoint);
 
     std::stringstream targetAppStateEnvironmentString;
-    targetAppStateEnvironmentString << "TARGET_STATE=" << targetState;
+    targetAppStateEnvironmentString << "TARGET_STATE=" << (uint32_t)targetState;
     string targetAppState(targetAppStateEnvironmentString.str());
     environmentVarsList.push_back(targetAppState);
     envNewArray.Add(targetAppState);

@@ -31,7 +31,7 @@ namespace WPEFramework
         std::mutex gRequestMutex;
         sem_t gRequestSemaphore;
         std::vector<std::shared_ptr<StateTransitionRequest>> gRequests;
-        static bool sRunning = false;
+        static bool sRunning = true;
 
         StateTransitionHandler* StateTransitionHandler::mInstance = nullptr;
 

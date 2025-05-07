@@ -41,6 +41,7 @@ namespace WPEFramework
             boost::uuids::uuid tag = boost::uuids::random_generator()();
             std::string generatedInstanceId =  boost::uuids::to_string(tag);
             context->setAppInstanceId(generatedInstanceId);
+            sem_post(&context->mReachedLoadingStateSemaphore);
             return true;
 	}
 
@@ -55,7 +56,9 @@ namespace WPEFramework
                 ret = runtimeManagerHandler->run(context->getAppId(), context->getAppInstanceId(), launchParams.mAppPath, launchParams.mAppConfig, launchParams.mRuntimeAppId, launchParams.mRuntimePath, launchParams.mRuntimeConfig, launchParams.mEnvironmentVars, launchParams.mEnableDebugger, launchParams.mLaunchArgs, launchParams.mTargetState, launchParams.mRuntimeConfigObject, errorReason);
                 printf("MADANA APPLICATION RUN RETURNS [%d] \n", ret);
 		fflush(stdout);
-                sem_wait(&context->mAppRunningSemaphore);
+                ret = true;
+                //TODO : Remove wait for now
+                //sem_wait(&context->mAppRunningSemaphore);
 	    }
             return ret;
         }
@@ -66,7 +69,8 @@ namespace WPEFramework
             ApplicationContext* context = getContext();
             if (Exchange::ILifecycleManager::LifecycleState::INITIALIZING == context->getCurrentLifecycleState())
 	    {
-                sem_wait(&context->mAppReadySemaphore);
+                //TODO : Remove wait for now
+                //sem_wait(&context->mAppReadySemaphore);
                 ret = true;
 	    }
 	    else if (Exchange::ILifecycleManager::LifecycleState::SUSPENDED == context->getCurrentLifecycleState())
@@ -76,6 +80,8 @@ namespace WPEFramework
 	        {
                     ApplicationContext* context = getContext();
                     ret = runtimeManagerHandler->resume(context->getAppInstanceId(), errorReason);
+                    //TODO: Cross verify it
+                    ret = true;
 	        }
             }
             return ret;

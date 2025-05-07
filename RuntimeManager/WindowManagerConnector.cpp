@@ -114,7 +114,7 @@ bool WindowManagerConnector::isPluginInitialized()
     return mPluginInitialized;
 }
 
-void getDisplayInfo(const string& appInstanceId , string& xdgDirectory , string& waylandDisplayName)
+void WindowManagerConnector::getDisplayInfo(const string& appInstanceId , string& xdgDirectory , string& waylandDisplayName)
 {
     std::pair<std::string, std::string> name;
 

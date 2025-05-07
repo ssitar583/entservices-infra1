@@ -79,6 +79,7 @@ namespace WPEFramework
                 uint32_t getStateChangeId();
                 ApplicationLaunchParams& getApplicationLaunchParams();
                 ApplicationKillParams& getApplicationKillParams();
+                sem_t mReachedLoadingStateSemaphore;
                 sem_t mAppRunningSemaphore;
                 sem_t mAppReadySemaphore;
                 sem_t mFirstFrameSemaphore;

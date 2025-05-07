@@ -226,11 +226,13 @@ namespace WPEFramework
             // Lifecycle manager will create the appInstanceId once the app is loaded.  Ripple is responsible for creating a token. 
             Core::hresult status = Core::ERROR_NONE;
             ApplicationContext* context = getContext(appId, "");
+            bool firstLaunch = false;
             if (nullptr == context)
 	    {
                 context = new ApplicationContext(appId);
                 context->setApplicationLaunchParams(appId, appPath, appConfig, runtimeAppId, runtimePath, runtimeConfig, launchIntent, environmentVars, enableDebugger, launchArgs, targetLifecycleState, runtimeConfigObject);
 		mLoadedApplications.push_back(context);
+                firstLaunch = true;
 	    }
             context->setTargetLifecycleState(targetLifecycleState);
             context->setMostRecentIntent(launchIntent);
@@ -241,6 +243,10 @@ namespace WPEFramework
 	    }
             else
 	    {
+                if (firstLaunch)
+		{
+                    sem_wait(&context->mReachedLoadingStateSemaphore);
+		}
                 appInstanceId = context->getAppInstanceId();
             }
             return status;
@@ -307,6 +313,8 @@ namespace WPEFramework
             context->setTargetLifecycleState(Exchange::ILifecycleManager::LifecycleState::TERMINATING);
             context->setApplicationKillParams(true);
             success = RequestHandler::getInstance()->terminate(context, true, errorReason);
+//TODO
+/*
             if (success)
 	    {
                 std::list<ApplicationContext*>::iterator iter = mLoadedApplications.end();
@@ -327,6 +335,7 @@ namespace WPEFramework
 	    {
                 status = Core::ERROR_GENERAL;
 	    }
+*/
             return status;
         }
         

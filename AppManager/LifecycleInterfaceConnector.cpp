@@ -554,6 +554,7 @@ namespace WPEFramework
             switch(state)
             {
                 case Exchange::ILifecycleManager::LifecycleState::INITIALIZING:
+                case Exchange::ILifecycleManager::LifecycleState::LOADING:
                 case Exchange::ILifecycleManager::LifecycleState::TERMINATING:
                 case Exchange::ILifecycleManager::LifecycleState::PAUSED:
                     newState = Exchange::IAppManager::AppLifecycleState::APP_STATE_RUNNING;

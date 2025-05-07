@@ -30,7 +30,8 @@ namespace WPEFramework
 
         ApplicationContext::ApplicationContext (std::string appId): mAppInstanceId(""), mAppId(std::move(appId)), mLastLifecycleStateChangeTime(), mActiveSessionId(""), mTargetLifecycleState(), mMostRecentIntent(""), mState(nullptr), mStateChangeId(0)
         {
-            mState = (void*) new LoadingState(this);
+            mState = (void*) new UnloadedState(this);
+            sem_init(&mReachedLoadingStateSemaphore, 0, 0);
             sem_init(&mAppRunningSemaphore, 0, 0);
             sem_init(&mAppReadySemaphore, 0, 0);
             sem_init(&mFirstFrameSemaphore, 0, 0);

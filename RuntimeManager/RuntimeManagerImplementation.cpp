@@ -765,7 +765,7 @@ err_ret:
             {
 
                 mWindowManagerConnector->getDisplayInfo(appInstanceId, xdgRuntimeDir, waylandDisplay);
-                bool displayResult = mWindowManagerConnector->createDisplay(appInstanceId, waylandDisplay, userId, groupId);
+                bool displayResult = mWindowManagerConnector->createDisplay(appInstanceId, waylandDisplay, uid, gid);
                 if(false == displayResult)
                 {
                     LOGERR("Failed to create display");
@@ -783,6 +783,11 @@ err_ret:
                 status = Core::ERROR_GENERAL;
             }
 
+            if (!xdgRuntimeDir.empty() && !waylandDisplay.empty())
+            {
+                std::string westerosSocket = xdgRuntimeDir + "/" + waylandDisplay;
+                config.mWesterosSocketPath = westerosSocket;
+            }
 
             if (xdgRuntimeDir.empty() || waylandDisplay.empty())
             {
