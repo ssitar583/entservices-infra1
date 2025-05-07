@@ -2,7 +2,7 @@ name: L2-tests
 
 on:
   push:
-    branches: [ main, develop, 'sprint/**', 'release/**' ]
+    branches: [ main, develop, 'sprint/**', 'release/**', feature/RDK* ]
   pull_request:
     branches: [ main, develop, 'sprint/**', 'release/**' ]
 
@@ -16,7 +16,7 @@ env:
 jobs:
   L2-tests:
     name: Build and run L2 tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         compiler: [ gcc, clang ]
@@ -89,7 +89,7 @@ jobs:
           repository: rdkcentral/entservices-testframework
           path: entservices-testframework
           ref: feature/RDK-L2-migration_TF
-          #token: ${{ secrets.RDKCM_RDKE }}
+          token: ${{ secrets.RDKCM_RDKE }}
 
       - name: Apply patches ThunderTools
         run: |  
