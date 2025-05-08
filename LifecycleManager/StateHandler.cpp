@@ -60,6 +60,9 @@ namespace WPEFramework
             State* state = nullptr;
             switch (lifeCycleState)
             {
+	        case Exchange::ILifecycleManager::LifecycleState::UNLOADED:
+                    state = new UnloadedState(context);
+                    break;
 	        case Exchange::ILifecycleManager::LifecycleState::LOADING:
                     state = new LoadingState(context);
                     break;
@@ -126,9 +129,9 @@ namespace WPEFramework
 
             mPossibleStateTransitions[Lifecycle::PAUSED] = std::list<Exchange::ILifecycleManager::LifecycleState>();
 	    std::list<Exchange::ILifecycleManager::LifecycleState>& pausedStatePre = mPossibleStateTransitions[Lifecycle::PAUSED];
-	    pausedStatePre.push_back(Lifecycle::INITIALIZING);
 	    pausedStatePre.push_back(Lifecycle::ACTIVE);
 	    pausedStatePre.push_back(Lifecycle::SUSPENDED);
+	    pausedStatePre.push_back(Lifecycle::INITIALIZING);
           
             mPossibleStateTransitions[Lifecycle::ACTIVE] = std::list<Exchange::ILifecycleManager::LifecycleState>();
 	    std::list<Exchange::ILifecycleManager::LifecycleState>& activeStatePre = mPossibleStateTransitions[Lifecycle::ACTIVE];
@@ -185,6 +188,10 @@ namespace WPEFramework
             //ensure final state is pushed here
             statePath.push_back(lifecycleState);
 
+            if (Exchange::ILifecycleManager::LifecycleState::TERMINATING == lifecycleState)
+	    {
+                statePath.push_back(Exchange::ILifecycleManager::LifecycleState::UNLOADED);
+	    }
             bool result = false;
             IEventHandler* eventHandler = RequestHandler::getInstance()->getEventHandler();
             bool isStateTerminating = false;
@@ -234,7 +241,6 @@ namespace WPEFramework
 		    {
                         break;
 		    }
-                    result = updateState(context, Exchange::ILifecycleManager::LifecycleState::UNLOADED, errorReason);
                 }
 	    }
 	    return result;

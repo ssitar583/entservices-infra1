@@ -84,6 +84,10 @@ namespace WPEFramework
                     ret = true;
 	        }
             }
+	    else if (Exchange::ILifecycleManager::LifecycleState::ACTIVE == context->getCurrentLifecycleState())
+	    {
+                ret = true;		    
+            }
             return ret;
 	}
 

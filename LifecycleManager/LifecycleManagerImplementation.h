@@ -143,6 +143,7 @@ namespace WPEFramework
                 void dispatchEvent(EventNames, const JsonValue &params);
                 void Dispatch(EventNames event, const JsonValue params);
                 void handleRuntimeManagerEvent(const JsonObject &data);
+                void handleStateChangeEvent(const JsonObject &data);
                 ApplicationContext* getContext(const string& appInstanceId, const string& appId) const;
 
                 friend class Job;

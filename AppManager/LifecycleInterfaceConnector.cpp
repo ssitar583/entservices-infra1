@@ -568,6 +568,10 @@ namespace WPEFramework
                     newState = Exchange::IAppManager::AppLifecycleState::APP_STATE_SUSPENDED;
                     break;
 
+                case Exchange::ILifecycleManager::LifecycleState::UNLOADED:
+                    newState = Exchange::IAppManager::AppLifecycleState::APP_STATE_TERMINATED;
+                    break;
+
                 default:
                     LOGWARN("Unknown state %u", state);
                     break;

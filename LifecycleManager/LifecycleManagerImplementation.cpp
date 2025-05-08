@@ -135,6 +135,7 @@ namespace WPEFramework
              switch(event)
              {
                  case LIFECYCLE_MANAGER_EVENT_APPSTATECHANGED:
+                     handleStateChangeEvent(obj);
                      while (index != mLifecycleManagerNotification.end())
                      {
                          (*index)->OnAppStateChanged(appId, (LifecycleState)oldLifecycleState, errorReason);
@@ -313,29 +314,6 @@ namespace WPEFramework
             context->setTargetLifecycleState(Exchange::ILifecycleManager::LifecycleState::TERMINATING);
             context->setApplicationKillParams(true);
             success = RequestHandler::getInstance()->terminate(context, true, errorReason);
-//TODO
-/*
-            if (success)
-	    {
-                std::list<ApplicationContext*>::iterator iter = mLoadedApplications.end();
-	        for (iter = mLoadedApplications.begin(); iter != mLoadedApplications.end(); iter++)
-	        {
-                    if (context == *iter)
-	            {
-		        break;	    
-                    }
-	        }
-		if (iter != mLoadedApplications.end())
-		{
-                    delete context;
-                    mLoadedApplications.erase(iter);
-		}
-            }
-            else
-	    {
-                status = Core::ERROR_GENERAL;
-	    }
-*/
             return status;
         }
         
@@ -568,6 +546,36 @@ namespace WPEFramework
                 }
             }
 	}
+
+	void LifecycleManagerImplementation::handleStateChangeEvent(const JsonObject &data)
+        {
+            string appInstanceId = data["appInstanceId"];
+	    uint32_t stateInput = data["newLifecycleState"].Number();
+            Exchange::ILifecycleManager::LifecycleState state = (Exchange::ILifecycleManager::LifecycleState) stateInput;
+            if (state != Exchange::ILifecycleManager::LifecycleState::UNLOADED)
+	    {
+                return;
+	    }
+            ApplicationContext* context = nullptr;
+            std::list<ApplicationContext*>::iterator iter = mLoadedApplications.end();
+	    for (iter = mLoadedApplications.begin(); iter != mLoadedApplications.end(); iter++)
+	    {
+                context = *iter;
+                if (nullptr == context)
+		{
+                    continue;
+		}
+                if (context->getAppInstanceId() == appInstanceId)
+	        {
+	            break;	    
+                }
+	    }
+	    if ((iter != mLoadedApplications.end()) && (nullptr != context))
+	    {
+                delete context;
+                mLoadedApplications.erase(iter);
+	    }
+        }
 
     } /* namespace Plugin */
 } /* namespace WPEFramework */
