@@ -119,7 +119,14 @@ namespace WPEFramework
 	    if (nullptr != runtimeManagerHandler)
 	    {
                 ApplicationContext* context = getContext();
-                ret = runtimeManagerHandler->suspend(context->getAppInstanceId(), errorReason);
+                if (Exchange::ILifecycleManager::LifecycleState::HIBERNATED == context->getCurrentLifecycleState())
+	        {
+                    ret = runtimeManagerHandler->wake(context->getAppInstanceId(), errorReason);
+	        }
+                else
+	        {
+                    ret = runtimeManagerHandler->suspend(context->getAppInstanceId(), errorReason);
+                }
 	    }
             return ret;
 	}
