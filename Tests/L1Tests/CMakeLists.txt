@@ -129,6 +129,11 @@ set (APPMANAGER_INC ${CMAKE_SOURCE_DIR}/../entservices-infra/AppManager ${CMAKE_
 set (APPMANAGER_LIBS ${NAMESPACE}AppManager ${NAMESPACE}AppManagerImplementation)
 add_plugin_test_ex(PLUGIN_APPMANAGER tests/test_AppManager.cpp "${APPMANAGER_INC}" "${APPMANAGER_LIBS}")
 
+# PLUGIN_OCICONTAINER
+set (OCICONTAINER_INC ${CMAKE_SOURCE_DIR}/../entservices-infra/OCIContainer ${CMAKE_SOURCE_DIR}/../entservices-infra/OCIContainer/stubs)
+set (OCICONTAINER_LIBS ${NAMESPACE}OCIContainer)
+add_plugin_test_ex(PLUGIN_OCICONTAINER tests/test_OCIContainer.cpp "${OCICONTAINER_INC}" "${OCICONTAINER_LIBS}")
+
 add_library(${MODULE_NAME} SHARED ${TEST_SRC})
 
 if (RDK_SERVICES_L1_TEST)
