@@ -107,7 +107,7 @@ bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, const 
     spec["cpu"] = std::move(cpuObj);
 
     Json::Value consoleObj;
-    //TODO: limit, path properties are retrieved from app package and need to be populated here
+    //TICKET: TODO: limit, path properties are retrieved from app package and need to be populated here
     consoleObj["limit"] = CONTAINER_LOG_CAP;
     consoleObj["path"] = "/tmp/container.log";
     spec["console"] = std::move(consoleObj);
@@ -127,10 +127,10 @@ bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, const 
     servicesArray.append("ntp\t\t123/udp");
     servicesArray.append("https\t\t443/tcp");
     servicesArray.append("https\t\t443/udp");
-    //TODO Read for mapi capability from package and populate below for every mapi ports
+    //TICKET: TODO Read for mapi capability from package and populate below for every mapi ports
     //servicesArray.append("mapi\t\t" + std::to_string(port) + "/tcp");
 
-    //TODO: Based on soc and if broadcom, populate wayland-client and wayland-egl
+    //TICKET: TODO: Based on soc and if broadcom, populate wayland-client and wayland-egl
     Json::Value preloadsArray(Json::arrayValue);
     etcObj["hosts"] = hostsArray;
     etcObj["services"] = servicesArray;
@@ -216,7 +216,7 @@ Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& co
         env.append("QT_WAYLAND_INPUTDEVICE_INTEGRATION=skyq-input");
         env.append("QT_QPA_PLATFORM=wayland-sky-rdk");
 
-        //TODO Find the place where it is populated from appsservice
+        //TICKET: TODO Find the place where it is populated from appsservice
         env.append("WESTEROS_SINK_AMLOGIC_USE_DMABUF=1");
         env.append("WESTEROS_GL_USE_AMLOGIC_AVSYNC=1");
         env.append("WESTEROS_SINK_USE_FREERUN=1");
@@ -224,9 +224,9 @@ Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& co
         env.append("WESTEROS_GL_GRAPHICS_MAX_SIZE=1920x1080");
         env.append("WESTEROS_GL_USE_REFRESH_LOCK=1");
     }
-    //TODO: If broadcom soc
+    //TICKET: TODO: If broadcom soc
     //WESTEROS_VPC_BRIDGE=westeros
-    //TODO: This is true by default
+    //TICKET: TODO: This is true by default
     if (runtimeConfig.resourceManagerClientEnabled)
     {
         env.append("ESSRMGR_APPID=" + config.mAppId);
@@ -244,7 +244,7 @@ Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& co
             dialId = config.mAppId;
 
         env.append(std::string("APPLICATION_DIAL_NAME=") + dialId);
-        //TODO: Need dial config get from somewhere
+        //TODO: Need dial config from default config file
         //std::ostringstream dataUrlStream;
         //dataUrlStream << "http://127.0.0.1:"
         //              << mDialConfig->getDialServerPort() << '/'
@@ -376,7 +376,7 @@ ssize_t DobbySpecGenerator::getGPUMemoryLimit(const ApplicationConfiguration& co
 
 bool DobbySpecGenerator::getVpuEnabled(const ApplicationConfiguration& config) const
 {
-    //TODO: To return true, if below conditions are met:
+    // WORK: TODO: To return true, if below conditions are met: from default config file
     // check if app is not system app
     // rialto is not enabled
     // vpus blacklist is not having app
@@ -386,7 +386,7 @@ bool DobbySpecGenerator::getVpuEnabled(const ApplicationConfiguration& config) c
 
 std::string DobbySpecGenerator::getCpuCores()
 {
-    //TODO: Populate cpu bitmask from config (aisettings.json)
+    //TICKET: TODO: Populate cpu bitmask from config (aisettings.json)
     
     //std::bitset<32> cpuSetBitmask = mConfig->getAppsCpuSet();
     //cpuSetBitmask &= ((0x1U << nCores) - 1);
@@ -420,12 +420,12 @@ std::string DobbySpecGenerator::getCpuCores()
 Json::Value DobbySpecGenerator::createRdkPlugins(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const
 {
     Json::Value rdkPluginsObj(Json::objectValue);
-    //TODO: Appsservice plugin is not needed for sure?
+    //WORK: TODO: Appsservice plugin is not needed for sure?
     if (!config.mPorts.empty())
     {
         rdkPluginsObj["appservicesrdk"] = createAppServiceSDKPlugin(config, runtimeConfig);
     }
-    // TODO create ionplugin on xione
+    //WORK: TODO create ionplugin on xione
     rdkPluginsObj["ionmemory"] = createIonMemoryPlugin();
 
     rdkPluginsObj["minidump"] = createMinidumpPlugin();
@@ -436,7 +436,7 @@ Json::Value DobbySpecGenerator::createRdkPlugins(const ApplicationConfiguration&
     {
         rdkPluginsObj["thunder"] = createThunderPlugin(config);
     }
-    //TODO: Nat holepuncher, multicast socket plugin, credentialmanager plugin, httpproxy
+    //WORK: TODO: Nat holepuncher, multicast socket plugin, credentialmanager plugin, httpproxy
     return rdkPluginsObj;
 }
 
@@ -460,7 +460,7 @@ Json::Value DobbySpecGenerator::createMinidumpPlugin() const
 
 Json::Value DobbySpecGenerator::createAppServiceSDKPlugin(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const
 {
-    //TODO: May need to check for any local services, dial port
+    //WORK: TODO: May need to check for any local services, dial port
     Json::Value pluginObj(Json::objectValue);
 
     pluginObj["required"] = false;
@@ -472,7 +472,7 @@ Json::Value DobbySpecGenerator::createAppServiceSDKPlugin(const ApplicationConfi
 
     if (runtimeConfig.dial)
     {
-        //TODO: Need to populate dial ports	    
+        //WORK: TODO: Need to populate dial ports	    
     }
     Json::Value ports(Json::arrayValue);
     for (auto port : config.mPorts)
@@ -503,10 +503,10 @@ Json::Value DobbySpecGenerator::createNetworkPlugin(const ApplicationConfigurati
     }
 
     dataObj["ipv4"] = true;
-    //TODO: Need to read config to enable ipv6 or not
+    //iTODO: Need to read config to enable ipv6 or not from default config
     dataObj["ipv6"] = false;
 
-    //TODO May or may not need these parameters
+    //WORK: TODO May or may not need these parameters
     /*
     // add NAT holepunch support if requested (only for non-html apps)
     if (appPackage->hasCapability(IPackage::Capability::NatHolePunch) &&
@@ -543,7 +543,7 @@ void DobbySpecGenerator::populateClassicPlugins(const ApplicationConfiguration& 
     // enable the logging plugin
     pluginsArray.append(createEthanLogPlugin(config, runtimeConfig));
     
-    //TODO: if webapp or not needed rialto. how to get these info?
+    //WORK: TODO: if webapp or not needed rialto. how to get these info?
     pluginsArray.append(createOpenCDMPlugin(config, runtimeConfig));
 
     spec["plugins"] = std::move(pluginsArray);
@@ -565,7 +565,7 @@ Json::Value DobbySpecGenerator::createEthanLogPlugin(const ApplicationConfigurat
     static const Json::StaticString debug("debug");
 
     Json::Value levels(Json::arrayValue);
-    //TODO: Read logging mask from package
+    //TICKET: TODO: Read logging mask from package
     /*
     unsigned logMask = package->loggingMask();
     if (logMask & unsigned(IPackage::LogLevel::Default))
@@ -618,7 +618,7 @@ Json::Value DobbySpecGenerator::createThunderPlugin(const ApplicationConfigurati
     dependencies.append("networking");
     plugin[dependsOn] = std::move(dependencies);
 
-    //TODO: Check for localservices1,localservices2,localservices3,localservices4
+    //TICKET: TODO: Check for localservices1,localservices2,localservices3,localservices4
     //plugin[data][bearerUrl] = localServices5;
     plugin[data][bearerUrl] = localServices2;
 
@@ -641,7 +641,7 @@ Json::Value DobbySpecGenerator::createOpenCDMPlugin(const ApplicationConfigurati
 void DobbySpecGenerator::initialiseIonHeapsJson()
 {
     Json::Value heapsArray(Json::arrayValue);
-    //TODO: Get ion heap quotas and default heap quota
+    //TICKET: TODO: Get ion heap quotas and default heap quota
     /*
     for (const auto &heapQuota : mConfig->getIonHeapQuotas())
     {
@@ -700,7 +700,7 @@ Json::Value DobbySpecGenerator::createPrivateDataMount(const WPEFramework::Excha
 void DobbySpecGenerator::createFkpsMounts(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig, Json::Value& spec) const
 {
 
-    // TODO: get the list of fkps files from app config from package manager
+    // TICKET: TODO: get the list of fkps files from app config from package manager
     // get the list of FKPS files to map, this comes from the apps config.xml
     /*
     std::optional<std::set<std::string>> fkpsFiles =
