@@ -16,7 +16,7 @@
 # limitations under the License.
 
 
-set(PLUGIN_NAME L2TestsIN)
+set(PLUGIN_NAME L2TestsINF)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 set(THUNDER_PORT 9998)
 #set(CMAKE_CXX_STANDARD 11)
