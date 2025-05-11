@@ -61,6 +61,8 @@ add_library(${PLUGIN_IMPLEMENTATION} SHARED
     RuntimeManagerImplementation.cpp
     DobbySpecGenerator.cpp
     WindowManagerConnector.cpp
+    CommonConfiguration.cpp
+    SystemConfiguration.cpp
     Module.cpp)
 
 include_directories(../helpers)
