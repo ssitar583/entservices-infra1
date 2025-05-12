@@ -19,7 +19,7 @@
 set(PLUGIN_NAME L2TestsIN)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 set(THUNDER_PORT 9998)
-#set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11)
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 include(FetchContent)
@@ -27,7 +27,7 @@ FetchContent_Declare(
         googletest
         URL https://github.com/google/googletest/archive/e39786088138f2749d64e9e90e0f9902daa77c40.zip
 )
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE OFF)
 FetchContent_MakeAvailable(googletest)
 
 if (PLUGIN_ANALYTICS)
