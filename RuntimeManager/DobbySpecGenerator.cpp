@@ -39,6 +39,19 @@ namespace
     #define XDG_RUNTIME_DIR "/tmp"
 }
 
+//TODO: Include IPackage header file
+enum class LogLevel : unsigned
+{
+    Fatal = 0x01,
+    Error = 0x02,
+    Warning = 0x04,
+    Info = 0x08,
+    Debug = 0x10,
+    Milestone = 0x20,
+
+    Default = (1U << 31)
+};
+
 DobbySpecGenerator::DobbySpecGenerator(): mIonMemoryPluginData(Json::objectValue), mPackageMountPoint("/package"), mRuntimeMountPoint("/runtime"), mGstRegistrySourcePath(""), mGstRegistryDestinationPath("/tmp/gstreamer-cached-registry.bin")
 {
     LOGINFO("DobbySpecGenerator()");
@@ -287,6 +300,7 @@ Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& co
 
     if (runtimeConfig.dial)
     {
+        //TODO: GAP dial id need to be passed from launch params
         std::string dialId = runtimeConfig.dialId;
         env.append(std::string("APPLICATION_DIAL_NAME=") + dialId);
         std::ostringstream dataUrlStream;
