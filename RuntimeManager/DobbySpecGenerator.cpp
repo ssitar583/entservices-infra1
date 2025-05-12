@@ -47,10 +47,17 @@ DobbySpecGenerator::DobbySpecGenerator(): mIonMemoryPluginData(Json::objectValue
     mSystemConfiguration = new SystemConfiguration();
     mSystemConfiguration->initialize();
     initialiseIonHeapsJson();
+    //TODO Clarify Generate gst registry path
+    /*
     if (mCommonConfiguration->getGstreamerRegistryEnabled())
     {
-        //TODO WORK GAP Generate gst registry path
+	GStreamerRegistry gstRegistry;
+        if (gstRegistry.generate())
+        {
+            mGstRegistrySourcePath = gstRegistry.path();
+	}	
     }
+    */
 }
 
 DobbySpecGenerator::~DobbySpecGenerator()
@@ -73,7 +80,7 @@ Json::Value DobbySpecGenerator::getWorkingDir(const ApplicationConfiguration& co
 
     // currently in all cases the working directory is the base directory
     // of the 'src' attribute in the widget file
-    // TODO Update Clarify on execFilePath
+    // TODO Clarify on execFilePath
     /*
     char *execFilePathCopy = strdup(appPackage->execFilePath().c_str()); //Get it from metadata path
     const char* execFileDir = dirname(execFilePathCopy);
@@ -169,6 +176,7 @@ bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, const 
     //if (runtimeConfig.mapi)
     if (true)
     {
+        //TODO: Clarify get list of mapi ports from file
         for (int port : mCommonConfiguration->getMapiPorts())
         {
             servicesArray.append("mapi\t\t" + std::to_string(port) + "/tcp");
@@ -224,7 +232,7 @@ Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& co
     Json::Value env(Json::arrayValue);
     env.append(std::string("APPLICATION_NAME=") + config.mAppId);
     
-     //Below are passed in launch params
+     //TODO Clarify Below are passed in launch params
      //TODO GAP APPLICATION_LAUNCH_PARAMETERS
      //TODO GAP APPLICATION_LAUNCH_METHOD
      
@@ -296,7 +304,7 @@ Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& co
                       << dialId << '/'
                       << "dial_data";
 
-        //TODO: WORK GAP dial url need to be encoded
+        //TODO: WORK dial url need to be encoded
         //const std::string dataUrl = AICommon::encodeURL(dataUrlStream.str());
 	const std::string dataUrl = dataUrlStream.str();
         env.append(std::string("ADDITIONAL_DATA_URL=") + dataUrl);
@@ -321,9 +329,9 @@ Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& co
         env.append("GST_REGISTRY_UPDATE=no");
     }
 
-    //TODO GAP watchdog envs
+    //TODO Clarify watchdog envs
     //TODO Clarify Runtime config need to have runtime parameter
-    //TODO WORK: Enable only in DEBUG builds
+    //TODO Clarify Enable only in DEBUG builds
     env.append("WEBKIT_LEGACY_INSPECTOR_SERVER=0.0.0.0:22222");
     return env;
 }
@@ -370,7 +378,7 @@ Json::Value DobbySpecGenerator::createMounts(const ApplicationConfiguration& con
     //TODO Airplay specific mounts
     //TODO TSB Storage
     //TODO EPG specific migration data store mount
-    //TODO GAP USB Mass storage
+    //TODO USB Mass storage
     /*
     if (usingRialto)
     {
@@ -594,10 +602,9 @@ Json::Value DobbySpecGenerator::createMinidumpPlugin() const
 }
 
 //TODO: GAP localservices not added in appsservice plugin
-//TODO: GAP firebolt app, airplay2, mapi ports not added in appsservice plugin
+//TODO: Clarify airplay2 ports not added in appsservice plugin
 Json::Value DobbySpecGenerator::createAppServiceSDKPlugin(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const
 {
-    //WORK: TODO: May need to check for any local services
     Json::Value pluginObj(Json::objectValue);
 
     pluginObj["required"] = false;
@@ -614,7 +621,11 @@ Json::Value DobbySpecGenerator::createAppServiceSDKPlugin(const ApplicationConfi
     }
     for (auto port : config.mPorts)
         ports.append(port);
-
+    //TODO: Clarify get list of mapi ports from file
+    for (int port : mCommonConfiguration->getMapiPorts())
+    {
+        ports.append(port);
+    }
     pluginObj["data"]["additionalPorts"] = std::move(ports);
 
     return pluginObj;
@@ -768,7 +779,7 @@ Json::Value DobbySpecGenerator::createEthanLogPlugin(const ApplicationConfigurat
 
 Json::Value DobbySpecGenerator::createMulticastSocketPlugin(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const
 {
-    //TODO: WORK Runtime config need to have serversockets and clientsockets	
+    //TODO: Clarify Runtime config need to have serversockets and clientsockets	
     /*
     static const Json::StaticString name("name");
     static const Json::StaticString data("data");
