@@ -370,7 +370,7 @@ Core::hresult AppManagerImplementation::packageLock(const string& appId, Package
                     }
                     if ((nullptr != mPackageManagerHandlerObject) && (!packageData.version.empty()))
                     {
-                        status = mPackageManagerHandlerObject->Lock(appId, packageData.version, lockReason, packageData.lockId, packageData.unpackedPath, packageData.configMetadata, packageData.appMetadata );
+                        /*status = mPackageManagerHandlerObject->Lock(appId, packageData.version, lockReason, packageData.lockId, packageData.unpackedPath, packageData.configMetadata, packageData.appMetadata );
                         if(status == Core::ERROR_NONE)
                         {
                             LOGINFO("Fetching package entry updated for appId: %s " \
@@ -383,7 +383,7 @@ Core::hresult AppManagerImplementation::packageLock(const string& appId, Package
                                 status = Core::ERROR_GENERAL;
                             }
                         }
-                        else
+                        else*/
                         {
                             LOGERR("Failed to PackageManager Lock");
                         }
