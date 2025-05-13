@@ -336,7 +336,7 @@ bool AppManagerImplementation::removeAppInfoByAppId(const string &appId)
 Core::hresult AppManagerImplementation::packageLock(const string& appId, PackageInfo &packageData, Exchange::IPackageHandler::LockReason lockReason)
 {
         Core::hresult status = Core::ERROR_GENERAL;
-        bool result = false;
+        //bool result = false;
         Exchange::IPackageInstaller::IPackageIterator* packages;
         bool loaded = true;
 
