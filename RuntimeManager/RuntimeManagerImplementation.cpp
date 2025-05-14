@@ -272,14 +272,51 @@ namespace WPEFramework
 
             std::list<Exchange::IRuntimeManager::INotification*>::const_iterator index(mRuntimeManagerNotification.begin());
 
+            JsonObject obj = params.Object();
+            string appIdFromContainer = obj["containerId"].String();
+            if (appIdFromContainer.find(RUNTIME_APP_PORTAL) == 0) // TODO improve logic of fetching appInstanceId
+            {
+                appIdFromContainer.erase(0, std::string(RUNTIME_APP_PORTAL).length());
+            }
+            string appInstanceId = std::move(appIdFromContainer);
+            string eventName = obj["eventName"].String();
+            LOGINFO("Dispatching event[%s] for appInstanceId[%s]", eventName.c_str(), appInstanceId.c_str());
+
             switch (event)
             {
                 case RUNTIME_MANAGER_EVENT_STATECHANGED:
                 while (index != mRuntimeManagerNotification.end())
                 {
-                    string appId("");
-                    RuntimeState state = RUNTIME_STATE_STARTING;
-                    (*index)->OnStateChanged(appId, state);
+                    string containerState = obj["state"];
+                    int containerStateInt = std::stoi(containerState);
+                    RuntimeState state = static_cast<RuntimeState>(containerStateInt);
+                    LOGINFO("RuntimeManagerImplementation::Dispatch: state[%d]", state);
+                    (*index)->OnStateChanged(appInstanceId, state);
+                    ++index;
+                }
+                break;
+
+                case RUNTIME_MANAGER_EVENT_CONTAINERSTARTED:
+                while (index != mRuntimeManagerNotification.end())
+                {
+                    (*index)->OnStarted(appInstanceId);
+                    ++index;
+                }
+                break;
+
+                case RUNTIME_MANAGER_EVENT_CONTAINERSTOPPED:
+                while (index != mRuntimeManagerNotification.end())
+                {
+                    (*index)->OnTerminated(appInstanceId);
+                    ++index;
+                }
+                break;
+
+                case RUNTIME_MANAGER_EVENT_CONTAINERFAILED:
+                while (index != mRuntimeManagerNotification.end())
+                {
+                    string error = obj["errorCode"].String();
+                    (*index)->OnFailure(appInstanceId, error);
                     ++index;
                 }
                 break;
@@ -546,6 +583,12 @@ namespace WPEFramework
                 {
                     LOGINFO("Successfully created OCI Container Object");
                     status = Core::ERROR_NONE;
+                    /* Initialize OCIContainerNotification Connector to listen to Dobby Events */
+                    mDobbyEventListener = new DobbyEventListener();
+                    if (false == mDobbyEventListener->initialize(mCurrentservice, this, ociContainerObject))
+                    {
+                        LOGERR("Failed to initialize DobbyEventListener");
+                    }
                     break;
                 }
             } while (retryCount < MAX_OCI_OBJECT_CREATION_RETRIES);
@@ -564,6 +607,13 @@ err_ret:
             if(ociContainerObject)
             {
                 LOGINFO("releaseOCIContainerPluginObject\n");
+                /* Deinitialize DobbyEventListener */
+                if (nullptr != mDobbyEventListener)
+                {
+                    mDobbyEventListener->deinitialize();
+                    delete mDobbyEventListener;
+                    mDobbyEventListener = nullptr;
+                }
                 ociContainerObject->Release();
                 ociContainerObject = nullptr;
             }
@@ -1001,5 +1051,26 @@ err_ret:
             }
             groupId = 30000;
         }
+
+        void RuntimeManagerImplementation::onOCIContainerStartedEvent(std::string name, JsonObject& data)
+        {
+            dispatchEvent(RuntimeManagerImplementation::RuntimeEventType::RUNTIME_MANAGER_EVENT_CONTAINERSTARTED, data);
+        }
+
+        void RuntimeManagerImplementation::onOCIContainerStoppedEvent(std::string name, JsonObject& data)
+        {
+            dispatchEvent(RuntimeManagerImplementation::RuntimeEventType::RUNTIME_MANAGER_EVENT_CONTAINERSTOPPED, data);
+        }
+
+        void RuntimeManagerImplementation::onOCIContainerFailureEvent(std::string name, JsonObject& data)
+        {
+            dispatchEvent(RuntimeManagerImplementation::RuntimeEventType::RUNTIME_MANAGER_EVENT_CONTAINERFAILED, data);
+        }
+
+        void RuntimeManagerImplementation::onOCIContainerStateChangedEvent(std::string name, JsonObject& data)
+        {
+            dispatchEvent(RuntimeManagerImplementation::RuntimeEventType::RUNTIME_MANAGER_EVENT_STATECHANGED, data);
+        }
+
     } /* namespace Plugin */
 } /* namespace WPEFramework */
