@@ -47,8 +47,8 @@ cmake -G Ninja -S "$GITHUB_WORKSPACE" -B build/entservices-infra \
 -include ${GITHUB_WORKSPACE}/entservices-testframework/Tests/mocks/secure_wrappermock.h \
 -include ${GITHUB_WORKSPACE}/entservices-testframework/Tests/mocks/libusb/libusb.h \
 -include ${GITHUB_WORKSPACE}/entservices-testframework/Tests/mocks/Dobby.h \
--include ${GITHUB_WORKSPACE}/entservices-testframework/Tests/mocks/headers/Dobby/DobbyProtocol.h \
--include ${GITHUB_WORKSPACE}/entservices-testframework/Tests/mocks/headers/Dobby/DobbyProxy.h \
+-include ${GITHUB_WORKSPACE}/entservices-testframework/Tests/headers/Dobby/DobbyProtocol.h \
+-include ${GITHUB_WORKSPACE}/entservices-testframework/Tests/headers/Dobby/DobbyProxy.h \
 -include ${GITHUB_WORKSPACE}/entservices-testframework/Tests/headers/Dobby/Public/Dobby/IDobbyProxy.h \
 -include ${GITHUB_WORKSPACE}/entservices-testframework/Tests/headers/Dobby/IpcService/IpcFactory.h \
 --coverage -Wall -Werror -Wno-error=format \
