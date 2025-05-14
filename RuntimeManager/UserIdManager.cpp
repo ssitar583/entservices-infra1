@@ -40,6 +40,10 @@ uid_t UserIdManager::getUserId(const std::string& appId)
     }
 
     uid_t uid = mUserIdAvailablePool.front();
+<<<<<<< HEAD
+=======
+    uid = 30490;// MADANA HACK
+>>>>>>> 9bb414857184f88c29dda9e6aa6d064f04d948ae
     mUserIdAvailablePool.pop_front();
 
     mUserIdMap[appId] = uid;
