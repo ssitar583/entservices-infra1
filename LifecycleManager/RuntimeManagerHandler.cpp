@@ -107,7 +107,7 @@ bool RuntimeManagerHandler::run(const string& appId, const string& appInstanceId
         envNewArray.Add(environmentVarsArray[i].String());
     }
     std::stringstream ss;
-    ss << "FIREBOLT_ENDPOINT=http://localhost:" << mFireboltAccessPort << "?session=" << appInstanceId;
+    ss << "FIREBOLT_ENDPOINT=http://127.0.0.1:" << mFireboltAccessPort << "?session=" << appInstanceId;
     string fireboltEndPoint(ss.str());
     environmentVarsList.push_back(fireboltEndPoint);
     envNewArray.Add(fireboltEndPoint);

@@ -490,8 +490,9 @@ Json::Value DobbySpecGenerator::createNetworkPlugin(const ApplicationConfigurati
     pluginObj["required"] = true;
 
     Json::Value dataObj(Json::objectValue);
-
-    if (runtimeConfig.wanLanAccess)
+    //TODO Verify this
+    //if (runtimeConfig.wanLanAccess)
+    if (true)
     {
         dataObj["type"] = "nat";
         dataObj["dnsmasq"] = true;
@@ -504,7 +505,7 @@ Json::Value DobbySpecGenerator::createNetworkPlugin(const ApplicationConfigurati
 
     dataObj["ipv4"] = true;
     //iTODO: Need to read config to enable ipv6 or not from default config
-    dataObj["ipv6"] = false;
+    dataObj["ipv6"] = true;
 
     //WORK: TODO May or may not need these parameters
     /*
@@ -677,7 +678,33 @@ Json::Value DobbySpecGenerator::createPrivateDataMount(const WPEFramework::Excha
     /*
     const std::string sourcePath = package->privateDataImagePath();
     */
-    const std::string sourcePath("/media/apps/sky/packages/YouTube/data.img");
+   FILE* fp = fopen("/tmp/aiimgpath", "r");
+   bool aipathchange = false;
+   std::string imgpath;;
+   if (fp != NULL)
+   {
+       aipathchange = true;
+       char* line = NULL;
+       size_t len = 0;
+       bool first = true;
+       while ((getline(&line, &len, fp)) != -1)
+       {
+           if (first)
+           {
+               imgpath = line;
+           }
+           first = false;
+       }
+       fclose(fp);
+   }
+   imgpath.pop_back();
+
+   std::string sourcePath("/media/apps/sky/packages/YouTube/data.img");
+   if (aipathchange)
+   {
+       sourcePath = imgpath;
+   }
+
     if (sourcePath.empty())
     {
         return Json::nullValue;
