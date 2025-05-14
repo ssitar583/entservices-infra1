@@ -90,6 +90,12 @@ namespace WPEFramework
                 delete mWindowManagerConnector;
                 mWindowManagerConnector = nullptr;
             }
+
+	    if (nullptr != mUserIdManager)
+	    {
+                delete mUserIdManager;
+		mUserIdManager = nullptr;
+	    }
         }
 
         void RuntimeManagerImplementation::setRunningState(bool state)
@@ -439,6 +445,10 @@ namespace WPEFramework
                                     LOGERR("Failed to StopContainer to terminate");
                                     request->mErrorReason = "Failed to StopContainer";
                                 }
+                                else
+				{
+                                    mUserIdManager->clearUserId(request->mAppInstanceId);
+				}
                             }
                             break;
 
@@ -453,6 +463,10 @@ namespace WPEFramework
                                     LOGERR("Failed to StopContainer");
                                     request->mErrorReason = "Failed to StopContainer";
                                 }
+                                else
+				{
+                                    mUserIdManager->clearUserId(request->mAppInstanceId);
+				}
                             }
                             break;
 
@@ -536,6 +550,7 @@ namespace WPEFramework
                     LOGERR("Failed to create Window Manager Connector Object");
                 }
 
+                mUserIdManager = new UserIdManager();
                 /* Create the worker thread */
                 try
                 {
@@ -757,8 +772,8 @@ err_ret:
             config.mAppId = appId;
             config.mAppInstanceId = appInstanceId;
 
-            uint32_t uid, gid;
-            generateUserId(uid, gid); 
+            uid_t uid = mUserIdManager->getUserId(appInstanceId);
+            gid_t gid = mUserIdManager->getAppsGid();
             config.mUserId = uid;
             config.mGroupId = gid;
 

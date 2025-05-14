@@ -476,9 +476,43 @@ Core::hresult AppManagerImplementation::LaunchApp(const string& appId , const st
         runtimeConfig.resourceManagerClientEnabled = true;
         runtimeConfig.dialId = "";
         runtimeConfig.command = "/runtime/SkyBrowserLauncher";
+        FILE* fp = fopen("/tmp/aipath", "r");
+        bool aipathchange = false;
+        std::string apppath, runtimepath;
+        if (fp != NULL)
+        {
+            aipathchange = true;
+            char* line = NULL;
+            size_t len = 0;
+            bool first = true;
+            while ((getline(&line, &len, fp)) != -1)
+            {
+                if (first)
+                {
+                    apppath = line;		    
+                }
+                else
+                {
+            	    runtimepath = line;    
+                }
+                first = false;
+            }
+            fclose(fp);
+        }
+        apppath.pop_back();
+        runtimepath.pop_back();
+
         runtimeConfig.appType = 1;
-        runtimeConfig.appPath = "/opt/youtube/YouTube.T18IAl";
-        runtimeConfig.runtimePath = "/opt/youtube/com.sky.cobalt.Hn7UUm";
+        if (aipathchange)
+	{
+            runtimeConfig.appPath = apppath;
+            runtimeConfig.runtimePath = runtimepath;
+        }
+	else
+	{
+            runtimeConfig.appPath = "/opt/youtube/YouTube.qgWH9D";
+            runtimeConfig.runtimePath = "/opt/youtube/com.sky.cobalt.4dR2uF";
+	}
         if (status == Core::ERROR_NONE)
         {
             status = mLifecycleInterfaceConnector->launch(appId, intent, launchArgs, runtimeConfig);

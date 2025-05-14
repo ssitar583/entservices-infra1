@@ -142,7 +142,7 @@ void WindowManagerConnector::getDisplayInfo(const string& appInstanceId , string
         }
         xdgDirectory = "/tmp";
     }
-    std::ifstream f("/tmp/specchange");
+    std::ifstream f("/tmp/specchange1");
     if (f.good())
     {
         waylandDisplayName = "testdisplay";

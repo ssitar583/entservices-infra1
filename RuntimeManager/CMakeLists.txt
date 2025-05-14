@@ -62,6 +62,7 @@ add_library(${PLUGIN_IMPLEMENTATION} SHARED
     DobbySpecGenerator.cpp
     WindowManagerConnector.cpp
     DobbyEventListener.cpp
+    UserIdManager.cpp
     Module.cpp)
 
 include_directories(../helpers)

@@ -32,6 +32,7 @@
 #include "WindowManagerConnector.h"
 #include "IEventHandler.h"
 #include "DobbyEventListener.h"
+#include "UserIdManager.h"
 
 namespace WPEFramework
 {
@@ -213,12 +214,12 @@ namespace WPEFramework
                 Exchange::IStorageManager *mStorageManagerObject;
                 WindowManagerConnector* mWindowManagerConnector;
                 DobbyEventListener *mDobbyEventListener;
+                UserIdManager* mUserIdManager;
 
             private: /* internal methods */
                 void dispatchEvent(RuntimeEventType, const JsonValue &params);
                 void Dispatch(RuntimeEventType event, const JsonValue params);
                 void OCIContainerWorkerThread(void);
-                void generateUserId(uint32_t& userId, uint32_t& groupId);
 
                 friend class Job;
 
