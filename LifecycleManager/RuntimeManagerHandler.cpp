@@ -246,6 +246,7 @@ void RuntimeManagerHandler::RuntimeManagerNotification::OnFailure(const string& 
     JsonObject eventData;
     eventData["appInstanceId"] = appInstanceId; 
     eventData["name"] = "onFailure";
+    eventData["errorCode"] = error;
     _parent.onEvent(eventData);
 }
 

@@ -545,6 +545,19 @@ namespace WPEFramework
 		    }
                 }
             }
+        else if (eventName.compare("onFailure") == 0)
+        {
+            string appInstanceId = data["appInstanceId"];
+            string errorCode = data["errorCode"];
+            printf("Received container failure event from runtime manager for app[%s] error[%s]\n", appInstanceId.c_str(), errorCode.c_str());
+            fflush(stdout);
+        }
+        else if (eventName.compare("onStarted") == 0)
+        {
+            string appInstanceId = data["appInstanceId"];
+            printf("Received container started event from runtime manager for app[%s]\n", appInstanceId.c_str());
+            fflush(stdout);
+        }
 	}
 
 	void LifecycleManagerImplementation::handleStateChangeEvent(const JsonObject &data)

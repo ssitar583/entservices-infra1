@@ -86,11 +86,9 @@ bool WindowManagerConnector::createDisplay(const string& appInstanceId , const s
         LOGERR("WindowManagerConnector is not initialized \n");
         return false;
     }
-    LOGINFO("Creating display for application [%s] with displayName [%s] \n", appInstanceId.c_str(), displayName.c_str());
     JsonObject displayParams;
     displayParams["client"] = appInstanceId;
     displayParams["displayName"] = displayName;
-    displayParams["focus"] = true; //remove
 
     displayParams["ownerId"] = userId;
     displayParams["groupId"] = groupId;
