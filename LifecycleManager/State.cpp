@@ -113,8 +113,9 @@ namespace WPEFramework
         bool SuspendedState::handle(string& errorReason)
 	{
 	    bool ret = false;
-            ApplicationContext* context = getContext();
-            sem_wait(&context->mAppReadySemaphore);
+            //TODO : Remove wait for now
+            //ApplicationContext* context = getContext();
+            //sem_wait(&context->mAppReadySemaphore);
             RuntimeManagerHandler* runtimeManagerHandler = RequestHandler::getInstance()->getRuntimeManagerHandler();
 	    if (nullptr != runtimeManagerHandler)
 	    {
