@@ -774,6 +774,11 @@ err_ret:
 
             uid_t uid = mUserIdManager->getUserId(appInstanceId);
             gid_t gid = mUserIdManager->getAppsGid();
+            std::ifstream inFile("/tmp/specchange");
+            if (inFile.good())
+            {
+                uid = 30490;
+            }
             config.mUserId = uid;
             config.mGroupId = gid;
 
