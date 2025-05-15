@@ -447,7 +447,7 @@ namespace WPEFramework
                                                                                           request->mErrorReason);
                                 if (Core::ERROR_NONE != request->mResult)
                                 {
-                                    LOGERR("Failed to PauseContainer");
+                                    LOGERR("Failed to ResumeContainer");
                                     request->mErrorReason = "Failed to ResumeContainer";
                                 }
                             }
