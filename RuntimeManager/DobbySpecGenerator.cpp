@@ -137,12 +137,6 @@ bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, const 
     etcObj["ld-preload"] = preloadsArray;
     spec["etc"] = std::move(etcObj);
 
-    // TODO: verify if we need EthanLog plugin, it seems it works in conjunction with AI 1.0
-    // standard plugins are EthanLog and OCDM, OCDM is enabled if an app does not user rialto nad requires drm
-    // TODO: not for Q1 vpu, dbus, seccomp
-
-    // TODO: network field should not be needed, in dobby it just forces adding network plugin
-    // verify, if we can safely remove it, as we always add network plugin
     if (runtimeConfig.wanLanAccess)
     {
         spec["network"] = "nat";
@@ -420,12 +414,10 @@ std::string DobbySpecGenerator::getCpuCores()
 Json::Value DobbySpecGenerator::createRdkPlugins(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const
 {
     Json::Value rdkPluginsObj(Json::objectValue);
-    //WORK: TODO: Appsservice plugin is not needed for sure?
     if (!config.mPorts.empty())
     {
         rdkPluginsObj["appservicesrdk"] = createAppServiceSDKPlugin(config, runtimeConfig);
     }
-    //WORK: TODO create ionplugin on xione
     rdkPluginsObj["ionmemory"] = createIonMemoryPlugin();
 
     rdkPluginsObj["minidump"] = createMinidumpPlugin();
@@ -490,9 +482,7 @@ Json::Value DobbySpecGenerator::createNetworkPlugin(const ApplicationConfigurati
     pluginObj["required"] = true;
 
     Json::Value dataObj(Json::objectValue);
-    //TODO Verify this
-    //if (runtimeConfig.wanLanAccess)
-    if (true)
+    if (runtimeConfig.wanLanAccess)
     {
         dataObj["type"] = "nat";
         dataObj["dnsmasq"] = true;
