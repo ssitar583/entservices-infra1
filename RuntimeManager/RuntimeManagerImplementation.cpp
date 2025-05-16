@@ -426,11 +426,30 @@ namespace WPEFramework
                             break;
 
                             case OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_SUSPEND:
+                            {
+                                LOGINFO("Runtime Suspend Method");
+                                request->mResult = ociContainerObject->PauseContainer(request->mContainerId,
+                                                                                          request->mSuccess,
+                                                                                          request->mErrorReason);
+                                if (Core::ERROR_NONE != request->mResult)
+                                {
+                                    LOGERR("Failed to PauseContainer");
+                                    request->mErrorReason = "Failed to PauseContainer";
+                                }
+                            }
+                            break;
+
                             case OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_RESUME:
                             {
-                                LOGWARN("Unknown Method type %d", static_cast<int>(request->mRequestType));
-                                request->mResult = Core::ERROR_GENERAL;
-                                request->mErrorReason = "Unknown Method type";
+                                LOGINFO("Runtime Resume Method");
+                                request->mResult = ociContainerObject->ResumeContainer(request->mContainerId,
+                                                                                          request->mSuccess,
+                                                                                          request->mErrorReason);
+                                if (Core::ERROR_NONE != request->mResult)
+                                {
+                                    LOGERR("Failed to ResumeContainer");
+                                    request->mErrorReason = "Failed to ResumeContainer";
+                                }
                             }
                             break;
 
@@ -951,18 +970,28 @@ err_ret:
 
         Core::hresult RuntimeManagerImplementation::Suspend(const string& appInstanceId)
         {
-            Core::hresult status = Core::ERROR_NONE;
+            Core::hresult status = Core::ERROR_GENERAL;
+            OCIContainerRequest request;
 
-            LOGINFO("Suspend Implementation - Stub!");
+            LOGINFO("Entered Suspend Implementation with appInstanceId: %s", appInstanceId.c_str());
+
+            request.mAppInstanceId = std::move(appInstanceId);
+            request.mRequestType = OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_SUSPEND;
+            status = handleContainerRequest(request);
 
             return status;
         }
 
         Core::hresult RuntimeManagerImplementation::Resume(const string& appInstanceId)
         {
-            Core::hresult status = Core::ERROR_NONE;
+            Core::hresult status = Core::ERROR_GENERAL;
+            OCIContainerRequest request;
 
-            LOGINFO("Resume Implementation - Stub!");
+            LOGINFO("Entered Resume Implementation with appInstanceId: %s", appInstanceId.c_str());
+
+            request.mAppInstanceId = std::move(appInstanceId);
+            request.mRequestType = OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_RESUME;
+            status = handleContainerRequest(request);
 
             return status;
         }
