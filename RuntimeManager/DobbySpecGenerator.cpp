@@ -674,36 +674,7 @@ Json::Value DobbySpecGenerator::createPrivateDataMount(const WPEFramework::Excha
     static const Json::StaticString noexec("noexec");
 
     Json::Value mount(Json::objectValue);
-    //TODO: Read data image from package manager from here
-    /*
-    const std::string sourcePath = package->privateDataImagePath();
-    */
-   FILE* fp = fopen("/tmp/aiimgpath", "r");
-   bool aipathchange = false;
-   std::string imgpath;;
-   if (fp != NULL)
-   {
-       aipathchange = true;
-       char* line = NULL;
-       size_t len = 0;
-       bool first = true;
-       while ((getline(&line, &len, fp)) != -1)
-       {
-           if (first)
-           {
-               imgpath = line;
-           }
-           first = false;
-       }
-       fclose(fp);
-   }
-   imgpath.pop_back();
-
-   std::string sourcePath("/media/apps/sky/packages/YouTube/data.img");
-   if (aipathchange)
-   {
-       sourcePath = imgpath;
-   }
+    std::string sourcePath(runtimeConfig.unpackedPath);
 
     if (sourcePath.empty())
     {
