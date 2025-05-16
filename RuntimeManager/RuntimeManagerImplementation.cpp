@@ -389,7 +389,6 @@ namespace WPEFramework
                                     LOGERR("Failed to StartContainerFromDobbySpec");
                                     request->mErrorReason = "Failed to StartContainerFromDobbySpec";
                                 }
-                                //TODO: Emit onStarted Running after onStarted received from OCIContainer
                             }
                             break;
 
@@ -786,7 +785,6 @@ err_ret:
             std::string dobbySpec;
             AppStorageInfo appStorageInfo;
 
-            //TODO: Emit onStarting event
             ApplicationConfiguration config;
             config.mAppId = appId;
             config.mAppInstanceId = appInstanceId;
