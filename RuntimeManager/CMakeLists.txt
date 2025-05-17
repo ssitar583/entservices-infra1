@@ -63,6 +63,8 @@ add_library(${PLUGIN_IMPLEMENTATION} SHARED
     WindowManagerConnector.cpp
     DobbyEventListener.cpp
     UserIdManager.cpp
+    CommonConfiguration.cpp
+    SystemConfiguration.cpp
     Module.cpp)
 
 include_directories(../helpers)
