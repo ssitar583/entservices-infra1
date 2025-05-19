@@ -559,7 +559,7 @@ namespace Plugin {
                     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
                     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
                     if (elapsed) {
-                        LOGTRACE("Download status=%d code=%ld time=%ld ms", status,
+                        LOGTRACE("Download status=%d code=%ld time=%lld ms", status,
                             mHttpClient->getStatusCode(),
                             elapsed);
                     }
@@ -625,7 +625,7 @@ namespace Plugin {
 
     PackageManagerImplementation::DownloadInfoPtr PackageManagerImplementation::getNext() {
         std::lock_guard<std::mutex> lock(mMutex);
-        LOGTRACE("mDownloadQueue.size = %ld\n", mDownloadQueue.size());
+        LOGTRACE("mDownloadQueue.size = %d\n", mDownloadQueue.size());
         if (!mDownloadQueue.empty() && mInprogressDowload == nullptr) {
             mInprogressDowload = mDownloadQueue.front();
             mDownloadQueue.pop_front();
