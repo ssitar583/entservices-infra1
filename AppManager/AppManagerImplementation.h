@@ -157,6 +157,7 @@ namespace Plugin {
         void releasePersistentStoreRemoteStoreObject();
         Core::hresult createPackageManagerObject();
         void releasePackageManagerObject();
+        void getCustomValues(WPEFramework::Exchange::RuntimeConfig& runtimeConfig);
     private:
         mutable Core::CriticalSection mAdminLock;
         std::list<Exchange::IAppManager::INotification*> mAppManagerNotification;

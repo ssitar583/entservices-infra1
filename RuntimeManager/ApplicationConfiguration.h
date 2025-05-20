@@ -42,8 +42,6 @@ namespace Plugin
 
         std::string mAppInstanceId;
         
-        // command to run inside the container, mArgs[0] is application name
-        // TODO should the app name be prefixed with mAppPath or mRuntimePath?
         std::vector<std::string> mArgs;
         
         // userId used by the container
