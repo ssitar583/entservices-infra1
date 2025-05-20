@@ -22,16 +22,19 @@
 #include <vector>
 #include <string>
 #include <list>
+#include <map>
+#include <bitset>
+#include <netinet/in.h>
 
 namespace WPEFramework
 {
 namespace Plugin
 {
-    class CommonConfiguration
+    class AIConfiguration
     {
         public:
-            CommonConfiguration();
-            virtual ~CommonConfiguration();
+            AIConfiguration();
+            virtual ~AIConfiguration();
             void initialize();
             size_t getContainerConsoleLogCap();
             std::bitset<32> getAppsCpuSet() const;
@@ -49,8 +52,15 @@ namespace Plugin
             in_port_t getDialServerPort() const;
             std::string getDialServerPathPrefix() const;
             std::string getDialUsn() const;
+            std::map<std::string, size_t> getIonHeapQuotas() const;
 
+	    //system configuration
+            std::list<std::string> getPreloads() const;
+            std::list<std::string> getEnvs() const;
         private:
+            void readFromCustomData();
+            void readFromConfigFile();
+
 	    size_t mConsoleLogCap;
             std::bitset<32> mAppsCpuSet;
 	    ssize_t mNonHomeAppMemoryLimit;
@@ -64,9 +74,14 @@ namespace Plugin
             bool mEnableUsbMassStorage;
 	    bool mIPv6Enabled;
             size_t mIonHeapDefaultQuota;
-	    in_port_t mDialServerPort = 8009;
+	    in_port_t mDialServerPort;
 	    std::string mDialServerPathPrefix;
             std::string mDialUsn;
+            std::map<std::string, size_t> mIonHeapQuotas;
+
+	    //system configuration
+	    std::list<std::string> mPreloads;
+            std::list<std::string> mEnvs;
     };
 } /* namespace Plugin */
 } /* namespace WPEFramework */
