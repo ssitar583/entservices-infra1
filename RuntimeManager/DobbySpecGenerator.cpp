@@ -191,7 +191,7 @@ Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& co
 //"DIAL_USN=uuid:sky-dial-server-a84a631e48a4::urn:dial-multiscreen-org:service:dial:1"
 
    JsonArray envInputArray;
-   envInputArray.FromString(runtimeConfig.envVars);
+   envInputArray.FromString(runtimeConfig.envVariables);
    for (unsigned int i = 0; i < envInputArray.Length(); ++i)
    {
        std::string envInputItem = envInputArray[i].String();

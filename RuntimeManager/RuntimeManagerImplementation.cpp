@@ -20,6 +20,7 @@
 #include "RuntimeManagerImplementation.h"
 #include "DobbySpecGenerator.h"
 #include <errno.h>
+#include <fstream>
 
 static bool sRunning = false;
 //TODO - Remove the hardcoding to enable compatibility with a common middleware. The app portal name should be configurable in some way
@@ -774,6 +775,7 @@ err_ret:
 
             uid_t uid = mUserIdManager->getUserId(appInstanceId);
             gid_t gid = mUserIdManager->getAppsGid();
+
             std::ifstream inFile("/tmp/specchange");
             if (inFile.good())
             {

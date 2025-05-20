@@ -119,7 +119,7 @@ bool RuntimeManagerHandler::run(const string& appId, const string& appInstanceId
     envNewArray.Add(targetAppState);
 
     JsonArray envInputArray, envResultArray;
-    envInputArray.FromString(runtimeConfigObject.envVars);
+    envInputArray.FromString(runtimeConfigObject.envVariables);
     for (unsigned int i = 0; i < envInputArray.Length(); ++i)
     {
         envResultArray.Add(envInputArray[i].String());
@@ -128,7 +128,7 @@ bool RuntimeManagerHandler::run(const string& appId, const string& appInstanceId
     {
         envResultArray.Add(envNewArray[i].String());
     }
-    envResultArray.ToString(runtimeConfigObject.envVars);
+    envResultArray.ToString(runtimeConfigObject.envVariables);
 
     // prepare arguments to pass
     RPC::IStringIterator* environmentVarsIterator{};
