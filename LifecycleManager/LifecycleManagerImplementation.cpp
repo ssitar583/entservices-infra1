@@ -231,6 +231,7 @@ namespace WPEFramework
             if (nullptr == context)
 	    {
                 context = new ApplicationContext(appId);
+                runtimeConfigObject.dialId = appId;
                 context->setApplicationLaunchParams(appId, appPath, appConfig, runtimeAppId, runtimePath, runtimeConfig, launchIntent, environmentVars, enableDebugger, launchArgs, targetLifecycleState, runtimeConfigObject);
 		mLoadedApplications.push_back(context);
                 firstLaunch = true;

@@ -27,6 +27,7 @@
 #include <string>
 #include "ApplicationConfiguration.h"
 #include <interfaces/IRuntimeManager.h>
+#include "AIConfiguration.h"
 
 namespace WPEFramework
 {
@@ -58,10 +59,11 @@ namespace Plugin
 
             ssize_t getSysMemoryLimit(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const;
             ssize_t getGPUMemoryLimit(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const;
-            bool getVpuEnabled(const ApplicationConfiguration& config) const;
+            bool getVpuEnabled(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const;
 	    std::string getCpuCores();
             void populateClassicPlugins(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig, Json::Value& spec);
             Json::Value createEthanLogPlugin(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const;
+            Json::Value createMulticastSocketPlugin(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const;
             Json::Value createIonMemoryPlugin() const;
             Json::Value createThunderPlugin(const ApplicationConfiguration& config) const;
             Json::Value createOpenCDMPlugin(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const;
@@ -69,10 +71,17 @@ namespace Plugin
             void createFkpsMounts(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig, Json::Value& spec) const;
             Json::Value createTmpfsMount(const std::string &mntDestination,
                                  unsigned long mntOptions) const;
+            Json::Value createResourceManagerMount(const ApplicationConfiguration& config) const;
+            Json::Value getWorkingDir(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig) const;
             void initialiseIonHeapsJson();
+            std::string encodeURL(std::string url) const;
+
             Json::Value mIonMemoryPluginData;
 	    std::string mPackageMountPoint;
 	    std::string mRuntimeMountPoint;
+            std::string mGstRegistrySourcePath;
+            std::string mGstRegistryDestinationPath;
+            AIConfiguration* mAIConfiguration;
     };
 } /* namespace Plugin */
 } /* namespace WPEFramework */
