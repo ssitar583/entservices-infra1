@@ -113,7 +113,7 @@ jobs:
         with:
           repository: rdkcentral/entservices-testframework
           path: entservices-testframework
-          ref: .github/workflows/L2-tests.yml
+          ref: feature/RDK-57329-IN
           token: ${{ secrets.RDKCM_RDKE }}
 
       - name: Checkout entservices-infra
