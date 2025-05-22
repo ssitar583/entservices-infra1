@@ -26,13 +26,15 @@ SERVICE_REGISTRATION(AppManagerImplementation, 1, 0);
 AppManagerImplementation* AppManagerImplementation::_instance = nullptr;
 
 AppManagerImplementation::AppManagerImplementation()
-: mAdminLock()
+: mCurrentAction(APP_ACTION_NONE)
+, mAdminLock()
 , mAppManagerNotification()
 , mLifecycleInterfaceConnector(nullptr)
 , mPersistentStoreRemoteStoreObject(nullptr)
 , mPackageManagerHandlerObject(nullptr)
 , mPackageManagerInstallerObject(nullptr)
 , mCurrentservice(nullptr)
+, mPackageManagerNotification(*this)
 {
     LOGINFO("Create AppManagerImplementation Instance");
     if (nullptr == AppManagerImplementation::_instance)
@@ -123,6 +125,79 @@ void AppManagerImplementation::dispatchEvent(EventNames event, const JsonObject 
 void AppManagerImplementation::Dispatch(EventNames event, const JsonObject params)
 {
     LOGINFO("Dispatch Entered");
+
+    switch(event)
+    {
+        case APP_LIFECYCLE_STATE_CHANGED:
+        {
+            string appId = "";
+            string appInstanceId = "";
+            AppLifecycleState newState = Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN;
+            AppLifecycleState oldState = Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN;
+            AppErrorReason errorReason = Exchange::IAppManager::AppErrorReason::APP_ERROR_NONE;
+
+            if (!(params.HasLabel("appId") && !(appId = params["appId"].String()).empty()))
+            {
+                LOGERR("appId not present or empty");
+            }
+            else if (!(params.HasLabel("appInstanceId") && !(appInstanceId = params["appInstanceId"].String()).empty()))
+            {
+                LOGERR("appInstanceId not present or empty");
+            }
+            else if (!params.HasLabel("newState"))
+            {
+                LOGERR("newState not present");
+            }
+            else if (!params.HasLabel("oldState"))
+            {
+                LOGERR("oldState not present");
+            }
+            else if (!params.HasLabel("errorReason"))
+            {
+                LOGERR("errorReason not present");
+            }
+            else
+            {
+                newState = static_cast<AppLifecycleState>(params["newState"].Number());
+                oldState = static_cast<AppLifecycleState>(params["oldState"].Number());
+                errorReason = static_cast<AppErrorReason>(params["errorReason"].Number());
+                mAdminLock.Lock();
+                for (auto& notification : mAppManagerNotification)
+                {
+                    notification->OnAppLifecycleStateChanged(appId, appInstanceId, newState, oldState, errorReason);
+                }
+                mAdminLock.Unlock();
+            }
+            break;
+        }
+
+        default:
+            LOGERR("Unknown event: %d", static_cast<int>(event));
+            break;
+    }
+}
+
+/*
+ * @brief Notify client on App state change.
+ * @Params[in]  : const string& appId, const string& appInstanceId, const AppLifecycleState newState, const AppLifecycleState oldState, const AppErrorReason errorReason
+ * @Params[out] : None
+ * @return      : void
+ */
+void AppManagerImplementation::handleOnAppLifecycleStateChanged(const string& appId, const string& appInstanceId, const Exchange::IAppManager::AppLifecycleState newState,
+                                                 const Exchange::IAppManager::AppLifecycleState oldState, const Exchange::IAppManager::AppErrorReason errorReason)
+{
+    JsonObject eventDetails;
+
+    eventDetails["appId"] = appId;
+    eventDetails["appInstanceId"] = appInstanceId;
+    eventDetails["newState"] = static_cast<int>(newState);
+    eventDetails["oldState"] = static_cast<int>(oldState);
+    eventDetails["errorReason"] = static_cast<int>(errorReason);
+
+    LOGINFO("Notify App Lifecycle state change for appId %s: oldState=%d, newState=%d",
+        appId.c_str(), static_cast<int>(oldState), static_cast<int>(newState));
+
+    dispatchEvent(APP_LIFECYCLE_STATE_CHANGED, eventDetails);
 }
 
 uint32_t AppManagerImplementation::Configure(PluginHost::IShell* service)
@@ -224,6 +299,8 @@ Core::hresult AppManagerImplementation::createPackageManagerObject()
     else
     {
         LOGINFO("created PackageManager Object\n");
+        mPackageManagerInstallerObject->AddRef();
+        mPackageManagerInstallerObject->Register(&mPackageManagerNotification);
         status = Core::ERROR_NONE;
     }
     return status;
@@ -240,6 +317,7 @@ void AppManagerImplementation::releasePackageManagerObject()
     ASSERT(nullptr != mPackageManagerInstallerObject);
     if(mPackageManagerInstallerObject)
     {
+        mPackageManagerInstallerObject->Unregister(&mPackageManagerNotification);
         mPackageManagerInstallerObject->Release();
         mPackageManagerInstallerObject = nullptr;
     }
@@ -331,6 +409,13 @@ bool AppManagerImplementation::removeAppInfoByAppId(const string &appId)
         LOGWARN("AppId[%s] PackageInfo not found", appId.c_str());
     }
     return result;
+}
+
+void AppManagerImplementation::OnAppInstallationStatus(const string& jsonresponse)
+{
+    LOGINFO("Enter AppManagerImplementation::OnAppInstallationStatus");
+    LOGINFO("Received JSON response: %s", jsonresponse.c_str());
+    /* TODO: Handled as part of RDKEMW-3885 */
 }
 
 Core::hresult AppManagerImplementation::packageLock(const string& appId, PackageInfo &packageData, Exchange::IPackageHandler::LockReason lockReason)

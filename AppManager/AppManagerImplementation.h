@@ -30,6 +30,7 @@
 #include <core/core.h>
 #include <plugins/plugins.h>
 #include "LifecycleInterfaceConnector.h"
+#include <interfaces/IPackageManager.h>
 #include <map>
 
 
@@ -75,15 +76,51 @@ namespace Plugin {
             string appIntent;
             ApplicationType type;
             PackageInfo packageInfo;
-            Exchange::IAppManager::AppLifecycleState currentAppState;
-            Exchange::ILifecycleManager::LifecycleState currentAppLifecycleState;
+            Exchange::IAppManager::AppLifecycleState appNewState;
+            Exchange::ILifecycleManager::LifecycleState appLifecycleState;
             Exchange::IAppManager::AppLifecycleState targetAppState;
+            Exchange::IAppManager::AppLifecycleState appOldState;
         } AppInfo;
 
         std::map<std::string, AppInfo> mAppInfo;
 
         enum EventNames {
-            APP_STATE_CHANGED
+            APP_LIFECYCLE_STATE_CHANGED,
+        };
+
+        enum CurrentAction {
+            APP_ACTION_NONE,
+            APP_ACTION_LAUNCH,
+            APP_ACTION_PRELOAD,
+            APP_ACTION_SUSPEND,
+            APP_ACTION_RESUME,
+            APP_ACTION_CLOSE,
+            APP_ACTION_TERMINATE,
+            APP_ACTION_HIBERNATE,
+            APP_ACTION_KILL,
+        };
+
+        CurrentAction mCurrentAction;
+
+        private:
+        class PackageManagerNotification : public Exchange::IPackageInstaller::INotification {
+
+        public:
+            PackageManagerNotification(AppManagerImplementation& parent) : mParent(parent){}
+            ~PackageManagerNotification(){}
+
+        void OnAppInstallationStatus(const string& jsonresponse)
+        {
+            LOGINFO("AppManagerImplementation on OnAppInstallationStatus");
+            mParent.OnAppInstallationStatus(jsonresponse);
+        }
+
+        BEGIN_INTERFACE_MAP(PackageManagerNotification)
+        INTERFACE_ENTRY(Exchange::IPackageInstaller::INotification)
+        END_INTERFACE_MAP
+
+        private:
+            AppManagerImplementation& mParent;
         };
         class EXTERNAL Job : public Core::IDispatch {
         protected:
@@ -148,6 +185,8 @@ namespace Plugin {
         Core::hresult GetMaxHibernatedFlashUsage(int32_t& maxHibernatedFlashUsage) const override;
         Core::hresult GetMaxInactiveRamUsage(int32_t& maxInactiveRamUsage) const override;
         bool fetchPackageInfoByAppId(const string& appId, PackageInfo &packageData);
+        void handleOnAppLifecycleStateChanged(const string& appId, const string& appInstanceId, const Exchange::IAppManager::AppLifecycleState newState,
+                                        const Exchange::IAppManager::AppLifecycleState oldState, const Exchange::IAppManager::AppErrorReason errorReason);
 
         // IConfiguration methods
         uint32_t Configure(PluginHost::IShell* service) override;
@@ -166,10 +205,12 @@ namespace Plugin {
         Exchange::IPackageHandler* mPackageManagerHandlerObject;
         Exchange::IPackageInstaller* mPackageManagerInstallerObject;
         PluginHost::IShell* mCurrentservice;
+        Core::Sink<PackageManagerNotification> mPackageManagerNotification;
         Core::hresult packageLock(const string& appId, PackageInfo &packageData, Exchange::IPackageHandler::LockReason lockReason);
         Core::hresult packageUnLock(const string& appId);
         bool createOrUpdatePackageInfoByAppId(const string& appId, PackageInfo &packageData);
         bool removeAppInfoByAppId(const string &appId);
+        void OnAppInstallationStatus(const string& jsonresponse);
 
         void dispatchEvent(EventNames, const JsonObject &params);
         void Dispatch(EventNames event, const JsonObject params);
