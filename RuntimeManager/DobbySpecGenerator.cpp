@@ -110,7 +110,11 @@ bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, const 
     spec["memLimit"] = getSysMemoryLimit(config, runtimeConfig);
 
     Json::Value args(Json::arrayValue);
-    args.append(runtimeConfig.command);
+    //TODO CHECK FOR APPEND OR NOT
+    std::string command ="/runtime/";
+    command.append(runtimeConfig.command);
+
+    args.append(command);
     spec["args"] = std::move(args);
     spec["cwd"] = getWorkingDir(config, runtimeConfig);
     if (shouldEnableGpu(config))
@@ -432,7 +436,7 @@ ssize_t DobbySpecGenerator::getSysMemoryLimit(const ApplicationConfiguration& co
     ssize_t memoryLimit = runtimeConfig.systemMemoryLimit;
     if (memoryLimit <= 0)
     {
-        if (runtimeConfig.appType == 1) //TODO SUPPORT enum comparision
+        if (runtimeConfig.appType.compare("INTERACTIVE") == 0)
 	{
             memoryLimit = mAIConfiguration->getNonHomeAppMemoryLimit();
         }
@@ -446,7 +450,7 @@ ssize_t DobbySpecGenerator::getGPUMemoryLimit(const ApplicationConfiguration& co
     ssize_t gpuMemoryLimit = runtimeConfig.gpuMemoryLimit;
     if (gpuMemoryLimit <= 0)
     {
-        if (runtimeConfig.appType == 1) //TODO SUPPORT enum comparision
+        if (runtimeConfig.appType.compare("INTERACTIVE") == 0)
 	{
             gpuMemoryLimit = mAIConfiguration->getNonHomeAppGpuLimit();
         }
@@ -464,7 +468,7 @@ bool DobbySpecGenerator::getVpuEnabled(const ApplicationConfiguration& config, c
         return false;
     }
     */
-    if (runtimeConfig.appType == 2) //TODO SUPPORT enum comparision
+    if (runtimeConfig.appType.compare("SYSTEM") == 0)
     {
         return false;
     }
@@ -863,7 +867,6 @@ Json::Value DobbySpecGenerator::createPrivateDataMount(const WPEFramework::Excha
 
     Json::Value mount(Json::objectValue);
     std::string sourcePath(runtimeConfig.unpackedPath);
-
     if (sourcePath.empty())
     {
         return Json::nullValue;
@@ -891,6 +894,14 @@ void DobbySpecGenerator::createFkpsMounts(const ApplicationConfiguration& config
     std::optional<std::set<std::string>> fkpsFiles =
         package->capabilityValueSet(packagemanager::IPackage::Capability::FkpsAccess);
     */
+    std::list<std::string> fkpsFiles;
+    JsonArray fkpsFilesArray;
+    fkpsFilesArray.FromString(runtimeConfig.fkpsFiles);
+    for (unsigned int i = 0; i < fkpsFilesArray.Length(); ++i)
+    {
+        fkpsFiles.push_back(fkpsFilesArray[i].String());
+    }
+/*
     std::set<std::string> fkpsFiles = {
         "ffffffff00000001.key",
         "ffffffff00000001.sha",
@@ -917,13 +928,13 @@ void DobbySpecGenerator::createFkpsMounts(const ApplicationConfiguration& config
         "0381000003810003.keyinfo",
         "0681000006810001.bin"
     };
-
+*/
     if (fkpsFiles.empty())
         return;
 
     // iterate through the files and make sure they're accessible
     const std::string fkpsPathPrefix("/opt/drm/");
-    for (std::set<std::string>::iterator it=fkpsFiles.begin(); it!=fkpsFiles.end(); ++it)
+    for (std::list<std::string>::iterator it=fkpsFiles.begin(); it!=fkpsFiles.end(); ++it)
     //for (const std::string &fkpsFile : fkpsFiles.value())
     {
 	std::string fkpsFile = *it;      

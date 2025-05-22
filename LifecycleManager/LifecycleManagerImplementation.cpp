@@ -20,6 +20,8 @@
 #include "LifecycleManagerImplementation.h"
 #include "RequestHandler.h"
 #include "UtilsJsonRpc.h"
+#include <interfaces/json/JsonData_LifecycleManagerState.h>
+#include <interfaces/json/JLifecycleManagerState.h>
 #include <semaphore.h>
 
 namespace WPEFramework
