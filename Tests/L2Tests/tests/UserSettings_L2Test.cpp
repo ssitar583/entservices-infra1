@@ -2004,266 +2004,266 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                     }
                 }
 
-        TEST_LOG("Setting and Getting AudioDescription Values");
-        status = m_usersettingsplugin->SetAudioDescription(true);
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
-        signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onAudioDescriptionChanged);
-        EXPECT_TRUE(signalled & UserSettings_onAudioDescriptionChanged);
+                TEST_LOG("Setting and Getting AudioDescription Values");
+                status = m_usersettingsplugin->SetAudioDescription(true);
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onAudioDescriptionChanged);
+                EXPECT_TRUE(signalled & UserSettings_onAudioDescriptionChanged);
 
-        status = m_usersettingsplugin->GetAudioDescription(getBoolValue);
-        EXPECT_EQ(getBoolValue, true);
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
+                status = m_usersettingsplugin->GetAudioDescription(getBoolValue);
+                EXPECT_EQ(getBoolValue, true);
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
 
-        TEST_LOG("Setting and Getting PreferredAudioLanguages Values");
-        status = m_usersettingsplugin->SetPreferredAudioLanguages("eng");
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
-        signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_onPreferredAudioLanguagesChanged);
-        EXPECT_TRUE(signalled & UserSettings_onPreferredAudioLanguagesChanged);
+                TEST_LOG("Setting and Getting PreferredAudioLanguages Values");
+                status = m_usersettingsplugin->SetPreferredAudioLanguages("eng");
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_onPreferredAudioLanguagesChanged);
+                EXPECT_TRUE(signalled & UserSettings_onPreferredAudioLanguagesChanged);
 
-        status = m_usersettingsplugin->GetPreferredAudioLanguages(getStringValue);
-        EXPECT_EQ(getStringValue, "eng");
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
+                status = m_usersettingsplugin->GetPreferredAudioLanguages(getStringValue);
+                EXPECT_EQ(getStringValue, "eng");
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
 
-        TEST_LOG("Setting and Getting PresentationLanguage Values");
-        status = m_usersettingsplugin->SetPresentationLanguage("fra");
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
-        signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_onPresentationLanguageChanged);
-        EXPECT_TRUE(signalled & UserSettings_onPresentationLanguageChanged);
+                TEST_LOG("Setting and Getting PresentationLanguage Values");
+                status = m_usersettingsplugin->SetPresentationLanguage("fra");
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_onPresentationLanguageChanged);
+                EXPECT_TRUE(signalled & UserSettings_onPresentationLanguageChanged);
 
-        status = m_usersettingsplugin->GetPresentationLanguage(getStringValue);
-        EXPECT_EQ(getStringValue, "fra");
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
+                status = m_usersettingsplugin->GetPresentationLanguage(getStringValue);
+                EXPECT_EQ(getStringValue, "fra");
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
 
-        TEST_LOG("Setting and Getting Captions Values");
-        getBoolValue = false;
-        status = m_usersettingsplugin->SetCaptions(true);
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
-        signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_onCaptionsChanged);
-        EXPECT_TRUE(signalled & UserSettings_onCaptionsChanged);
+                TEST_LOG("Setting and Getting Captions Values");
+                getBoolValue = false;
+                status = m_usersettingsplugin->SetCaptions(true);
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_onCaptionsChanged);
+                EXPECT_TRUE(signalled & UserSettings_onCaptionsChanged);
 
-        status = m_usersettingsplugin->GetCaptions(getBoolValue);
-        EXPECT_EQ(getBoolValue, true);
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
+                status = m_usersettingsplugin->GetCaptions(getBoolValue);
+                EXPECT_EQ(getBoolValue, true);
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
 
-        TEST_LOG("Setting and Getting Captions Values");
-        status = m_usersettingsplugin->SetPreferredCaptionsLanguages("en,es");
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
-        signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_onPreferredCaptionsLanguagesChanged);
-        EXPECT_TRUE(signalled & UserSettings_onPreferredCaptionsLanguagesChanged);
+                TEST_LOG("Setting and Getting Captions Values");
+                status = m_usersettingsplugin->SetPreferredCaptionsLanguages("en,es");
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_onPreferredCaptionsLanguagesChanged);
+                EXPECT_TRUE(signalled & UserSettings_onPreferredCaptionsLanguagesChanged);
 
-        status = m_usersettingsplugin->GetPreferredCaptionsLanguages(getStringValue);
-        EXPECT_EQ(getStringValue, "en,es");
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
+                status = m_usersettingsplugin->GetPreferredCaptionsLanguages(getStringValue);
+                EXPECT_EQ(getStringValue, "en,es");
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
 
-        TEST_LOG("Setting and Getting PreferredClosedCaptionService Values");
-        status = m_usersettingsplugin->SetPreferredClosedCaptionService("CC3");
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
-        signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_onPreferredClosedCaptionServiceChanged);
-        EXPECT_TRUE(signalled & UserSettings_onPreferredClosedCaptionServiceChanged);
+                TEST_LOG("Setting and Getting PreferredClosedCaptionService Values");
+                status = m_usersettingsplugin->SetPreferredClosedCaptionService("CC3");
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_onPreferredClosedCaptionServiceChanged);
+                EXPECT_TRUE(signalled & UserSettings_onPreferredClosedCaptionServiceChanged);
 
-        status = m_usersettingsplugin->GetPreferredClosedCaptionService(getStringValue);
-        EXPECT_EQ(getStringValue, "CC3");
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
+                status = m_usersettingsplugin->GetPreferredClosedCaptionService(getStringValue);
+                EXPECT_EQ(getStringValue, "CC3");
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
 
-        TEST_LOG("Setting and Getting PinControl Values");
-        status = m_usersettingsplugin->SetPinControl(true);
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
-        signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onPinControlChanged);
-        EXPECT_TRUE(signalled & UserSettings_onPinControlChanged);
+                TEST_LOG("Setting and Getting PinControl Values");
+                status = m_usersettingsplugin->SetPinControl(true);
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onPinControlChanged);
+                EXPECT_TRUE(signalled & UserSettings_onPinControlChanged);
 
-        status = m_usersettingsplugin->GetPinControl(getBoolValue);
-        EXPECT_EQ(getBoolValue, true);
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
-        string viewRes = "{\"restrictions\": [{\"scheme\": \"US_TV\", \"restrict\": [\"TV-Y7/FV\"]}, {\"scheme\": \"MPAA\", \"restrict\": []}]}";
-        TEST_LOG("Setting and Getting ViewingRestrictions Values");
-        status = m_usersettingsplugin->SetViewingRestrictions(viewRes);
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
-        signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_onViewingRestrictionsChanged);
-        EXPECT_TRUE(signalled & UserSettings_onViewingRestrictionsChanged);
+                status = m_usersettingsplugin->GetPinControl(getBoolValue);
+                EXPECT_EQ(getBoolValue, true);
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                string viewRes = "{\"restrictions\": [{\"scheme\": \"US_TV\", \"restrict\": [\"TV-Y7/FV\"]}, {\"scheme\": \"MPAA\", \"restrict\": []}]}";
+                TEST_LOG("Setting and Getting ViewingRestrictions Values");
+                status = m_usersettingsplugin->SetViewingRestrictions(viewRes);
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_onViewingRestrictionsChanged);
+                EXPECT_TRUE(signalled & UserSettings_onViewingRestrictionsChanged);
 
-        status = m_usersettingsplugin->GetViewingRestrictions(getStringValue);
-        EXPECT_EQ(getStringValue, viewRes);
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
+                status = m_usersettingsplugin->GetViewingRestrictions(getStringValue);
+                EXPECT_EQ(getStringValue, viewRes);
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
 
-        TEST_LOG("Setting and Getting ViewingRestrictionsWindow Values");
-        status = m_usersettingsplugin->SetViewingRestrictionsWindow("ALWAYS");
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
-        signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_onViewingRestrictionsWindowChanged);
-        EXPECT_TRUE(signalled & UserSettings_onViewingRestrictionsWindowChanged);
+                TEST_LOG("Setting and Getting ViewingRestrictionsWindow Values");
+                status = m_usersettingsplugin->SetViewingRestrictionsWindow("ALWAYS");
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_onViewingRestrictionsWindowChanged);
+                EXPECT_TRUE(signalled & UserSettings_onViewingRestrictionsWindowChanged);
 
-        status = m_usersettingsplugin->GetViewingRestrictionsWindow(getStringValue);
-        EXPECT_EQ(getStringValue, "ALWAYS");
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
+                status = m_usersettingsplugin->GetViewingRestrictionsWindow(getStringValue);
+                EXPECT_EQ(getStringValue, "ALWAYS");
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
 
-        TEST_LOG("Setting and Getting LiveWatershed Values");
-        status = m_usersettingsplugin->SetLiveWatershed(true);
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
-        signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onLiveWatershedChanged);
-        EXPECT_TRUE(signalled & UserSettings_onLiveWatershedChanged);
+                TEST_LOG("Setting and Getting LiveWatershed Values");
+                status = m_usersettingsplugin->SetLiveWatershed(true);
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onLiveWatershedChanged);
+                EXPECT_TRUE(signalled & UserSettings_onLiveWatershedChanged);
 
-        status = m_usersettingsplugin->GetLiveWatershed(getBoolValue);
-        EXPECT_EQ(getBoolValue, true);
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
+                status = m_usersettingsplugin->GetLiveWatershed(getBoolValue);
+                EXPECT_EQ(getBoolValue, true);
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
 
-        TEST_LOG("Setting and Getting PlaybackWatershed Values");
-        status = m_usersettingsplugin->SetPlaybackWatershed(true);
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
-        signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onPlaybackWatershedChanged);
-        EXPECT_TRUE(signalled & UserSettings_onPlaybackWatershedChanged);
+                TEST_LOG("Setting and Getting PlaybackWatershed Values");
+                status = m_usersettingsplugin->SetPlaybackWatershed(true);
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onPlaybackWatershedChanged);
+                EXPECT_TRUE(signalled & UserSettings_onPlaybackWatershedChanged);
 
-        status = m_usersettingsplugin->GetPlaybackWatershed(getBoolValue);
-        EXPECT_EQ(getBoolValue, true);
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
+                status = m_usersettingsplugin->GetPlaybackWatershed(getBoolValue);
+                EXPECT_EQ(getBoolValue, true);
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
 
-        TEST_LOG("Setting and Getting BlockNotRatedContent Values");
-        status = m_usersettingsplugin->SetBlockNotRatedContent(true);
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
-        signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onBlockNotRatedContentChanged);
-        EXPECT_TRUE(signalled & UserSettings_onBlockNotRatedContentChanged);
+                TEST_LOG("Setting and Getting BlockNotRatedContent Values");
+                status = m_usersettingsplugin->SetBlockNotRatedContent(true);
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onBlockNotRatedContentChanged);
+                EXPECT_TRUE(signalled & UserSettings_onBlockNotRatedContentChanged);
 
-        status = m_usersettingsplugin->GetBlockNotRatedContent(getBoolValue);
-        EXPECT_EQ(getBoolValue, true);
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
+                status = m_usersettingsplugin->GetBlockNotRatedContent(getBoolValue);
+                EXPECT_EQ(getBoolValue, true);
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
 
-        TEST_LOG("Setting and Getting PinOnPurchase Values");
-        status = m_usersettingsplugin->SetPinOnPurchase(true);
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
-        signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onPinOnPurchaseChanged);
-        EXPECT_TRUE(signalled & UserSettings_onPinOnPurchaseChanged);
+                TEST_LOG("Setting and Getting PinOnPurchase Values");
+                status = m_usersettingsplugin->SetPinOnPurchase(true);
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onPinOnPurchaseChanged);
+                EXPECT_TRUE(signalled & UserSettings_onPinOnPurchaseChanged);
 
-        status = m_usersettingsplugin->GetPinOnPurchase(getBoolValue);
-        EXPECT_EQ(getBoolValue, true);
-        EXPECT_EQ(status,Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE)
-        {
-            std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-            TEST_LOG("Err: %s", errorMsg.c_str());
-        }
+                status = m_usersettingsplugin->GetPinOnPurchase(getBoolValue);
+                EXPECT_EQ(getBoolValue, true);
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
 
         TEST_LOG("Setting and Getting HighContrast Values");
         status = m_usersettingsplugin->SetHighContrast(true);
