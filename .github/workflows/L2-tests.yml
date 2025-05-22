@@ -95,7 +95,7 @@ jobs:
         with:
           repository: rdkcentral/entservices-testframework
           path: entservices-testframework
-          ref: feature/RDK-57329-TF
+          ref: develop
           token: ${{ secrets.RDKCM_RDKE }}
 
       - name: Apply patches ThunderTools
