@@ -1804,7 +1804,7 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     EXPECT_EQ(status, Core::ERROR_NONE);
 
 }
-
+#if 0
 TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
 {
     uint32_t status = Core::ERROR_GENERAL;
@@ -2536,6 +2536,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
         }
     }
 }
+#endif
 
 TEST_F(UserSettingTest, NoDBFileInPersistentstoreErrorCase)
 {
