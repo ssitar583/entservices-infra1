@@ -34,6 +34,8 @@
 #include <com/com.h>
 #include <plugins/plugins.h>
 #include <interfaces/ILifecycleManager.h>
+#include <interfaces/ILifecycleManagerState.h>
+#include <interfaces/IAppManager.h>
 
 
 namespace WPEFramework
@@ -43,19 +45,19 @@ namespace WPEFramework
         class LifecycleInterfaceConnector
         {
             private:
-            class NotificationHandler : public Exchange::ILifecycleManager::INotification {
+            class NotificationHandler : public Exchange::ILifecycleManagerState::INotification {
 
                 public:
                     NotificationHandler(LifecycleInterfaceConnector& parent) : mParent(parent){}
                     ~NotificationHandler(){}
 
-                    void OnAppStateChanged(const string& appId, Exchange::ILifecycleManager::LifecycleState state, const string& errorReason)
+                    void OnAppLifecycleStateChanged(const string& appId, const string& appInstanceId, const Exchange::ILifecycleManager::LifecycleState oldState, const Exchange::ILifecycleManager::LifecycleState newState, const string& navigationIntent)
                     {
-                        mParent.OnAppStateChanged(appId, state, errorReason);
+                        mParent.OnAppLifecycleStateChanged(appId, appInstanceId, oldState, newState, navigationIntent);
                     }
 
                     BEGIN_INTERFACE_MAP(NotificationHandler)
-                    INTERFACE_ENTRY(Exchange::ILifecycleManager::INotification)
+                    INTERFACE_ENTRY(Exchange::ILifecycleManagerState::INotification)
                     END_INTERFACE_MAP
 
                 private:
@@ -77,7 +79,8 @@ namespace WPEFramework
                     Core::hresult killApp(const string& appId);
                     Core::hresult sendIntent(const string& appId, const string& intent);
                     Core::hresult getLoadedApps(string& apps);
-                    void OnAppStateChanged(const string& appId, Exchange::ILifecycleManager::LifecycleState state, const string& errorReason);
+                    void OnAppLifecycleStateChanged(const string& appId, const string& appInstanceId, const Exchange::ILifecycleManager::LifecycleState newState, const Exchange::ILifecycleManager::LifecycleState oldState, const string& navigationIntent);
+                    Exchange::IAppManager::AppLifecycleState mapAppLifecycleState(Exchange::ILifecycleManager::LifecycleState state);
                     string GetAppInstanceId(const string& appId) const;
                     void RemoveApp(const string& appId);
                     Core::hresult isAppLoaded(const string& appId, bool& loaded);
@@ -85,6 +88,7 @@ namespace WPEFramework
                 private:
                     mutable Core::CriticalSection mAdminLock;
                     Exchange::ILifecycleManager *mLifecycleManagerRemoteObject;
+                    Exchange::ILifecycleManagerState *mLifecycleManagerStateRemoteObject;
                     Core::Sink<NotificationHandler> mNotification;
                     PluginHost::IShell* mCurrentservice;
         };

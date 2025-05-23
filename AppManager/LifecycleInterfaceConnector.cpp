@@ -45,6 +45,7 @@ namespace WPEFramework
 
         LifecycleInterfaceConnector::LifecycleInterfaceConnector(PluginHost::IShell* service)
         : mLifecycleManagerRemoteObject(nullptr),
+          mLifecycleManagerStateRemoteObject(nullptr),
           mNotification(*this),
           mCurrentservice(nullptr)
         {
@@ -79,12 +80,20 @@ namespace WPEFramework
             {
                 LOGWARN("Failed to create LifecycleManager Remote object\n");
             }
+            else if (nullptr == (mLifecycleManagerStateRemoteObject = mCurrentservice->QueryInterfaceByCallsign<WPEFramework::Exchange::ILifecycleManagerState>("org.rdk.LifecycleManager")))
+            {
+                LOGWARN("Failed to create LifecycleManagerState Remote object\n");
+            }
             else
             {
                 LOGINFO("Created LifecycleManager Remote Object \n");
                 mLifecycleManagerRemoteObject->AddRef();
-                mLifecycleManagerRemoteObject->Register(&mNotification);
-                LOGINFO("LifecycleManager notification registered");
+
+                LOGINFO("Created LifecycleManagerState Remote Object \n");
+                mLifecycleManagerStateRemoteObject->AddRef();
+                mLifecycleManagerStateRemoteObject->Register(&mNotification);
+                LOGINFO("LifecycleManagerState notification registered");
+
                 status = Core::ERROR_NONE;
             }
             return status;
@@ -95,9 +104,16 @@ namespace WPEFramework
             ASSERT(nullptr != mLifecycleManagerRemoteObject );
             if(mLifecycleManagerRemoteObject )
             {
-                mLifecycleManagerRemoteObject->Unregister(&mNotification);
                 mLifecycleManagerRemoteObject ->Release();
                 mLifecycleManagerRemoteObject = nullptr;
+            }
+
+            ASSERT(nullptr != mLifecycleManagerStateRemoteObject );
+            if(mLifecycleManagerStateRemoteObject )
+            {
+                mLifecycleManagerStateRemoteObject->Unregister(&mNotification);
+                mLifecycleManagerStateRemoteObject ->Release();
+                mLifecycleManagerStateRemoteObject = nullptr;
             }
         }
 
@@ -180,6 +196,7 @@ namespace WPEFramework
 
                 if (nullptr != mLifecycleManagerRemoteObject)
                 {
+                    appManagerImplInstance->mCurrentAction = AppManagerImplementation::APP_ACTION_LAUNCH;
                     status = mLifecycleManagerRemoteObject->SpawnApp(appId, appPath, appConfig, runtimeAppId, runtimePath, runtimeConfig, intent, environmentVars,
                                                                   enableDebugger, Exchange::ILifecycleManager::LifecycleState::ACTIVE, runtimeConfigObject, launchArgs, appInstanceId, errorReason, success);
 
@@ -191,8 +208,8 @@ namespace WPEFramework
                             appManagerImplInstance->mAppInfo[appId].appInstanceId   = std::move(appInstanceId);
                             appManagerImplInstance->mAppInfo[appId].type            = AppManagerImplementation::APPLICATION_TYPE_INTERACTIVE;
                             appManagerImplInstance->mAppInfo[appId].appIntent       = intent;
-                            appManagerImplInstance->mAppInfo[appId].currentAppState = Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN;
-                            appManagerImplInstance->mAppInfo[appId].currentAppLifecycleState = Exchange::ILifecycleManager::LOADING;
+                            appManagerImplInstance->mAppInfo[appId].appNewState = Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN;
+                            appManagerImplInstance->mAppInfo[appId].appLifecycleState = Exchange::ILifecycleManager::LOADING;
                             appManagerImplInstance->mAppInfo[appId].targetAppState  = Exchange::IAppManager::AppLifecycleState::APP_STATE_ACTIVE;
                         }
                     }
@@ -255,6 +272,7 @@ namespace WPEFramework
                 ASSERT (nullptr != mLifecycleManagerRemoteObject);
                 if (nullptr != mLifecycleManagerRemoteObject)
                 {
+                    appManagerImplInstance->mCurrentAction = AppManagerImplementation::APP_ACTION_PRELOAD;
                     status = mLifecycleManagerRemoteObject->SpawnApp(appId, appPath, appConfig, runtimeAppId, runtimePath, runtimeConfig, intent, environmentVars,
                           enableDebugger, Exchange::ILifecycleManager::LifecycleState::PAUSED, runtimeConfigObject, launchArgs, appInstanceId, error, success);
                     if (status == Core::ERROR_NONE)
@@ -266,8 +284,8 @@ namespace WPEFramework
                         {
                             appManagerImplInstance->mAppInfo[appId].appInstanceId   = std::move(appInstanceId);
                             appManagerImplInstance->mAppInfo[appId].type            = AppManagerImplementation::APPLICATION_TYPE_INTERACTIVE;
-                            appManagerImplInstance->mAppInfo[appId].currentAppState = Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN;
-                            appManagerImplInstance->mAppInfo[appId].currentAppLifecycleState = Exchange::ILifecycleManager::LOADING;
+                            appManagerImplInstance->mAppInfo[appId].appNewState = Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN;
+                            appManagerImplInstance->mAppInfo[appId].appLifecycleState = Exchange::ILifecycleManager::LOADING;
                             appManagerImplInstance->mAppInfo[appId].targetAppState  = Exchange::IAppManager::AppLifecycleState::APP_STATE_RUNNING;
                         }
                     }
@@ -310,6 +328,7 @@ namespace WPEFramework
                         {
                             if (nullptr != mLifecycleManagerRemoteObject)
                             {
+                                appManagerImplInstance->mCurrentAction = AppManagerImplementation::APP_ACTION_CLOSE;
                                 /* Call setTargetAppState from Adapter file once ready */
                                  status = mLifecycleManagerRemoteObject->SetTargetAppState(appInstanceId, Exchange::ILifecycleManager::LifecycleState::SUSPENDED, appIntent);
                                 if(status == Core::ERROR_NONE)
@@ -361,13 +380,14 @@ namespace WPEFramework
                     {
                         foundAppId = true;
                         appInstanceId = appIterator->second.appInstanceId;
-                        targetLifecycleState = appIterator->second.currentAppState;
+                        targetLifecycleState = appIterator->second.appNewState;
 
                         /* Check targetLifecycleState is in RUNNING state */
                         if(targetLifecycleState == Exchange::IAppManager::AppLifecycleState::APP_STATE_RUNNING)
                         {
                             if (nullptr != mLifecycleManagerRemoteObject)
                             {
+                                appManagerImplInstance->mCurrentAction = AppManagerImplementation::APP_ACTION_TERMINATE;
                                  status = mLifecycleManagerRemoteObject->UnloadApp(appInstanceId, errorReason, success);
                                 if (status != Core::ERROR_NONE)
                                 {
@@ -403,6 +423,7 @@ namespace WPEFramework
         {
             LOGINFO("killApp entered");
             Core::hresult result = Core::ERROR_GENERAL;
+            AppManagerImplementation* appManagerImplInstance = AppManagerImplementation::getInstance();
 
             if (appId.empty())
             {
@@ -432,6 +453,7 @@ namespace WPEFramework
                     string errorReason{};
                     bool success{};
 
+                    appManagerImplInstance->mCurrentAction = AppManagerImplementation::APP_ACTION_KILL;
                     result = mLifecycleManagerRemoteObject->KillApp(appInstanceId, errorReason, success);
 
                     if (!(result == Core::ERROR_NONE && success))
@@ -522,7 +544,7 @@ namespace WPEFramework
 
                         loadedAppObject["appId"] = appEntry.first;
                         loadedAppObject["type"] = static_cast<int>(appEntry.second.type);
-                        loadedAppObject["lifecycleState"] = static_cast<int>(appEntry.second.currentAppState);
+                        loadedAppObject["lifecycleState"] = static_cast<int>(appEntry.second.appNewState);
                         loadedAppObject["targetLifecycleState"] = static_cast<int>(appEntry.second.targetAppState);
                         loadedAppObject["activeSessionId"] = appEntry.second.activeSessionId;
                         loadedAppObject["appInstanceId"] = appEntry.second.appInstanceId;
@@ -542,60 +564,94 @@ namespace WPEFramework
             return result;
         }
 
-        void LifecycleInterfaceConnector::OnAppStateChanged(const string& appId, Exchange::ILifecycleManager::LifecycleState state, const string& errorReason)
+        Exchange::IAppManager::AppLifecycleState WPEFramework::Plugin::LifecycleInterfaceConnector::mapAppLifecycleState(Exchange::ILifecycleManager::LifecycleState state)
         {
-            string appInstanceId = "";
-            Exchange::IAppManager::AppLifecycleState oldState = Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN;
-            Exchange::IAppManager::AppLifecycleState newState = Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN;
-            AppManagerImplementation*appManagerImplInstance = AppManagerImplementation::getInstance();
-
-            LOGINFO("onAppLifecycleStateChanged event triggered ***\n");
-
+            Exchange::IAppManager::AppLifecycleState result = Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN;
             switch(state)
             {
-                case Exchange::ILifecycleManager::LifecycleState::INITIALIZING:
-                case Exchange::ILifecycleManager::LifecycleState::LOADING:
-                case Exchange::ILifecycleManager::LifecycleState::TERMINATING:
-                case Exchange::ILifecycleManager::LifecycleState::PAUSED:
-                    newState = Exchange::IAppManager::AppLifecycleState::APP_STATE_RUNNING;
-                    break;
-
-                case Exchange::ILifecycleManager::LifecycleState::ACTIVE:
-                    newState = Exchange::IAppManager::AppLifecycleState::APP_STATE_ACTIVE;
-                    break;
-
-                case Exchange::ILifecycleManager::LifecycleState::SUSPENDED:
-                    newState = Exchange::IAppManager::AppLifecycleState::APP_STATE_SUSPENDED;
-                    break;
-
                 case Exchange::ILifecycleManager::LifecycleState::UNLOADED:
-                    newState = Exchange::IAppManager::AppLifecycleState::APP_STATE_TERMINATED;
+                    LOGINFO("UNLOADED state %u", state);
+                    result = Exchange::IAppManager::AppLifecycleState::APP_STATE_UNLOADED;
                     break;
-
+                case Exchange::ILifecycleManager::LifecycleState::LOADING:
+                    LOGINFO("LOADING state %u", state);
+                    result = Exchange::IAppManager::AppLifecycleState::APP_STATE_LOADING;
+                    break;
+                case Exchange::ILifecycleManager::LifecycleState::ACTIVE:
+                    LOGINFO("ACTIVE state %u", state);
+                    result = Exchange::IAppManager::AppLifecycleState::APP_STATE_ACTIVE;
+                    break;
+                case Exchange::ILifecycleManager::LifecycleState::PAUSED:
+                    LOGINFO("PAUSED state %u", state);
+                    result = Exchange::IAppManager::AppLifecycleState::APP_STATE_PAUSED;
+                    break;
+                case Exchange::ILifecycleManager::LifecycleState::INITIALIZING:
+                    LOGINFO("INITIALIZING state %u", state);
+                    result = Exchange::IAppManager::AppLifecycleState::APP_STATE_INITIALIZING;
+                    break;
+                case Exchange::ILifecycleManager::LifecycleState::SUSPENDED:
+                    LOGINFO("SUSPENDED state %u", state);
+                    result = Exchange::IAppManager::AppLifecycleState::APP_STATE_SUSPENDED;
+                    break;
+                case Exchange::ILifecycleManager::LifecycleState::TERMINATING:
+                    LOGINFO("TERMINATED state %u", state);
+                    result = Exchange::IAppManager::AppLifecycleState::APP_STATE_TERMINATED;
+                    break;
+                case Exchange::ILifecycleManager::LifecycleState::HIBERNATED:
+                    LOGINFO("HIBERNATED state %u", state);
+                    result = Exchange::IAppManager::AppLifecycleState::APP_STATE_HIBERNATED;
+                    break;
                 default:
                     LOGWARN("Unknown state %u", state);
+                    result = Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN;
                     break;
+            }
+            return result;
+        }
+
+        void LifecycleInterfaceConnector::OnAppLifecycleStateChanged(const string& appId, const string& appInstanceId, const Exchange::ILifecycleManager::LifecycleState oldState, const Exchange::ILifecycleManager::LifecycleState newState, const string& navigationIntent)
+        {
+            AppManagerImplementation*appManagerImplInstance = AppManagerImplementation::getInstance();
+            Exchange::IAppManager::AppLifecycleState newAppState = mapAppLifecycleState(newState);
+            Exchange::IAppManager::AppLifecycleState oldAppState = mapAppLifecycleState(oldState);
+            bool shouldNotify = false;
+
+            LOGINFO("OnAppLifecycleStateChanged event triggered ***\n");
+
+            if (newAppState == Exchange::IAppManager::APP_STATE_UNKNOWN ||
+                oldAppState == Exchange::IAppManager::APP_STATE_UNKNOWN)
+            {
+                LOGINFO("Skipping notification: new or old app state is UNKNOWN");
+                return;
             }
 
             mAdminLock.Lock();
-            if (nullptr != appManagerImplInstance)
+            if(nullptr != appManagerImplInstance)
             {
-                for ( std::map<std::string, AppManagerImplementation::AppInfo>::iterator it = appManagerImplInstance->mAppInfo.begin(); it != appManagerImplInstance->mAppInfo.end(); it++)
+                for( std::map<std::string, AppManagerImplementation::AppInfo>::iterator it = appManagerImplInstance->mAppInfo.begin(); it != appManagerImplInstance->mAppInfo.end(); it++)
                 {
-                    if (it->first.compare(appId) == 0)
+                    if((it->first.compare(appId) == 0) && (it->second.appInstanceId.compare(appInstanceId) == 0))
                     {
-                        appInstanceId = it->second.appInstanceId;
-                        oldState = it->second.currentAppState;
-                        it->second.currentAppLifecycleState = state;
-                        if (oldState != newState)
-                        {
-                            it->second.currentAppState = newState;
-                        }
+                        it->second.appOldState = oldAppState;
+                        it->second.appNewState = newAppState;
+                        it->second.appLifecycleState = newState;
+                        it->second.appIntent = navigationIntent;
                         break;
                     }
                 }
+
+                shouldNotify = ((newAppState == Exchange::IAppManager::AppLifecycleState::APP_STATE_LOADING) ||
+                                       (newAppState == Exchange::IAppManager::AppLifecycleState::APP_STATE_ACTIVE) ||
+                                       ((newAppState == Exchange::IAppManager::AppLifecycleState::APP_STATE_PAUSED) &&
+                                         (appManagerImplInstance->mCurrentAction == AppManagerImplementation::APP_ACTION_CLOSE)));
+
+                LOGINFO("shouldNotify %d for state %u",shouldNotify, newAppState);
+
+                if(shouldNotify)
+                {
+                    appManagerImplInstance->handleOnAppLifecycleStateChanged(appId, appInstanceId, newAppState, oldAppState, Exchange::IAppManager::AppErrorReason::APP_ERROR_NONE);
+                }
             }
-            /*TODO: AppManager event notification to be handled in upcoming phase*/
             mAdminLock.Unlock();
         }
 
