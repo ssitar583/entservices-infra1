@@ -154,6 +154,10 @@ namespace Plugin {
     {
         Core::hresult result = Core::ERROR_NONE;
         LOGINFO();
+
+        mCurrentservice->Release();
+        mCurrentservice = nullptr;
+
         return result;
     }
 
@@ -327,7 +331,6 @@ namespace Plugin {
             keyValues.push_back(std::make_pair(kv.name, kv.value));
         }
 
-        mAdminLock.Lock();
         StateKey key { packageId, version };
         auto it = mState.find( key );
         if (it == mState.end()) {
@@ -374,17 +377,16 @@ namespace Plugin {
             LOGERR("Unknown package id: %s ver: %s", packageId.c_str(), version.c_str());
         }
 
-        mAdminLock.Unlock();
         return result;
     }
 
-    Core::hresult PackageManagerImplementation::Uninstall(const string &packageId, string &errorReason ) {
+    Core::hresult PackageManagerImplementation::Uninstall(const string &packageId, string &errorReason )
+    {
         Core::hresult result = Core::ERROR_GENERAL;
-        string version = "";    // XXX: get it from mState
+        string version = GetVersion(packageId);
 
-        LOGTRACE("Uninstalling %s", packageId.c_str());
+        LOGTRACE("Uninstalling id: '%s' ver: '%s'", packageId.c_str(), version.c_str());
 
-        mAdminLock.Lock();
         auto it = mState.find( { packageId, version } );
         if (it != mState.end()) {
             auto &state = it->second;
@@ -410,7 +412,6 @@ namespace Plugin {
                     #endif
                     state.installState = InstallState::UNINSTALLED;
                     NotifyInstallStatus(packageId, version, state);
-                    // XXX: remove from state/cache
                 } else {
                     LOGERR("DeleteStorage failed with result :%d errorReason [%s]", result, errorReason.c_str());
                 }
@@ -419,47 +420,26 @@ namespace Plugin {
             LOGERR("Unknown package id: %s ver: %s", packageId.c_str(), version.c_str());
         }
 
-        mAdminLock.Unlock();
-
         return result;
     }
 
     Core::hresult PackageManagerImplementation::ListPackages(Exchange::IPackageInstaller::IPackageIterator*& packages)
     {
+        LOGTRACE();
         Core::hresult result = Core::ERROR_NONE;
         std::list<Exchange::IPackageInstaller::Package> packageList;
 
-        LOGTRACE();
-        #ifdef USE_LIBPACKAGE
-        string list;
-        // XXX: populate from Cache
-        packagemanager::Result pmResult = packageImpl->GetList(list);
-        if (pmResult == packagemanager::SUCCESS) {
-            Json::Value jv;
-            Json::Reader reader;
-
-            if (reader.parse(list.c_str(), jv) ) {
-                if (jv.isArray()) {
-                    for (unsigned int i = 0; i < jv.size(); ++i) {
-                        Json::Value val = jv[i];
-
-                        Exchange::IPackageInstaller::Package package;
-                        package.packageId = val["packageId"].asString().c_str();
-                        package.version = val["version"].asString().c_str();
-                        package.state = InstallState::INSTALLED;
-                        package.sizeKb = 0;         // XXX: getPackageSpaceInKBytes
-                        packageList.emplace_back(package);
-                    }
-                } else {
-                    LOGERR("Invalid json response");
-                }
-            }
-        } else {
-            result = Core::ERROR_GENERAL;
+        for (auto const& [key, state] : mState) {
+            Exchange::IPackageInstaller::Package package;
+            package.packageId = key.first.c_str();
+            package.version = key.second.c_str();
+            package.state = state.installState;
+            package.sizeKb = state.runtimeConfig.dataImageSize;
+            packageList.emplace_back(package);
         }
-        #endif
 
         packages = (Core::Service<RPC::IteratorType<Exchange::IPackageInstaller::IPackageIterator>>::Create<Exchange::IPackageInstaller::IPackageIterator>(packageList));
+
         LOGTRACE();
 
         return result;
@@ -467,9 +447,9 @@ namespace Plugin {
 
     Core::hresult PackageManagerImplementation::Config(const string &packageId, const string &version, Exchange::RuntimeConfig& runtimeConfig)
     {
+        LOGTRACE();
         Core::hresult result = Core::ERROR_NONE;
 
-        LOGTRACE();
         auto it = mState.find( { packageId, version } );
         if (it != mState.end()) {
             auto &state = it->second;
@@ -478,15 +458,16 @@ namespace Plugin {
             LOGERR("Package: %s Version: %s Not found", packageId.c_str(), version.c_str());
             result = Core::ERROR_GENERAL;
         }
+
         return result;
     }
 
     Core::hresult PackageManagerImplementation::PackageState(const string &packageId, const string &version,
         Exchange::IPackageInstaller::InstallState &installState)
     {
+        LOGTRACE();
         Core::hresult result = Core::ERROR_NONE;
 
-        LOGTRACE();
         auto it = mState.find( { packageId, version } );
         if (it != mState.end()) {
             auto &state = it->second;
@@ -546,27 +527,28 @@ namespace Plugin {
         if (it != mState.end()) {
             auto &state = it->second;
             #ifdef USE_LIBPACKAGE
-            bool locked = false;
+            //bool locked = false;
             string gatewayMetadataPath;
-            if (GetLockedInfo(packageId, version, unpackedPath, runtimeConfig, gatewayMetadataPath, locked) == Core::ERROR_NONE) {
-                LOGDBG("id: %s ver: %s locked: %d", packageId.c_str(), version.c_str(), locked);
-                if (locked)  {
+            bool locked = (state.mLockCount > 0);
+            LOGDBG("id: %s ver: %s locked: %d", packageId.c_str(), version.c_str(), locked);
+            if (locked)  {
+                lockId = ++state.mLockCount;
+            } else {
+                packagemanager::ConfigMetaData config;
+                packagemanager::Result pmResult = packageImpl->Lock(packageId, version, state.unpackedPath, config);
+                LOGDBG("unpackedPath=%s", unpackedPath.c_str());
+                // save the new config in state
+                getRuntimeConfig(config, state.runtimeConfig);   // XXX: is config unnecessary in Lock ?!
+                if (pmResult == packagemanager::SUCCESS) {
                     lockId = ++state.mLockCount;
+                    LOGDBG("Locked id: %s ver: %s", packageId.c_str(), version.c_str());
                 } else {
-                    packagemanager::ConfigMetaData config;
-                    packagemanager::Result pmResult = packageImpl->Lock(packageId, version, unpackedPath, config);
-                    // save the new config in state
-                    getRuntimeConfig(config, state.runtimeConfig);   // XXX: config is unnecessary in Lock
-                    if (pmResult == packagemanager::SUCCESS) {
-                        lockId = ++state.mLockCount;
-                        LOGDBG("Locked id: %s ver: %s", packageId.c_str(), version.c_str());
-                    } else {
-                        LOGERR("Lock Failed id: %s ver: %s", packageId.c_str(), version.c_str());
-                        result = Core::ERROR_GENERAL;
-                    }
+                    LOGERR("Lock Failed id: %s ver: %s", packageId.c_str(), version.c_str());
+                    result = Core::ERROR_GENERAL;
                 }
-                getRuntimeConfig(state.runtimeConfig, runtimeConfig);
             }
+            getRuntimeConfig(state.runtimeConfig, runtimeConfig);
+            unpackedPath = state.unpackedPath;
             #endif
 
             LOGDBG("id: %s ver: %s lock count:%d", packageId.c_str(), version.c_str(), state.mLockCount);
@@ -637,6 +619,7 @@ namespace Plugin {
             if (state.mLockCount) {
                 if (--state.mLockCount == 0) {
                     packagemanager::Result pmResult = packageImpl->Unlock(packageId, version);
+                    state.unpackedPath = "";
                     if (pmResult != packagemanager::SUCCESS) {
                         result = Core::ERROR_GENERAL;
                     }
@@ -665,8 +648,9 @@ namespace Plugin {
         if (it != mState.end()) {
             auto &state = it->second;
             getRuntimeConfig(state.runtimeConfig, runtimeConfig);
-            unpackedPath = runtimeConfig.appPath;
+            unpackedPath = state.unpackedPath;
             locked = (state.mLockCount > 0);
+            LOGDBG("id: %s ver: %s lock count:%d", packageId.c_str(), version.c_str(), state.mLockCount);
         } else {
             LOGERR("Unknown package id: %s ver: %s", packageId.c_str(), version.c_str());
             result = Core::ERROR_BAD_REQUEST;
