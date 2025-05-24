@@ -53,18 +53,20 @@ namespace Plugin
             std::string getDialServerPathPrefix() const;
             std::string getDialUsn() const;
             std::map<std::string, size_t> getIonHeapQuotas() const;
+            void printAIConfiguration();
 
-	    //system configuration
+            // system configuration
             std::list<std::string> getPreloads() const;
             std::list<std::string> getEnvs() const;
+
         private:
             void readFromCustomData();
             void readFromConfigFile();
 
-	    size_t mConsoleLogCap;
-            std::bitset<32> mAppsCpuSet;
-	    ssize_t mNonHomeAppMemoryLimit;
-	    ssize_t mNonHomeAppGpuLimit;
+            size_t mConsoleLogCap;
+            std::bitset<32> mAppsCpuSet;        // cores
+            ssize_t mNonHomeAppMemoryLimit;     // ramLimit
+            ssize_t mNonHomeAppGpuLimit;        // gpuMemoryLimit
             std::list<std::string> mVpuAccessBlacklist;
             std::list<std::string> mAppsRequiringDBus;
             std::list<int> mMapiPorts;
@@ -72,16 +74,16 @@ namespace Plugin
             bool mGstreamerRegistryEnabled;
             bool mSvpEnabled;
             bool mEnableUsbMassStorage;
-	    bool mIPv6Enabled;
-            size_t mIonHeapDefaultQuota;
-	    in_port_t mDialServerPort;
-	    std::string mDialServerPathPrefix;
+            bool mIPv6Enabled;
+            size_t mIonHeapDefaultQuota;        // ionDefaultLimit
+            in_port_t mDialServerPort;
+            std::string mDialServerPathPrefix;
             std::string mDialUsn;
-            std::map<std::string, size_t> mIonHeapQuotas;
+            std::map<std::string, size_t> mIonHeapQuotas; // ionLimits
 
-	    //system configuration
-	    std::list<std::string> mPreloads;
-            std::list<std::string> mEnvs;
+            // system configuration
+            std::list<std::string> mPreloads;
+            std::list<std::string> mEnvVariables;
     };
 } /* namespace Plugin */
 } /* namespace WPEFramework */
