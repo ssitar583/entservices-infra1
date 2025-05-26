@@ -467,7 +467,7 @@ Core::hresult AppManagerImplementation::packageLock(const string& appId, Package
     if ((status == Core::ERROR_NONE) &&
         (!loaded ||
          it == mAppInfo.end() ||
-         it->second.appNewState != Exchange::IAppManager::AppLifecycleState::APP_STATE_SUSPENDED || it->second.appNewState != Exchange::IAppManager::AppLifecycleState::APP_STATE_PAUSED || it->second.appNewState != Exchange::IAppManager::AppLifecycleState::APP_STATE_HIBERNATED))
+         (it->second.appNewState != Exchange::IAppManager::AppLifecycleState::APP_STATE_SUSPENDED && it->second.appNewState != Exchange::IAppManager::AppLifecycleState::APP_STATE_PAUSED && it->second.appNewState != Exchange::IAppManager::AppLifecycleState::APP_STATE_HIBERNATED)))
     {
          /* Fetch list of installed packages */
         status = fetchInstalledPackages(packageList);
