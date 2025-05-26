@@ -93,20 +93,28 @@ namespace WPEFramework
 
         bool ActiveState::handle(string& errorReason)
 	{
-            //TODO: Enable after event support in window manager
-	    /*
             WindowManagerHandler* windowManagerHandler = RequestHandler::getInstance()->getWindowManagerHandler();
 	    if (nullptr != windowManagerHandler)
 	    {
                 ApplicationContext* context = getContext();
-                bool isRenderReady = windowManagerHandler->renderReady(context->getAppInstanceId());
-                if (isRenderReady)
+                bool isRenderReady = false;
+		Core::hresult ret = windowManagerHandler->renderReady(context->getAppInstanceId(), isRenderReady);
+                if (Core::ERROR_NONE == ret)
 		{
-		    return true;	
-		}
-                sem_wait(&context->mFirstFrameSemaphore);
+                    if (isRenderReady)
+		    {
+		        return true;	
+		    }
+		    else
+		    {
+                        sem_wait(&context->mFirstFrameSemaphore);
+		    }
+                }
+		else
+		{
+                    return false;
+                }
 	    }
-            */
             return true;
 	}
 

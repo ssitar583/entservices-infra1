@@ -95,17 +95,27 @@ void WindowManagerHandler::onEvent(JsonObject& data)
         mEventHandler->onWindowManagerEvent(data);
     }
 }
-//TODO
-/*
-void WindowManagerHandler::WindowManagerNotification::OnReady(std::string appId)
+
+Core::hresult WindowManagerHandler::renderReady(std::string appInstanceId, bool& isReady)
 {
-    printf("MADANA Received onReady event for app[%s] \n", appId.c_str());
+    Core::hresult renderReadyResult = mWindowManager->RenderReady(appInstanceId, isReady);
+    if (Core::ERROR_NONE != renderReadyResult)
+    {
+        printf("unable to get render ready from window manager [%d] \n", renderReadyResult);
+	fflush(stdout);
+    }
+    return renderReadyResult;
+}
+
+void WindowManagerHandler::WindowManagerNotification::OnReady(const std::string &client)
+{
+    printf("MADANA Received onReady event for app[%s] \n", client.c_str());
     fflush(stdout);
     JsonObject eventData;
-    eventData["appId"] = appId;
+    eventData["appInstanceId"] = client;
     eventData["name"] = "onReady";
     _parent.onEvent(eventData);
 }
-*/
+
 } // namespace Plugin
 } // namespace WPEFramework

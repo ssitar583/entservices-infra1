@@ -608,9 +608,18 @@ namespace WPEFramework
         {
             printf("Received onDisconnect event from window manager \n");
             fflush(stdout);
+	}
+        else if (eventName.compare("onReady") == 0)
+        {
+            printf("Received onReady event from window manager \n");
+            fflush(stdout);
+            std::string appInstanceId = data["appInstanceId"];
+            ApplicationContext* context = getContext(appInstanceId, "");
+            if (nullptr != context)
+	    {
+                sem_post(&context->mFirstFrameSemaphore);
 	    }
-
-
+	}
     }
 
     } /* namespace Plugin */

@@ -49,7 +49,7 @@ namespace Plugin {
 
                 virtual void OnUserInactivity(const double minutes) override;
                 virtual void OnDisconnected(const std::string& client) override;
-                //virtual void OnReady(std::string appId) override;
+                virtual void OnReady(const std::string &client) override;
 
             private:
                 WindowManagerHandler& _parent;
@@ -66,6 +66,7 @@ namespace Plugin {
             bool initialize(PluginHost::IShell* service, IEventHandler* eventHandler);
             void terminate();
             void onEvent(JsonObject& data);
+            Core::hresult renderReady(std::string appInstanceId, bool& isReady);
         private:
             Exchange::IRDKWindowManager* mWindowManager;
             Core::Sink<WindowManagerNotification> mWindowManagerNotification;
