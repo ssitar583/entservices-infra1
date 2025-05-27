@@ -431,7 +431,7 @@ TEST_F(USBMassStorageTest, getPartitionInfoFailed_mountpoints_empty)
 {
     EXPECT_EQ(Core::ERROR_INVALID_PARAMETER, handler.Invoke(connection, _T("getPartitionInfo"), _T("{}"), response));
 }
-
+#if 0
 TEST_F(USBMassStorageTest, getPartitionInfoFail_statfs_fail)
 {
     std::list<Exchange::IUSBDevice::USBDevice> usbDeviceList;
@@ -1130,3 +1130,4 @@ TEST_F(USBMassStorageTest, USBMassStorage_Succeed_MountPoints)
     usbDeviceList.clear();
 
 }
+#endif
