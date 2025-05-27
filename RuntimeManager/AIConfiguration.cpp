@@ -42,7 +42,6 @@ namespace Plugin
     void AIConfiguration::initialize()
     {
         readFromConfigFile();
-        // readFromCustomData();
     }
 
     size_t AIConfiguration::getContainerConsoleLogCap()
@@ -318,6 +317,8 @@ namespace Plugin
         if (!iniFile.is_open())
         {
             LOGERR("Failed to open the ini file at %s", AICONFIGURATION_INI_PATH);
+            LOGINFO("Populating custom values for AIConfiguration from readFromCustomData()");
+            readFromCustomData();
             return;
         }
 
