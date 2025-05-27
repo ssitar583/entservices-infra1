@@ -5,6 +5,7 @@ on:
     branches: [ main, develop, 'sprint/**', 'release/**' ]
   pull_request:
     branches: [ main, develop, 'sprint/**', 'release/**' ]
+  workflow_call:
 
 env:
   BUILD_TYPE: Debug
