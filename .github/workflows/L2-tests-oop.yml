@@ -1,4 +1,4 @@
-name: L2-tests
+name: L2-tests-OOP
 
 on:
   push:
@@ -14,7 +14,7 @@ env:
   AUTOMATICS_PASSCODE: ${{ secrets. AUTOMATICS_PASSCODE}}
 
 jobs:
-  L2-tests:
+  L2-tests-OOP:
     name: Build and run L2 tests
     runs-on: ubuntu-22.04
     strategy:
@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
       - run: pip install jsonref
@@ -45,9 +45,13 @@ jobs:
         run: >
           sudo apt update
           &&
-          sudo apt install -y libsqlite3-dev libcurl4-openssl-dev valgrind lcov clang libsystemd-dev libboost-all-dev libwebsocketpp-dev meson libcunit1 libcunit1-dev curl protobuf-compiler-grpc libgrpc-dev libgrpc++-dev
-         # &&
-         # apt-get install -y coreutils mtools dosfstools
+          sudo apt install -y libsqlite3-dev libcurl4-openssl-dev valgrind lcov clang libsystemd-dev libboost-all-dev libwebsocketpp-dev meson libcunit1 libcunit1-dev
+
+      - name: Install packages
+        run: >
+          sudo apt update
+          &&
+          sudo apt install -y curl protobuf-compiler-grpc libgrpc-dev libgrpc++-dev
 
       - name: Install GStreamer
         run: |
@@ -78,18 +82,6 @@ jobs:
           path: ThunderTools
           ref: R4.4.3
 
-      - name: Checkout entservices-infra
-        uses: actions/checkout@v3
-        with:
-          path: entservices-infra
-
-      - name: Checkout entservices-deviceanddisplay
-        uses: actions/checkout@v3
-        with:
-          repository: rdkcentral/entservices-deviceanddisplay
-          path: entservices-deviceanddisplay
-          branch: develop
-         
       - name: Checkout entservices-testframework
         uses: actions/checkout@v3
         with:
@@ -98,10 +90,21 @@ jobs:
           ref: develop
           token: ${{ secrets.RDKCM_RDKE }}
 
+      - name: Checkout entservices-deviceanddisplay
+        uses: actions/checkout@v3
+        with:
+          path: entservices-deviceanddisplay
+          ref: develop
+
+      - name: Checkout entservices-infra
+        uses: actions/checkout@v3
+        with:
+          path: entservices-infra
+
       - name: Apply patches ThunderTools
-        run: |  
+        run: |
           cd $GITHUB_WORKSPACE/ThunderTools
-          patch -p1 < $GITHUB_WORKSPACE/entservices-testframework/patches/00010-R4.4-Add-support-for-project-dir.patch
+          patch -p1 < $GITHUB_WORKSPACE/entservices-testframework/Tests/L1Tests/patches/00010-R4.4-Add-support-for-project-dir.patch
           cd -
 
       - name: Build ThunderTools
@@ -121,10 +124,10 @@ jobs:
       - name: Apply patches Thunder
         run: |
           cd $GITHUB_WORKSPACE/Thunder
-          patch -p1 < $GITHUB_WORKSPACE/entservices-testframework/patches/Use_Legact_Alt_Based_On_ThunderTools_R4.4.3.patch
-          patch -p1 < $GITHUB_WORKSPACE/entservices-testframework/patches/error_code_R4_4.patch
-          patch -p1 < $GITHUB_WORKSPACE/entservices-testframework/patches/1004-Add-support-for-project-dir.patch
-          patch -p1 < $GITHUB_WORKSPACE/entservices-testframework/patches/RDKEMW-733-Add-ENTOS-IDS.patch
+          patch -p1 < $GITHUB_WORKSPACE/entservices-testframework/Tests/L2Tests/patches/Use_Legact_Alt_Based_On_ThunderTools_R4.4.3.patch
+          patch -p1 < $GITHUB_WORKSPACE/entservices-testframework/Tests/L2Tests/patches/error_code_R4_4.patch
+          patch -p1 < $GITHUB_WORKSPACE/entservices-testframework/Tests/L1Tests/patches/1004-Add-support-for-project-dir.patch
+          patch -p1 < $GITHUB_WORKSPACE/entservices-testframework/Tests/L1Tests/patches/RDKEMW-733-Add-ENTOS-IDS.patch
           cd -
       - name: Build Thunder
         run: >
@@ -152,15 +155,20 @@ jobs:
           ref: ${{env.INTERFACES_REF}}
           run: rm -rf $GITHUB_WORKSPACE/entservices-apis/jsonrpc/DTV.json
 
-      - name: Apply patches entservices-apis
+      - name: Copy all mock interface headers to entservices-apis
         run: |
-          cd $GITHUB_WORKSPACE/entservices-apis
-          patch -p1 < $GITHUB_WORKSPACE/entservices-testframework/patches/RDKEMW-1007.patch
-          cd -    
+          mkdir -p "$GITHUB_WORKSPACE/entservices-apis/apis/IARM"
+          mkdir -p "$GITHUB_WORKSPACE/entservices-apis/apis/Proc"
+          mkdir -p "$GITHUB_WORKSPACE/entservices-apis/apis/RBus"
+          mkdir -p "$GITHUB_WORKSPACE/entservices-apis/apis/Rfc"
+          cp "$GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/interfaces/IIarm.h" "$GITHUB_WORKSPACE/entservices-apis/apis/IARM/"
+          cp "$GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/interfaces/IProc.h" "$GITHUB_WORKSPACE/entservices-apis/apis/Proc/"
+          cp "$GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/interfaces/IRBus.h" "$GITHUB_WORKSPACE/entservices-apis/apis/RBus/"
+          cp "$GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/interfaces/IRfc.h" "$GITHUB_WORKSPACE/entservices-apis/apis/Rfc/"
 
       - name: Build entservices-apis
         run: >
-          cmake
+          cmake -G Ninja
           -S "$GITHUB_WORKSPACE/entservices-apis"
           -B build/entservices-apis
           -DEXCEPTIONS_ENABLE=ON
@@ -183,7 +191,6 @@ jobs:
           headers/rdk/iarmmgrs-hal
           headers/systemservices
           headers/systemservices/proc
-          headers/libusb
           &&
           cd headers
           &&
@@ -217,7 +224,6 @@ jobs:
           rfcapi.h
           rbus.h
           libudev.h
-          libusb/libusb.h
           systemservices/proc/readproc.h
           systemservices/secure_wrapper.h
           systemaudioplatform.h
@@ -258,112 +264,13 @@ jobs:
           -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install/usr"
           -DCMAKE_MODULE_PATH="$GITHUB_WORKSPACE/install/tools/cmake"
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          -DL2_TEST_OOP_RPC=ON
           -DCMAKE_CXX_FLAGS="
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers"
           &&
           cmake --build build/mocks -j8
           &&
           cmake --install build/mocks
-
-      - name: Build entservices-deviceanddisplay
-        run: >
-          cmake
-          -S "$GITHUB_WORKSPACE/entservices-deviceanddisplay"
-          -B build/entservices-deviceanddisplay
-          -DCMAKE_TOOLCHAIN_FILE="${{ env.TOOLCHAIN_FILE }}"
-          -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install/usr"
-          -DCMAKE_MODULE_PATH="$GITHUB_WORKSPACE/install/tools/cmake"
-          -DHIDE_NON_EXTERNAL_SYMBOLS=OFF
-          -DCMAKE_CXX_FLAGS="
-          -DEXCEPTIONS_ENABLE=ON
-          -fprofile-arcs
-          -ftest-coverage
-          -DUSE_THUNDER_R4=ON
-          -DTHUNDER_VERSION=4
-          -DTHUNDER_VERSION_MAJOR=4
-          -DTHUNDER_VERSION_MINOR=4
-          -DDEVICE_TYPE=AVOutputTV
-          -DPLUGIN_PERSISTENTSTORE_PATH="/tmp/secure/persistent/rdkservicestore"
-          -DPLUGIN_PERSISTENTSTORE_LEGACYPATH="/tmp/persistent/rdkservicestore"
-          -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers
-          -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/ds
-          -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/iarmbus
-          -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/iarmmgrs-hal
-          -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/systemservices
-          -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/systemservices/proc
-          -I $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/devicesettings.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Iarm.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Rfc.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/RBus.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Udev.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Wraps.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/maintenanceMGR.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/pkg.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/secure_wrappermock.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/wpa_ctrl_mock.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/readprocMockInterface.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/btmgr.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/tr181api.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/tvSettings.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/tvError.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/tvSettingsExtODM.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/tvSettingsODM.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/tvTypes.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/ds/videoOutputPortType.hpp
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/ds/videoOutputPortConfig.hpp
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/ds/videoResolution.hpp
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/ds/sleepMode.hpp
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/ds/frontPanelConfig.hpp
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/ds/frontPanelTextDisplay.hpp
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/ds/audioOutputPortType.hpp
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/ds/frontPanelConfig.hpp
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/ds/frontPanelTextDisplay.hpp
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/ds/manager.hpp
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/ds/audioOutputPortConfig.hpp
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/iarmbus/iarmUtil.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/systemaudioplatform.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/list.hpp
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/dsDisplay.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/ds/AudioStereoMode.hpp
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/ds/VideoDFC.hpp
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/dsRpc.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/ds/dsError.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/ds/dsUtl.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/essos-resmgr.h
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/rdk_logger_milestone.h
-          -Werror -Wall -Wno-unused-result -Wno-deprecated-declarations -Wno-error=format=
-          -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog -Wl,-wrap,v_secure_system -Wl,-wrap,v_secure_popen -Wl,-wrap,v_secure_pclose -Wl,-wrap,unlink
-          -DUSE_IARMBUS
-          -DENABLE_ERM
-          -DRDK_LOG_MILESTONE
-          -DRDK_SERVICE_L2_TEST
-          -DDISABLE_SECURITY_TOKEN
-          -DHAS_API_POWERSTATE
-          -DENABLE_THERMAL_PROTECTION"
-          -DPLUGIN_PERSISTENTSTORE_PATH="/tmp/secure/persistent/rdkservicestore"
-          -DPLUGIN_PERSISTENTSTORE_LEGACYPATH="/tmp/persistent/rdkservicestore"
-          -DCOMCAST_CONFIG=OFF
-          -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON
-          -DCMAKE_DISABLE_FIND_PACKAGE_IARMBus=ON
-          -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
-          -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON
-          -DCMAKE_DISABLE_FIND_PACKAGE_RBus=ON
-          -DPLUGIN_SYSTEMSERVICES=ON
-          -DPLUGIN_POWERMANAGER=ON
-          -DPLUGIN_DISPLAYSETTINGS=OFF
-          -DPLUGIN_USERPREFERENCES=OFF
-          -DPLUGIN_DEVICEDIAGNOSTICS=OFF
-          -DPLUGIN_WAREHOUSE=OFF
-          -DUSE_THUNDER_R4=ON
-          -DPLUGIN_L2Tests=ON
-          -DRDK_SERVICE_L2_TEST=ON
-          -DDS_FOUND=ON
-          -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-          &&
-          cmake --build build/entservices-deviceanddisplay -j8
-          &&
-          cmake --install build/entservices-deviceanddisplay
 
       - name: Build entservices-infra
         run: >
@@ -445,14 +352,8 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RBus=ON
-          -DPLUGIN_TELEMETRY=ON
-          -DPLUGIN_USERSETTINGS=ON
           -DPLUGIN_PERSISTENTSTORE=ON
-          -DPLUGIN_USBDEVICE=ON
-          -DPLUGIN_USB_MASS_STORAGE=ON
-          -DPLUGIN_LIFECYCLEMANAGER=OFF
-          -DPLUGIN_APPMANAGER=OFF
-          -DPLUGIN_ANALYTICS=ON
+          -DPLUGIN_USERSETTINGS=ON
           -DUSE_THUNDER_R4=ON
           -DPLUGIN_L2Tests=ON
           -DRDK_SERVICE_L2_TEST=ON
@@ -486,6 +387,7 @@ jobs:
           -DTHUNDER_VERSION=4
           -DTHUNDER_VERSION_MAJOR=4
           -DTHUNDER_VERSION_MINOR=4
+          -DL2_TEST_OOP_RPC=ON
           -DDEVICE_TYPE=AVOutputTV
           -DPLUGIN_PERSISTENTSTORE_PATH="/tmp/secure/persistent/rdkservicestore"
           -DPLUGIN_PERSISTENTSTORE_LEGACYPATH="/tmp/persistent/rdkservicestore"
@@ -527,28 +429,14 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RBus=ON
-          -DPLUGIN_TELEMETRY=ON
-          -DPLUGIN_USERSETTINGS=ON
           -DPLUGIN_PERSISTENTSTORE=ON
-          -DPLUGIN_USBDEVICE=ON
-          -DPLUGIN_USB_MASS_STORAGE=ON
-          -DPLUGIN_ANALYTICS=ON
-          -DPLUGIN_LIFECYCLEMANAGER=OFF
-          -DPLUGIN_APPMANAGER=OFF
-          -DPLUGIN_AVINPUT=OFF
-          -DPLUGIN_AVOUTPUT=OFF
-          -DAVOUTPUT_TV=OFF
+          -DPLUGIN_USERSETTINGS=ON
           -DUSE_THUNDER_R4=ON
           -DPLUGIN_L2Tests=ON
           -DRDK_SERVICE_L2_TEST=ON
+          -DL2_TEST_OOP_RPC=ON
           -DDS_FOUND=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-          -DPLUGIN_ANALYTICS_SIFT_BACKEND=ON
-          -DPLUGIN_ANALYTICS_SIFT_2_0_ENABLED="true"
-          -DPLUGIN_ANALYTICS_SIFT_MAX_RANDOMISATION_WINDOW_TIME=15
-          -DPLUGIN_ANALYTICS_SIFT_STORE_PATH="/tmp/AnalyticsSiftStore"
-          -DPLUGIN_ANALYTICS_SIFT_URL="127.0.0.1:12345"
-          -DPLUGIN_ANALYTICS_EVENTS_MAP="/tmp/AnalyticsEventsMap.json"
           &&
           cmake --build build/entservices-testframework -j8
           &&
@@ -622,7 +510,7 @@ jobs:
           /opt/fwdnldstatus.txt
           /opt/dcm.properties
           /etc/device.properties
-          /etc/dcm.properties
+          /etc/dcm.properties          
           /etc/authService.conf
           /version.txt
           /lib/rdk/getMaintenanceStartTime.sh
@@ -675,7 +563,7 @@ jobs:
           RdkServicesL2Test &&
           cp -rf $(pwd)/rdkL2TestResults.json $GITHUB_WORKSPACE/rdkL2TestResultsWithValgrind.json &&
           rm -rf $(pwd)/rdkL2TestResults.json
-
+          
       - name: Generate coverage
         if: ${{ matrix.coverage == 'with-coverage' && !env.ACT }}
         run: >
@@ -683,7 +571,7 @@ jobs:
           &&
           lcov -c
           -o coverage.info
-          -d build/entservices-infra
+          -d build/
           &&
           lcov
           -r coverage.info
@@ -695,14 +583,11 @@ jobs:
           '*/Tests/headers/*'
           '*/Tests/mocks/*'
           '*/Tests/L2Tests/*'
-          '*/googlemock/*'
-          '*/googletest/*'
-          '*/sqlite/*'
           -o filtered_coverage.info
           &&
           genhtml
           -o coverage
-          -t "entservices-infra coverage"
+          -t "entservices-testframework coverage"
           filtered_coverage.info
 
       - name: Upload artifacts
