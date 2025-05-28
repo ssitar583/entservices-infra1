@@ -57,8 +57,7 @@ namespace WPEFramework
                 printf("MADANA APPLICATION RUN RETURNS [%d] \n", ret);
 		fflush(stdout);
                 ret = true;
-                //TODO : Remove wait for now
-                //sem_wait(&context->mAppRunningSemaphore);
+                sem_wait(&context->mAppRunningSemaphore);
 	    }
             return ret;
         }
@@ -80,8 +79,17 @@ namespace WPEFramework
 	        {
                     ApplicationContext* context = getContext();
                     ret = runtimeManagerHandler->resume(context->getAppInstanceId(), errorReason);
-                    //TODO: Cross verify it
-                    ret = true;
+                    if (Core::ERROR_NONE == ret)
+		    {
+                        WindowManagerHandler* windowManagerHandler = RequestHandler::getInstance()->getWindowManagerHandler();
+	                if (nullptr != windowManagerHandler)
+	                {
+                            ApplicationContext* context = getContext();
+	                    ret = windowManagerHandler->enableDisplayRender(context->getAppInstanceId(), true);
+                        }
+		    }
+                   ret = true;
+                   //TODO: Error cases
 	        }
             }
 	    else if (Exchange::ILifecycleManager::LifecycleState::ACTIVE == context->getCurrentLifecycleState())
@@ -135,6 +143,17 @@ namespace WPEFramework
                 else
 	        {
                     ret = runtimeManagerHandler->suspend(context->getAppInstanceId(), errorReason);
+                    if (Core::ERROR_NONE == ret)
+		    {
+                        WindowManagerHandler* windowManagerHandler = RequestHandler::getInstance()->getWindowManagerHandler();
+	                if (nullptr != windowManagerHandler)
+	                {
+                            ApplicationContext* context = getContext();
+	                    ret = windowManagerHandler->enableDisplayRender(context->getAppInstanceId(), false);
+                        }
+		    }
+                   ret = true;
+                   //TODO: Handle error cases
                 }
 	    }
             return ret;

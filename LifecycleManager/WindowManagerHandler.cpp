@@ -107,6 +107,17 @@ Core::hresult WindowManagerHandler::renderReady(std::string appInstanceId, bool&
     return renderReadyResult;
 }
 
+Core::hresult WindowManagerHandler::enableDisplayRender(std::string appInstanceId, bool render)
+{
+    Core::hresult enableDisplayRenderResult = mWindowManager->EnableDisplayRender(appInstanceId, render);
+    if (Core::ERROR_NONE != enableDisplayRenderResult)
+    {
+        printf("unable to perform enable display renderer from window manager [%d] \n", enableDisplayRenderResult);
+	fflush(stdout);
+    }
+    return enableDisplayRenderResult;
+}
+
 void WindowManagerHandler::WindowManagerNotification::OnReady(const std::string &client)
 {
     printf("MADANA Received onReady event for app[%s] \n", client.c_str());

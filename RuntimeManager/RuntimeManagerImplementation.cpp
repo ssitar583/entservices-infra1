@@ -306,6 +306,7 @@ namespace WPEFramework
                 case RUNTIME_MANAGER_EVENT_CONTAINERSTARTED:
                 while (index != mRuntimeManagerNotification.end())
                 {
+                    (*index)->OnStateChanged(appInstanceId, RUNTIME_STATE_RUNNING);
                     (*index)->OnStarted(appInstanceId);
                     ++index;
                 }
@@ -785,6 +786,12 @@ err_ret:
             std::string waylandDisplay = "";
             std::string dobbySpec;
             AppStorageInfo appStorageInfo;
+
+	    JsonObject eventData;
+            eventData["containerId"] = appInstanceId;
+            eventData["state"] = static_cast<int>(RUNTIME_STATE_STARTING);
+            eventData["eventName"] = "onContainerStateChanged";
+            dispatchEvent(RuntimeManagerImplementation::RuntimeEventType::RUNTIME_MANAGER_EVENT_STATECHANGED, eventData);
 
             ApplicationConfiguration config;
             config.mAppId = appId;
