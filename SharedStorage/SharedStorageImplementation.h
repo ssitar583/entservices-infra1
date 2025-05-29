@@ -111,6 +111,7 @@ namespace Plugin {
         Exchange::IStoreLimit* _psLimit;
         Exchange::IStoreCache* _psCache;
         Exchange::IStore2* _csObject;
+        PluginHost::IPlugin *m_CloudStoreRef;
 };
 
 } // namespace Plugin

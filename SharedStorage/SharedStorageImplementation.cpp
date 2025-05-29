@@ -33,6 +33,7 @@ namespace Plugin {
                                 , _psLimit(nullptr)
                                 , _psCache(nullptr)
                                 , _csObject(nullptr)
+			        , m_CloudStoreRef(nullptr)
     {
         LOGINFO("SharedStorageImplementation constructor - 3");
     }
@@ -55,6 +56,11 @@ namespace Plugin {
         if(_psCache)
         {
             _psCache->Release();
+        }
+        if (nullptr != m_CloudStoreRef)
+        {
+            m_CloudStoreRef->Release();
+            m_CloudStoreRef = nullptr;
         }
         if(_csObject)
         {
@@ -140,15 +146,23 @@ namespace Plugin {
             }
 
             // Establish communication with CloudStore
-            _csObject = service->QueryInterfaceByCallsign<WPEFramework::Exchange::IStore2>("org.rdk.CloudStore");
-            if (_csObject != nullptr)
+            m_CloudStoreRef = service->QueryInterfaceByCallsign<WPEFramework::Exchange::IStore2>("org.rdk.CloudStore");
+            if(nullptr != m_CloudStoreRef)
             {
-                _csObject->Register(&_storeNotification);
-            }
-            else
-            {
-                LOGERR("_csObject is null \n");
-            }
+                // Get interface for IStore2
+                _csObject = m_CloudStoreRef->QueryInterface<Exchange::IStore2>();
+                if (nullptr == _csObject)
+                {
+                    //message = _T("SharedStorage plugin could not be initialized.");
+                    TRACE(Trace::Error, (_T("%s: Can't get CloudStore interface"), __FUNCTION__));
+                    m_CloudStoreRef->Release();
+                    m_CloudStoreRef = nullptr;
+                }
+                else
+                {
+                    _csObject->Register(&_storeNotification);
+                }
+	    }
         }
         else
         {
