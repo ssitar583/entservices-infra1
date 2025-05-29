@@ -615,6 +615,7 @@ namespace Plugin {
                     else if (ioctl(fd, BLKSSZGET, &partitionInfo.sectorSize) != 0) {
                         LOGERR("Failed to get sector size, error %s",strerror(errno));
                     }
+                    close(fd);
                     else
                     {
                         partitionInfo.totalSpace = ((uint64_t)stat.f_blocks * stat.f_frsize) / ((uint64_t)1024 * 1024); // MB
