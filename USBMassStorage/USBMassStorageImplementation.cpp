@@ -631,8 +631,8 @@ namespace Plugin {
 
                         errorCode = Core::ERROR_NONE;
                     }
+                    close(fd);
                 }
-                close(fd);
             }
         }
         return errorCode;
