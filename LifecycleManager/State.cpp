@@ -139,6 +139,7 @@ namespace WPEFramework
                 if (Exchange::ILifecycleManager::LifecycleState::HIBERNATED == context->getCurrentLifecycleState())
 	        {
                     ret = runtimeManagerHandler->wake(context->getAppInstanceId(), Exchange::ILifecycleManager::LifecycleState::SUSPENDED, errorReason);
+                    ret = true;
 	        }
                 else
 	        {
@@ -167,6 +168,7 @@ namespace WPEFramework
 	    {
                 ApplicationContext* context = getContext();
                 ret = runtimeManagerHandler->hibernate(context->getAppInstanceId(), errorReason);
+                ret = true;
 	    }
             return ret;
 	}
@@ -200,6 +202,7 @@ namespace WPEFramework
                 {
                     success = runtimeManagerHandler->terminate(context->getAppInstanceId(), errorReason);
                 }
+                success = true;
             }
             return success;
 	}
