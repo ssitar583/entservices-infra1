@@ -33,7 +33,6 @@ namespace Plugin {
                                 , _psLimit(nullptr)
                                 , _psCache(nullptr)
                                 , _csObject(nullptr)
-			        , m_CloudStoreRef(nullptr)
     {
         LOGINFO("SharedStorageImplementation constructor - 3");
     }
@@ -56,11 +55,6 @@ namespace Plugin {
         if(_psCache)
         {
             _psCache->Release();
-        }
-        if (nullptr != m_CloudStoreRef)
-        {
-            m_CloudStoreRef->Release();
-            m_CloudStoreRef = nullptr;
         }
         if(_csObject)
         {
@@ -146,22 +140,14 @@ namespace Plugin {
             }
 
             // Establish communication with CloudStore
-            m_CloudStoreRef = service->QueryInterfaceByCallsign<WPEFramework::Exchange::IStore2>("org.rdk.CloudStore");
-            if(nullptr != m_CloudStoreRef)
+            _csObject = service->QueryInterfaceByCallsign<WPEFramework::Exchange::IStore2>("org.rdk.CloudStore");
+            if (_csObject != nullptr)
             {
-                // Get interface for IStore2
-                _csObject = m_CloudStoreRef->QueryInterface<Exchange::IStore2>();
-                if (nullptr == _csObject)
-                {
-                    //message = _T("SharedStorage plugin could not be initialized.");
-                    TRACE(Trace::Error, (_T("%s: Can't get CloudStore interface"), __FUNCTION__));
-                    m_CloudStoreRef->Release();
-                    m_CloudStoreRef = nullptr;
-                }
-                else
-                {
-                    _csObject->Register(&_storeNotification);
-                }
+                _csObject->Register(&_storeNotification);
+            }
+            else
+            {
+                LOGERR("_csObject is null \n");
 	    }
         }
         else
@@ -385,9 +371,10 @@ namespace Plugin {
         return status;
     }
 
-    Core::hresult SharedStorageImplementation::GetNamespaceStorageLimit(const ISharedStorageLimit::ScopeType eScope, const string& ns, StorageLimit& storageLimit, bool& success)
+    Core::hresult SharedStorageImplementation::GetNamespaceStorageLimit(const ISharedStorageLimit::ScopeType eScope, const string& ns, StorageLimit& storageLimit)
     {
         Core::hresult status = Core::ERROR_NOT_SUPPORTED;
+	LOGINFO("");
         if(eScope != ISharedStorageLimit::ScopeType::DEVICE)
         {
             return status;
@@ -396,11 +383,16 @@ namespace Plugin {
         ASSERT(nullptr != _psLimit);
         if(_psLimit != nullptr)
         {
-            status = _psLimit->GetNamespaceStorageLimit((Exchange::IStore2::ScopeType)eScope, ns, storageLimit.storageLimit);
-        }
-        success = (status == Core::ERROR_NONE);
-        if (status != Core::ERROR_NONE) {
-            TRACE(Trace::Error, (_T("%s: Status: %d"), __FUNCTION__, status));
+            uint32_t size;
+            status = _psLimit->GetNamespaceStorageLimit((Exchange::IStore2::ScopeType)eScope, ns, size);
+	    if (status == Core::ERROR_NONE) {
+                storageLimit.storageLimit = size;
+		LOGINFO("size %d, storageLimit %d", size, storageLimit.storageLimit);
+            }
+	    else
+	    {
+                TRACE(Trace::Error, (_T("%s: Status: %d"), __FUNCTION__, status));
+	    }
         }
         return status;
     }

@@ -94,7 +94,7 @@ namespace Plugin {
 
         //ISharedStorageLimit APIs
         Core::hresult SetNamespaceStorageLimit(const ISharedStorageLimit::ScopeType eScope, const string& ns, const uint32_t size, bool& success) override;
-        Core::hresult GetNamespaceStorageLimit(const ISharedStorageLimit::ScopeType eScope, const string& ns, StorageLimit& storageLimit, bool& success) override;
+        Core::hresult GetNamespaceStorageLimit(const ISharedStorageLimit::ScopeType eScope, const string& ns, StorageLimit& storageLimit) override;
 
         //ISharedStorageCache APIs
         Core::hresult FlushCache() override;
@@ -111,7 +111,6 @@ namespace Plugin {
         Exchange::IStoreLimit* _psLimit;
         Exchange::IStoreCache* _psCache;
         Exchange::IStore2* _csObject;
-        PluginHost::IPlugin *m_CloudStoreRef;
 };
 
 } // namespace Plugin
