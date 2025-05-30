@@ -36,7 +36,7 @@
 #include <interfaces/ILifecycleManager.h>
 #include <interfaces/ILifecycleManagerState.h>
 #include <interfaces/IAppManager.h>
-
+#include <condition_variable>
 
 namespace WPEFramework
 {
@@ -92,6 +92,9 @@ namespace WPEFramework
                     Exchange::ILifecycleManagerState *mLifecycleManagerStateRemoteObject;
                     Core::Sink<NotificationHandler> mNotification;
                     PluginHost::IShell* mCurrentservice;
+                    std::condition_variable mStateChangedCV;
+                    std::mutex mStateMutex;
+                    std::string mAwaitedAppId;
         };
     }
 }

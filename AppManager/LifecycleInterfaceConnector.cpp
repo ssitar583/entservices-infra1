@@ -35,6 +35,9 @@
 #include "AppManagerImplementation.h"
 
 #define SUSPEND_POLICY_FILE        "/tmp/AI2.0Suspendable"
+#define HIBERNATE_POLICY_FILE      "/tmp/AI2.0Hibernatable"
+#define PAUSE_STATE_WAITTIME       1000
+
 using namespace std;
 using namespace Utils;
 
@@ -351,53 +354,142 @@ namespace WPEFramework
             uint32_t status = Core::ERROR_GENERAL;
             std::string appInstanceId = "";
             std::string appIntent = "";
+            bool success = false;
+            std::string errorReason = "";
             Exchange::IAppManager::AppLifecycleState targetLifecycleState = Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN;
             AppManagerImplementation* appManagerImplInstance = AppManagerImplementation::getInstance();
 
-            /* Retrieve the appId from the parameters object */
             LOGINFO("AppId retrieved: %s", appId.c_str());
 
             mAdminLock.Lock();
 
-            if (nullptr != appManagerImplInstance)
+            if(nullptr != appManagerImplInstance)
             {
-                for ( std::map<std::string, AppManagerImplementation::AppInfo>::iterator appIterator = appManagerImplInstance->mAppInfo.begin(); appIterator != appManagerImplInstance->mAppInfo.end(); appIterator++)
+                for(auto appIterator = appManagerImplInstance->mAppInfo.begin(); appIterator != appManagerImplInstance->mAppInfo.end(); ++appIterator)
                 {
-                    if (appIterator->first.compare(appId) == 0)
+                    if(appIterator->first.compare(appId) == 0)
                     {
                         appInstanceId = appIterator->second.appInstanceId;
                         appIntent = appIterator->second.appIntent;
                         targetLifecycleState = appIterator->second.targetAppState;
 
-                        /* Check targetLifecycleState is in ACTIVE state */
-                        if(targetLifecycleState == Exchange::IAppManager::AppLifecycleState::APP_STATE_ACTIVE)
+                        if(nullptr != mLifecycleManagerRemoteObject)
                         {
-                            if (nullptr != mLifecycleManagerRemoteObject)
+                            appManagerImplInstance->mCurrentAction = AppManagerImplementation::APP_ACTION_CLOSE;
+                            mAwaitedAppId = appId;
+
+                            status = mLifecycleManagerRemoteObject->SetTargetAppState(appInstanceId, Exchange::ILifecycleManager::LifecycleState::PAUSED, appIntent);
+
+                            if(status == Core::ERROR_NONE)
                             {
-                                appManagerImplInstance->mCurrentAction = AppManagerImplementation::APP_ACTION_CLOSE;
-                                /* Call setTargetAppState from Adapter file once ready */
-                                 status = mLifecycleManagerRemoteObject->SetTargetAppState(appInstanceId, Exchange::ILifecycleManager::LifecycleState::SUSPENDED, appIntent);
-                                if(status == Core::ERROR_NONE)
+                                LOGINFO("Requested PAUSED state for appId: %s. Waiting for PAUSED confirmation...", appId.c_str());
+
+                                mAdminLock.Unlock();
+
+                                bool isPaused = false;
                                 {
-                                    appIterator->second.targetAppState = Exchange::IAppManager::AppLifecycleState::APP_STATE_SUSPENDED;
+                                    std::unique_lock<std::mutex> lk(mStateMutex);
+                                    isPaused = mStateChangedCV.wait_for(
+                                        lk, std::chrono::milliseconds(PAUSE_STATE_WAITTIME), [&]() {
+                                            Core::SafeSyncType<Core::CriticalSection> lock(mAdminLock);
+                                            for(auto it = appManagerImplInstance->mAppInfo.begin(); it != appManagerImplInstance->mAppInfo.end(); ++it)
+                                            {
+                                                if(it->first == appId &&
+                                                    it->second.appNewState == Exchange::IAppManager::AppLifecycleState::APP_STATE_PAUSED)
+                                                {
+                                                    return true;
+                                                }
+                                            }
+                                            return false;
+                                        });
+                                }
+
+                                mAdminLock.Lock();
+                                mAwaitedAppId.clear();
+
+                                if(isPaused)
+                                {
+                                    LOGINFO("Received PAUSED state confirmation for appId: %s", appId.c_str());
+
+                                    /* Re-loop to get fresh iterator */
+                                    bool appFound = false;
+                                    for(auto retryIt = appManagerImplInstance->mAppInfo.begin(); retryIt != appManagerImplInstance->mAppInfo.end(); ++retryIt)
+                                    {
+                                        if(retryIt->first == appId)
+                                        {
+                                            appFound = true;
+
+                                            if(targetLifecycleState == Exchange::IAppManager::AppLifecycleState::APP_STATE_ACTIVE)
+                                            {
+                                                status = mLifecycleManagerRemoteObject->UnloadApp(appInstanceId, errorReason, success);
+                                                if(status != Core::ERROR_NONE)
+                                                {
+                                                    LOGERR("UnloadApp failed with error reason: %s", errorReason.c_str());
+                                                }
+                                                else
+                                                {
+                                                    LOGINFO("UnloadApp succeeded for appId: %s", appId.c_str());
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Exchange::ILifecycleManager::LifecycleState policyState = Exchange::ILifecycleManager::LifecycleState::PAUSED;
+
+                                                if(fileExists(HIBERNATE_POLICY_FILE))
+                                                {
+                                                    LOGINFO("App with AppId: %s is hibernatable", appId.c_str());
+                                                    policyState = Exchange::ILifecycleManager::LifecycleState::HIBERNATED;
+                                                    retryIt->second.targetAppState = Exchange::IAppManager::AppLifecycleState::APP_STATE_HIBERNATED;
+                                                }
+                                                else if(fileExists(SUSPEND_POLICY_FILE))
+                                                {
+                                                    LOGINFO("App with AppId: %s is suspendable", appId.c_str());
+                                                    policyState = Exchange::ILifecycleManager::LifecycleState::SUSPENDED;
+                                                    retryIt->second.targetAppState = Exchange::IAppManager::AppLifecycleState::APP_STATE_SUSPENDED;
+                                                }
+                                                else
+                                                {
+                                                    LOGINFO("No suspend/hibernate policy for appId: %s", appId.c_str());
+                                                }
+
+                                                if(policyState != Exchange::ILifecycleManager::LifecycleState::PAUSED)
+                                                {
+                                                    status = mLifecycleManagerRemoteObject->SetTargetAppState(appInstanceId, policyState, appIntent);
+                                                    if(status != Core::ERROR_NONE)
+                                                    {
+                                                        LOGERR("Failed to apply policy state (%d) for appId: %s", policyState, appId.c_str());
+                                                    }
+                                                }
+                                            }
+                                            break;
+                                        }
+                                    }
+
+                                    if(!appFound)
+                                    {
+                                        LOGERR("AppId: %s not found after PAUSED wait", appId.c_str());
+                                        status = Core::ERROR_GENERAL;
+                                    }
                                 }
                                 else
                                 {
-                                    LOGERR("Fail to closeApp AppId: %s status:%u", appId.c_str(), status);
+                                    LOGERR("Timed out waiting for appId: %s to reach PAUSED state", appId.c_str());
+                                    status = Core::ERROR_GENERAL;
                                 }
                             }
+                            else
+                            {
+                                LOGERR("Failed to set PAUSED state for AppId: %s", appId.c_str());
+                            }
                         }
+
                         break;
-                    }
-                    else
-                    {
-                        LOGERR("appId not found");
                     }
                 }
             }
             else
             {
-                LOGERR("appManagerImplInstance is null");
+                LOGERR("AppManagerImplementation instance is null");
             }
             mAdminLock.Unlock();
             return status;
@@ -408,7 +500,6 @@ namespace WPEFramework
         {
             uint32_t status = Core::ERROR_GENERAL;
             std::string appInstanceId = "";
-            Exchange::IAppManager::AppLifecycleState targetLifecycleState = Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN;
             AppManagerImplementation* appManagerImplInstance = AppManagerImplementation::getInstance();
             bool success = false;
             std::string errorReason = "";
@@ -426,26 +517,13 @@ namespace WPEFramework
                     {
                         foundAppId = true;
                         appInstanceId = appIterator->second.appInstanceId;
-                        targetLifecycleState = appIterator->second.appNewState;
-
-                        /* Check targetLifecycleState is in RUNNING state */
-                        if(targetLifecycleState == Exchange::IAppManager::AppLifecycleState::APP_STATE_PAUSED)
+                        if (nullptr != mLifecycleManagerRemoteObject)
                         {
-                            if (nullptr != mLifecycleManagerRemoteObject)
+                            appManagerImplInstance->mCurrentAction = AppManagerImplementation::APP_ACTION_TERMINATE;
+                            status = mLifecycleManagerRemoteObject->UnloadApp(appInstanceId, errorReason, success);
+                            if (status != Core::ERROR_NONE)
                             {
-                                appManagerImplInstance->mCurrentAction = AppManagerImplementation::APP_ACTION_TERMINATE;
-                                status = mLifecycleManagerRemoteObject->UnloadApp(appInstanceId, errorReason, success);
-                                if (status != Core::ERROR_NONE)
-                                {
-                                    if (!errorReason.empty())
-                                    {
-                                        LOGERR("UnloadApp failed with error reason: %s", errorReason.c_str());
-                                    }
-                                    else
-                                    {
-                                        LOGERR("UnloadApp failed with an unknown error.");
-                                    }
-                                }
+                                LOGERR("UnloadApp failed with error reason: %s", errorReason.c_str());
                             }
                         }
                         break;
@@ -658,9 +736,10 @@ namespace WPEFramework
         void LifecycleInterfaceConnector::OnAppLifecycleStateChanged(const string& appId, const string& appInstanceId, const Exchange::ILifecycleManager::LifecycleState oldState, const Exchange::ILifecycleManager::LifecycleState newState, const string& navigationIntent)
         {
             AppManagerImplementation*appManagerImplInstance = AppManagerImplementation::getInstance();
-            Exchange::IAppManager::AppLifecycleState newAppState = mapAppLifecycleState(newState);
             Exchange::IAppManager::AppLifecycleState oldAppState = mapAppLifecycleState(oldState);
+            Exchange::IAppManager::AppLifecycleState newAppState = mapAppLifecycleState(newState);
             bool shouldNotify = false;
+
             LOGINFO("OnAppLifecycleStateChanged event triggered ***\n");
 
             if (newAppState == Exchange::IAppManager::APP_STATE_UNKNOWN ||
@@ -670,9 +749,9 @@ namespace WPEFramework
                 return;
             }
 
-            mAdminLock.Lock();
             if(nullptr != appManagerImplInstance)
             {
+                Core::SafeSyncType<Core::CriticalSection> lock(mAdminLock);
                 for( std::map<std::string, AppManagerImplementation::AppInfo>::iterator it = appManagerImplInstance->mAppInfo.begin(); it != appManagerImplInstance->mAppInfo.end(); it++)
                 {
                     if((it->first.compare(appId) == 0) && (it->second.appInstanceId.compare(appInstanceId) == 0))
@@ -710,14 +789,22 @@ namespace WPEFramework
                                        ((newAppState == Exchange::IAppManager::AppLifecycleState::APP_STATE_PAUSED) &&
                                          (appManagerImplInstance->mCurrentAction == AppManagerImplementation::APP_ACTION_CLOSE)));
 
-                LOGINFO("shouldNotify %d for state %u",shouldNotify, newAppState);
+                LOGINFO("shouldNotify %d for Appstate %u",shouldNotify, newAppState);
 
                 if(shouldNotify)
                 {
                     appManagerImplInstance->handleOnAppLifecycleStateChanged(appId, appInstanceId, newAppState, oldAppState, Exchange::IAppManager::AppErrorReason::APP_ERROR_NONE);
                 }
+
+                if (appManagerImplInstance->mCurrentAction == AppManagerImplementation::APP_ACTION_CLOSE &&
+                    newAppState == Exchange::IAppManager::AppLifecycleState::APP_STATE_PAUSED &&
+                    appId == mAwaitedAppId)
+                {
+                    LOGINFO("Notify PAUSE state for appId %s ", appId.c_str());
+                    std::lock_guard<std::mutex> lk(mStateMutex);
+                    mStateChangedCV.notify_all();
+                }
             }
-            mAdminLock.Unlock();
         }
 
         /* Returns appInstanceId for appId. Does not synchronize access to LoadedAppInfo.
