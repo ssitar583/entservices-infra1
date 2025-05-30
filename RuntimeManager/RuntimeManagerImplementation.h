@@ -49,48 +49,6 @@ namespace WPEFramework
                     RUNTIME_MANAGER_EVENT_CONTAINERSTOPPED,
                     RUNTIME_MANAGER_EVENT_CONTAINERFAILED
                 };
-                enum class OCIRequestType
-                {
-                    RUNTIME_OCI_REQUEST_METHOD_UNKNOWN = 0,
-                    RUNTIME_OCI_REQUEST_METHOD_RUN,
-                    RUNTIME_OCI_REQUEST_METHOD_HIBERNATE,
-                    RUNTIME_OCI_REQUEST_METHOD_WAKE,
-                    RUNTIME_OCI_REQUEST_METHOD_SUSPEND,
-                    RUNTIME_OCI_REQUEST_METHOD_RESUME,
-                    RUNTIME_OCI_REQUEST_METHOD_TERMINATE,
-                    RUNTIME_OCI_REQUEST_METHOD_KILL,
-                    RUNTIME_OCI_REQUEST_METHOD_GETINFO,
-                    RUNTIME_OCI_REQUEST_METHOD_ANNONATE,
-                    RUNTIME_OCI_REQUEST_METHOD_MOUNT,
-                    RUNTIME_OCI_REQUEST_METHOD_UNMOUNT
-                };
-
-                typedef struct _ResponseData
-                {
-                    std::string getInfo = "";
-                    int32_t descriptor = -1;
-                } ResponseData;
-
-                struct OCIContainerRequest
-                {
-                    OCIContainerRequest();
-                    ~OCIContainerRequest();
-
-                    OCIRequestType mRequestType;
-                    std::string mContainerId;
-                    std::string mAppInstanceId;
-                    std::string mDobbySpec;
-                    std::string mCommand;
-                    std::string mWesterosSocket;
-                    sem_t mSemaphore;
-                    Core::hresult mResult;
-                    bool mSuccess;
-                    std::string mErrorReason;
-                    std::string mRequestId;
-                    std::string mAnnotateKey;
-                    std::string mAnnotateKeyValue;
-                    ResponseData mResponseData;
-                };
 
                 typedef struct _RuntimeAppInfo
                 {
@@ -99,7 +57,6 @@ namespace WPEFramework
                     std::string appPath;
                     std::string runtimePath;
                     uint32_t descriptor;
-                    std::string getInfo;
                     Exchange::IRuntimeManager::RuntimeState containerState;
                 } RuntimeAppInfo;
 
@@ -189,28 +146,21 @@ namespace WPEFramework
                 virtual void onOCIContainerStateChangedEvent(std::string name, JsonObject& data) override;
 
             private: /* private methods */
-                Core::hresult createOCIContainerPluginObject(Exchange::IOCIContainer*& ociContainerRemoteObject);
-                void releaseOCIContainerPluginObject(Exchange::IOCIContainer*& ociContainerRemoteObject);
+                Core::hresult createOCIContainerPluginObject();
+                void releaseOCIContainerPluginObject();
                 Core::hresult createStorageManagerPluginObject();
                 void releaseStorageManagerPluginObject();
-                void setRunningState(bool state);
-                bool getRunningState();
                 static bool generate(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig, std::string& dobbySpec);
-                Core::hresult handleContainerRequest(OCIContainerRequest& request);
-                void updateContainerInfo(std::shared_ptr<OCIContainerRequest>&  requestData);
-                void printContainerInfo();
+                std::string getContainerId(const string& appInstanceId);
                 Exchange::IRuntimeManager::RuntimeState getRuntimeState(const string& appInstanceId);
                 Core::hresult getAppStorageInfo(const string& appId, AppStorageInfo& appStorageInfo);
 
             private: /* members */
                 mutable Core::CriticalSection mRuntimeManagerImplLock;
-                std::mutex mContainerLock;
                 PluginHost::IShell* mCurrentservice;
+                Exchange::IOCIContainer* mOciContainerObject;
                 std::list<Exchange::IRuntimeManager::INotification*> mRuntimeManagerNotification;
-                std::thread mContainerWorkerThread;
                 std::map<std::string, RuntimeAppInfo> mRuntimeAppInfo;
-                std::vector<std::shared_ptr<WPEFramework::Plugin::RuntimeManagerImplementation::OCIContainerRequest>> mContainerRequest;
-                std::condition_variable mContainerQueueCV;
                 Exchange::IStorageManager *mStorageManagerObject;
                 WindowManagerConnector* mWindowManagerConnector;
                 DobbyEventListener *mDobbyEventListener;
@@ -219,7 +169,6 @@ namespace WPEFramework
             private: /* internal methods */
                 void dispatchEvent(RuntimeEventType, const JsonValue &params);
                 void Dispatch(RuntimeEventType event, const JsonValue params);
-                void OCIContainerWorkerThread(void);
 
                 friend class Job;
 
