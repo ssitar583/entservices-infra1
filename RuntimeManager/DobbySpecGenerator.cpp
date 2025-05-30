@@ -149,7 +149,7 @@ bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, const 
 #if (AI_BUILD_TYPE == AI_DEBUG)
     Json::Value consoleObj;
     consoleObj["limit"] = mAIConfiguration->getContainerConsoleLogCap();
-    //TODO: SUPPORT Read console path from runtime config
+    //TODO: SUPPORT Read console path from runtime config: RDKEMW-4432
     consoleObj["path"] = "/tmp/container.log";
     spec["console"] = std::move(consoleObj);
 #endif // (AI_BUILD_TYPE == AI_DEBUG)
@@ -170,7 +170,7 @@ bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, const 
     servicesArray.append("https\t\t443/tcp");
     servicesArray.append("https\t\t443/udp");
 
-    //TODO SUPPORT mapi in runtime config
+    //TODO SUPPORT mapi in runtime config: RDKEMW-4432
     //if (runtimeConfig.mapi)
     if (true)
     {
@@ -229,9 +229,9 @@ Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& co
     Json::Value env(Json::arrayValue);
     env.append(std::string("APPLICATION_NAME=") + config.mAppId);
     
-     //TODO SUPPORT APPLICATION_LAUNCH_PARAMETERS
-     //TODO SUPPORT APPLICATION_LAUNCH_METHOD
-     //TODO SUPPORT APPLICATION_TOKEN
+     //TODO YET TO ANALYZE SUPPORT APPLICATION_LAUNCH_PARAMETERS
+     //TODO YET TO ANALYZE SUPPORT APPLICATION_LAUNCH_METHOD
+     //TODO YET TO ANALYZE SUPPORT APPLICATION_TOKEN
 
    JsonArray envInputArray;
    envInputArray.FromString(runtimeConfig.envVariables);
@@ -303,7 +303,7 @@ Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& co
    }
 
    //TODO SUPPORT WATCHDOG
-   //TODO SUPPORT runtime parameter in runtime config
+   //TODO SUPPORT runtime parameter in runtime config: RDKEMW-4432
    //TODO SUPPORT Add only for web runtime
 #if(AI_BUILD_TYPE == AI_DEBUG)
    env.append("WEBKIT_LEGACY_INSPECTOR_SERVER=0.0.0.0:22222");
@@ -345,7 +345,6 @@ Json::Value DobbySpecGenerator::createMounts(const ApplicationConfiguration& con
     }
 
     //TODO SUPPORT Handle rialto
-    //TODO SUPPORT PerfettoSocketPath not mounted
     //TODO SUPPORT Netflix specific mounts
     //TODO SUPPORT SVP file mounts
     //TODO SUPPORT Platform specific mounts
@@ -353,6 +352,7 @@ Json::Value DobbySpecGenerator::createMounts(const ApplicationConfiguration& con
     //TODO SUPPORT TSB Storage
     //TODO SUPPORT EPG specific migration data store mount
     //TODO SUPPORT USB Mass storage
+    //TODO SUPPORT PerfettoSocketPath not mounted
     /*
     if (usingRialto)
     {
@@ -716,7 +716,7 @@ Json::Value DobbySpecGenerator::createEthanLogPlugin(const ApplicationConfigurat
     static const Json::StaticString debug("debug");
 
     Json::Value levels(Json::arrayValue);
-    //TODO SUPPORT logging mask in runtime config
+    //TODO SUPPORT logging mask in runtime config: RDKEMW-4432
     /*
     unsigned logMask = package->loggingMask();
     if (logMask & unsigned(IPackage::LogLevel::Default))
@@ -888,12 +888,6 @@ Json::Value DobbySpecGenerator::createPrivateDataMount(const WPEFramework::Excha
 
 void DobbySpecGenerator::createFkpsMounts(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig, Json::Value& spec) const
 {
-
-    // TODO: get the list of fkps files from runtime config
-    /*
-    std::optional<std::set<std::string>> fkpsFiles =
-        package->capabilityValueSet(packagemanager::IPackage::Capability::FkpsAccess);
-    */
     std::list<std::string> fkpsFiles;
     JsonArray fkpsFilesArray;
     fkpsFilesArray.FromString(runtimeConfig.fkpsFiles);
@@ -901,41 +895,12 @@ void DobbySpecGenerator::createFkpsMounts(const ApplicationConfiguration& config
     {
         fkpsFiles.push_back(fkpsFilesArray[i].String());
     }
-/*
-    std::set<std::string> fkpsFiles = {
-        "ffffffff00000001.key",
-        "ffffffff00000001.sha",
-        "ffffffff00000001.keyinfo",
-        "ffffffff00000002.bin",
-        "ffffffff00000002.sha",
-        "ffffffff00000004.bin",
-        "ffffffff00000004.sha",
-        "ffffffff00000006.bin",
-        "ffffffff00000006.sha",
-        "ffffffff00000007.bin",
-        "ffffffff00000008.bin",
-        "ffffffff00000009.key",
-        "ffffffff00000009.sha",
-        "ffffffff00000009.keyinfo",
-        "ffffffff0000000a.sha",
-        "ffffffff0000000a.bin",
-        "0381000003810001.key",
-        "0381000003810001.keyinfo",
-        "0381000003810001.sha",
-        "0381000003810002.key",
-        "0381000003810002.keyinfo",
-        "0381000003810003.key",
-        "0381000003810003.keyinfo",
-        "0681000006810001.bin"
-    };
-*/
     if (fkpsFiles.empty())
         return;
 
     // iterate through the files and make sure they're accessible
     const std::string fkpsPathPrefix("/opt/drm/");
     for (std::list<std::string>::iterator it=fkpsFiles.begin(); it!=fkpsFiles.end(); ++it)
-    //for (const std::string &fkpsFile : fkpsFiles.value())
     {
 	std::string fkpsFile = *it;      
         const std::string fkpsFilePath = fkpsPathPrefix + fkpsFile;
