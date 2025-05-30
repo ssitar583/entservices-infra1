@@ -79,13 +79,15 @@ namespace WPEFramework
 	        {
                     ApplicationContext* context = getContext();
                     ret = runtimeManagerHandler->resume(context->getAppInstanceId(), errorReason);
-                    if (Core::ERROR_NONE == ret)
+                    if (true == ret)
 		    {
                         WindowManagerHandler* windowManagerHandler = RequestHandler::getInstance()->getWindowManagerHandler();
 	                if (nullptr != windowManagerHandler)
 	                {
                             ApplicationContext* context = getContext();
-	                    ret = windowManagerHandler->enableDisplayRender(context->getAppInstanceId(), true);
+                            Core::hresult retValue = windowManagerHandler->enableDisplayRender(context->getAppInstanceId(), true);
+                            printf("enabled display in window manager [%d] \n", retValue);
+			     fflush(stdout);
                         }
 		    }
                    ret = true;
@@ -139,21 +141,22 @@ namespace WPEFramework
                 if (Exchange::ILifecycleManager::LifecycleState::HIBERNATED == context->getCurrentLifecycleState())
 	        {
                     ret = runtimeManagerHandler->wake(context->getAppInstanceId(), Exchange::ILifecycleManager::LifecycleState::SUSPENDED, errorReason);
-                    ret = true;
 	        }
                 else
 	        {
                     ret = runtimeManagerHandler->suspend(context->getAppInstanceId(), errorReason);
-                    if (Core::ERROR_NONE == ret)
+                    if (true == ret)
 		    {
                         WindowManagerHandler* windowManagerHandler = RequestHandler::getInstance()->getWindowManagerHandler();
 	                if (nullptr != windowManagerHandler)
 	                {
                             ApplicationContext* context = getContext();
-	                    ret = windowManagerHandler->enableDisplayRender(context->getAppInstanceId(), false);
+	                    Core::hresult retValue = windowManagerHandler->enableDisplayRender(context->getAppInstanceId(), false);
+                            printf("disabled display in window manager [%d] \n", retValue);
+			     fflush(stdout);
+                            ret = true;
                         }
 		    }
-                   ret = true;
                    //TODO: Handle error cases
                 }
 	    }
@@ -168,7 +171,6 @@ namespace WPEFramework
 	    {
                 ApplicationContext* context = getContext();
                 ret = runtimeManagerHandler->hibernate(context->getAppInstanceId(), errorReason);
-                ret = true;
 	    }
             return ret;
 	}
@@ -202,9 +204,9 @@ namespace WPEFramework
                 {
                     success = runtimeManagerHandler->terminate(context->getAppInstanceId(), errorReason);
                 }
-                success = true;
             }
-            return success;
+            //TODO: handle return properly
+	    return true;
 	}
 
     } /* namespace Plugin */
