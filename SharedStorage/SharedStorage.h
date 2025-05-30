@@ -46,6 +46,7 @@ namespace Plugin {
         public:
             void ValueChanged(const Exchange::ISharedStorage::ScopeType scope, const string& ns, const string& key, const string& value) override
             {
+		SYSLOG(Logging::Startup, (_T("SharedStorage ValueChanged")));
                 Exchange::JSharedStorage::Event::ValueChanged(_parent, scope, ns, key, value);
             }
 

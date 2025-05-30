@@ -374,7 +374,6 @@ namespace Plugin {
     Core::hresult SharedStorageImplementation::GetNamespaceStorageLimit(const ISharedStorageLimit::ScopeType eScope, const string& ns, StorageLimit& storageLimit)
     {
         Core::hresult status = Core::ERROR_NOT_SUPPORTED;
-	LOGINFO("");
         if(eScope != ISharedStorageLimit::ScopeType::DEVICE)
         {
             return status;
@@ -383,16 +382,11 @@ namespace Plugin {
         ASSERT(nullptr != _psLimit);
         if(_psLimit != nullptr)
         {
-            uint32_t size;
-            status = _psLimit->GetNamespaceStorageLimit((Exchange::IStore2::ScopeType)eScope, ns, size);
-	    if (status == Core::ERROR_NONE) {
-                storageLimit.storageLimit = size;
-		LOGINFO("size %d, storageLimit %d", size, storageLimit.storageLimit);
-            }
-	    else
-	    {
-                TRACE(Trace::Error, (_T("%s: Status: %d"), __FUNCTION__, status));
-	    }
+            status = _psLimit->GetNamespaceStorageLimit((Exchange::IStore2::ScopeType)eScope, ns, storageLimit.storageLimit);
+        }
+
+        if (status != Core::ERROR_NONE) {
+            TRACE(Trace::Error, (_T("%s: Status: %d"), __FUNCTION__, status));
         }
         return status;
     }

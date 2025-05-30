@@ -53,6 +53,7 @@ namespace Plugin {
         public:
             void ValueChanged(const Exchange::IStore2::ScopeType scope, const string& ns, const string& key, const string& value) override
             {
+                SYSLOG(Logging::Shutdown, (string(_T("SharedStorageImpl::ValueChanged"))));
                 _parent.ValueChanged((ISharedStorage::ScopeType)scope, ns, key, value);
             }
 
