@@ -405,10 +405,10 @@ namespace WPEFramework
                                 }
 
                                 mAdminLock.Lock();
-                                mAwaitedAppId.clear();
 
                                 if(isPaused)
                                 {
+                                    mAwaitedAppId.clear();
                                     LOGINFO("Received PAUSED state confirmation for appId: %s", appId.c_str());
 
                                     /* Re-loop to get fresh iterator */
@@ -433,31 +433,24 @@ namespace WPEFramework
                                             }
                                             else
                                             {
-                                                Exchange::ILifecycleManager::LifecycleState policyState = Exchange::ILifecycleManager::LifecycleState::PAUSED;
-
+                                                if(fileExists(SUSPEND_POLICY_FILE))
+                                                {
+                                                    LOGINFO("App with AppId: %s is suspendable", appId.c_str());
+                                                    retryIt->second.targetAppState = Exchange::IAppManager::AppLifecycleState::APP_STATE_SUSPENDED;
+                                                    status = mLifecycleManagerRemoteObject->SetTargetAppState(appInstanceId, Exchange::ILifecycleManager::LifecycleState::SUSPENDED, appIntent);
+                                                    if(status != Core::ERROR_NONE)
+                                                    {
+                                                        LOGERR("Failed to apply suspend policy for appId: %s", appId.c_str());
+                                                    }
+                                                }
                                                 if(fileExists(HIBERNATE_POLICY_FILE))
                                                 {
                                                     LOGINFO("App with AppId: %s is hibernatable", appId.c_str());
-                                                    policyState = Exchange::ILifecycleManager::LifecycleState::HIBERNATED;
                                                     retryIt->second.targetAppState = Exchange::IAppManager::AppLifecycleState::APP_STATE_HIBERNATED;
-                                                }
-                                                else if(fileExists(SUSPEND_POLICY_FILE))
-                                                {
-                                                    LOGINFO("App with AppId: %s is suspendable", appId.c_str());
-                                                    policyState = Exchange::ILifecycleManager::LifecycleState::SUSPENDED;
-                                                    retryIt->second.targetAppState = Exchange::IAppManager::AppLifecycleState::APP_STATE_SUSPENDED;
-                                                }
-                                                else
-                                                {
-                                                    LOGINFO("No suspend/hibernate policy for appId: %s", appId.c_str());
-                                                }
-
-                                                if(policyState != Exchange::ILifecycleManager::LifecycleState::PAUSED)
-                                                {
-                                                    status = mLifecycleManagerRemoteObject->SetTargetAppState(appInstanceId, policyState, appIntent);
+                                                    status = mLifecycleManagerRemoteObject->SetTargetAppState(appInstanceId, Exchange::ILifecycleManager::LifecycleState::HIBERNATED, appIntent);
                                                     if(status != Core::ERROR_NONE)
                                                     {
-                                                        LOGERR("Failed to apply policy state (%d) for appId: %s", policyState, appId.c_str());
+                                                        LOGERR("Failed to apply hibernate policy appId: %s", appId.c_str());
                                                     }
                                                 }
                                             }
