@@ -203,11 +203,15 @@ namespace WPEFramework
                 if (!isStateTerminating)
 		{
                     result = updateState(context, statePath[stateIndex], errorReason);
-                    if (!result)
-		    {
-                        break;
-		    }
-		}
+                printf("StateHandler::changeState: %s -> %s\n", mStateStrings[oldLifecycleState].c_str(), mStateStrings[statePath[stateIndex]].c_str());
+                if (!result)
+                {
+                    printf("StateHandler::changeState: Failed to change state to %s\n", mStateStrings[statePath[stateIndex]].c_str());
+                    printf("errorReason %s", errorReason.c_str());
+                    break;
+                }
+                fflush(stdout);
+            }
 
                 struct timespec stateChangeTime;
                 timespec_get(&stateChangeTime, TIME_UTC);
@@ -235,16 +239,20 @@ namespace WPEFramework
                     eventHandler->onStateChangeEvent(eventData);
                 }
                 if (isStateTerminating)
-		{
-                    result = updateState(context, statePath[stateIndex], errorReason);
-                    if (!result)
-		    {
-                        break;
-		    }
+            {
+                result = updateState(context, statePath[stateIndex], errorReason);
+                printf("StateHandler::changeState: %s -> %s\n", mStateStrings[oldLifecycleState].c_str(), mStateStrings[statePath[stateIndex]].c_str());
+                if (!result)
+                {
+                    printf("StateHandler::changeState: Failed to change state to %s\n", mStateStrings[statePath[stateIndex]].c_str());
+                    printf("errorReason %s", errorReason.c_str());
+                    break;
                 }
-	    }
-	    return result;
-	}
+                fflush(stdout);
+            }
+        }
+        return result;
+    }
 
     } /* namespace Plugin */
 } /* namespace WPEFramework */

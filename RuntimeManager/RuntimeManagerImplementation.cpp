@@ -460,7 +460,14 @@ namespace WPEFramework
                                                                                     false,
                                                                                     request->mSuccess,
                                                                                     request->mErrorReason);
-                                if (Core::ERROR_NONE != request->mResult)
+                                if (request->mErrorReason.compare("Container not found") == 0)
+                                {
+                                    LOGINFO("Container is not running, no need to StopContainer");
+                                    request->mSuccess = true;
+                                    request->mResult = Core::ERROR_NONE;
+                                    mUserIdManager->clearUserId(request->mAppInstanceId);
+                                }
+                                else if (Core::ERROR_NONE != request->mResult) // TODO mResult is always set to Core::ERROR_NONE in StopContainer
                                 {
                                     LOGERR("Failed to StopContainer to terminate");
                                     request->mErrorReason = "Failed to StopContainer";
