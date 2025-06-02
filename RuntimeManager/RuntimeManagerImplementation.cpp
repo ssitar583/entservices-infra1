@@ -22,7 +22,6 @@
 #include <errno.h>
 #include <fstream>
 
-static bool sRunning = false;
 //TODO - Remove the hardcoding to enable compatibility with a common middleware. The app portal name should be configurable in some way
 #define RUNTIME_APP_PORTAL "com.sky.as.apps"
 
@@ -35,11 +34,12 @@ namespace WPEFramework
 
         RuntimeManagerImplementation::RuntimeManagerImplementation()
         : mRuntimeManagerImplLock()
-        , mContainerLock()
         , mCurrentservice(nullptr)
-        , mContainerWorkerThread()
-        ,mStorageManagerObject(nullptr)
+        , mOciContainerObject(nullptr)
+        , mStorageManagerObject(nullptr)
         , mWindowManagerConnector(nullptr)
+        , mDobbyEventListener(nullptr)
+        , mUserIdManager(nullptr)
         {
             LOGINFO("Create RuntimeManagerImplementation Instance");
             if (nullptr == RuntimeManagerImplementation::_instance)
@@ -57,23 +57,6 @@ namespace WPEFramework
         {
             LOGINFO("Call RuntimeManagerImplementation destructor");
 
-            setRunningState(false);
-
-            mContainerQueueCV.notify_all();
-
-            if (mContainerWorkerThread.joinable())
-            {
-                mContainerWorkerThread.join();
-                LOGINFO("Container Worker Thread joined successfully");
-            }
-
-            mContainerLock.lock();
-            if (!mContainerRequest.empty())
-            {
-                mContainerRequest.clear();
-            }
-            mContainerLock.unlock();
-
             if (nullptr != mCurrentservice)
             {
                mCurrentservice->Release();
@@ -85,6 +68,7 @@ namespace WPEFramework
                 releaseStorageManagerPluginObject();
             }
 
+
             if (nullptr != mWindowManagerConnector)
             {
                 mWindowManagerConnector->releasePlugin();
@@ -92,137 +76,15 @@ namespace WPEFramework
                 mWindowManagerConnector = nullptr;
             }
 
-	    if (nullptr != mUserIdManager)
-	    {
+            if (nullptr != mUserIdManager)
+            {
                 delete mUserIdManager;
-		mUserIdManager = nullptr;
-	    }
-        }
-
-        void RuntimeManagerImplementation::setRunningState(bool state)
-        {
-            Core::SafeSyncType<Core::CriticalSection> lock(mRuntimeManagerImplLock);
-            sRunning = state;
-        }
-
-        bool RuntimeManagerImplementation::getRunningState()
-        {
-            Core::SafeSyncType<Core::CriticalSection> lock(mRuntimeManagerImplLock);
-            return sRunning;
-        }
-
-        void RuntimeManagerImplementation::updateContainerInfo(std::shared_ptr<OCIContainerRequest>& request)
-        {
-            Core::SafeSyncType<Core::CriticalSection> lock(mRuntimeManagerImplLock);
-            if (mRuntimeAppInfo.find(request->mAppInstanceId) != mRuntimeAppInfo.end())
-            {
-                printContainerInfo();
-                LOGINFO("RuntimeAppInfo appInstanceId[%s] updated", request->mAppInstanceId.c_str());
-                OCIRequestType type = request->mRequestType;
-                switch (type)
-                {
-                    case OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_TERMINATE:
-                    case OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_KILL:
-                        mRuntimeAppInfo[request->mAppInstanceId].containerState = Exchange::IRuntimeManager::RUNTIME_STATE_TERMINATING;
-                        break;
-                    case OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_HIBERNATE:
-                        mRuntimeAppInfo[request->mAppInstanceId].containerState = Exchange::IRuntimeManager::RUNTIME_STATE_HIBERNATING;
-                        break;
-                    case OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_GETINFO:
-                        mRuntimeAppInfo[request->mAppInstanceId].getInfo = request->mResponseData.getInfo;
-                        break;
-                    case OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_RUN:
-                        mRuntimeAppInfo[request->mAppInstanceId].descriptor = request->mResponseData.descriptor;
-                        break;
-                    case OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_WAKE:
-                        mRuntimeAppInfo[request->mAppInstanceId].containerState = Exchange::IRuntimeManager::RUNTIME_STATE_WAKING;
-                        break;
-                    default:
-                        break;
-                }
-
-                printContainerInfo();
-            }
-            else
-            {
-                LOGWARN("Missing appInstanceId[%s] in RuntimeAppInfo", request->mAppInstanceId.c_str());
-            }
-        }
-
-        Core::hresult RuntimeManagerImplementation::handleContainerRequest(OCIContainerRequest& request)
-        {
-            Core::hresult status = Core::ERROR_GENERAL;
-
-            if (!request.mAppInstanceId.empty())
-            {
-                string containerId = std::string(RUNTIME_APP_PORTAL) + (request.mAppInstanceId);
-                int ret = -1;
-
-                std::shared_ptr<OCIContainerRequest> requestData(&request, [](OCIContainerRequest*) {
-                });
-
-                mContainerLock.lock();
-                requestData->mContainerId = std::move(containerId);
-                mContainerRequest.push_back(requestData);
-                mContainerLock.unlock();
-                mContainerQueueCV.notify_one();
-
-                do
-                {
-                    ret = sem_wait(&requestData->mSemaphore);
-                } while (ret == -1 && errno == EINTR);
-
-                if (ret == -1)
-                {
-                    LOGERR("OCIContainerRequest: sem_wait failed for Kill: %s", strerror(errno));
-                }
-                else
-                {
-                    if ((requestData->mSuccess == false) || (requestData->mResult != Core::ERROR_NONE))
-                    {
-                        LOGERR("OCIRequestType: %d  status: %d errorReason: %s",
-                                        static_cast<int>(requestData->mRequestType),  requestData->mSuccess, requestData->mErrorReason.c_str());
-                    }
-                    else
-                    {
-                        status = requestData->mResult;
-                        updateContainerInfo(requestData);
-                    }
-                }
-            }
-            else
-            {
-                LOGERR("appInstanceId param is missing");
+                mUserIdManager = nullptr;
             }
 
-            LOGINFO("handleContainerRequest done with status: %d", status);
-            return status;
-        }
-
-        void RuntimeManagerImplementation::printContainerInfo()
-        {
-            for (const auto& pair : mRuntimeAppInfo) {
-               LOGINFO("RuntimeAppInfo -> appInstanceId[%s] : appPath[%s]\n", pair.first.c_str(), pair.second.appPath.c_str());
-               LOGINFO("RuntimeAppInfo -> runtimePath[%s] : descriptor[%d] containerState[%d]\n", pair.second.runtimePath.c_str(), pair.second.descriptor, pair.second.containerState);
-            }
-        }
-
-        WPEFramework::Plugin::RuntimeManagerImplementation::OCIContainerRequest::OCIContainerRequest()
-            : mResult(Core::ERROR_GENERAL),
-              mSuccess(false),
-              mErrorReason("")
-        {
-            if (0 != sem_init(&mSemaphore, 0, 0))
+            if(nullptr != mOciContainerObject)
             {
-                LOGINFO("Failed to initialise semaphore");
-            }
-        }
-
-        WPEFramework::Plugin::RuntimeManagerImplementation::OCIContainerRequest::~OCIContainerRequest()
-        {
-            if (0 != sem_destroy(&mSemaphore))
-            {
-                LOGINFO("Failed to destroy semaphore");
+                releaseOCIContainerPluginObject();
             }
         }
 
@@ -306,7 +168,6 @@ namespace WPEFramework
                 case RUNTIME_MANAGER_EVENT_CONTAINERSTARTED:
                 while (index != mRuntimeManagerNotification.end())
                 {
-                    (*index)->OnStateChanged(appInstanceId, RUNTIME_STATE_RUNNING);
                     (*index)->OnStarted(appInstanceId);
                     ++index;
                 }
@@ -335,221 +196,6 @@ namespace WPEFramework
             }
         }
 
-        void RuntimeManagerImplementation::OCIContainerWorkerThread(void)
-        {
-            Exchange::IOCIContainer* ociContainerObject = nullptr;
-            std::shared_ptr<OCIContainerRequest> request = nullptr;
-
-            /* Creating OCIContainer Object */
-            if (Core::ERROR_NONE != createOCIContainerPluginObject(ociContainerObject))
-            {
-                LOGERR("Failed to createOCIContainerPluginObject");
-            }
-
-            while (getRunningState())
-            {
-                std::unique_lock<std::mutex> lock(mContainerLock);
-                mContainerQueueCV.wait(lock, [this] {return !mContainerRequest.empty() || !getRunningState();});
-
-                if (!mContainerRequest.empty())
-                {
-                    request = mContainerRequest.front();
-                    mContainerRequest.erase(mContainerRequest.begin());
-                    if (nullptr == request)
-                    {
-                        LOGINFO("empty request");
-                        continue;
-                    }
-
-                    /* Re-attempting to create ociContainerObject if the previous attempt failed (i.e., object is null) */
-                    if (nullptr == ociContainerObject)
-                    {
-                        if (Core::ERROR_NONE != createOCIContainerPluginObject(ociContainerObject))
-                        {
-                            LOGERR("Failed to create OCIContainerPluginObject");
-                            request->mResult = Core::ERROR_GENERAL;
-                            request->mErrorReason = "Plugin is either not activated or not available";
-                        }
-                    }
-
-                    if (nullptr != ociContainerObject)
-                    {
-                        switch (request->mRequestType)
-                        {
-                            case OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_RUN:
-                            {
-                                request->mResult = ociContainerObject->StartContainerFromDobbySpec( \
-                                                                                        request->mContainerId,
-                                                                                        request->mDobbySpec,
-                                                                                        request->mCommand,
-                                                                                        request->mWesterosSocket,
-                                                                                        request->mResponseData.descriptor,
-                                                                                        request->mSuccess,
-                                                                                        request->mErrorReason);
-                                if (Core::ERROR_NONE != request->mResult)
-                                {
-                                    LOGERR("Failed to StartContainerFromDobbySpec");
-                                    request->mErrorReason = "Failed to StartContainerFromDobbySpec";
-                                }
-                            }
-                            break;
-
-                            case OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_HIBERNATE:
-                            {
-                                LOGINFO("Runtime Hibernate Method");
-                                std::string options = "";
-                                request->mResult = ociContainerObject->HibernateContainer(request->mContainerId,
-                                                                                          options,
-                                                                                          request->mSuccess,
-                                                                                          request->mErrorReason);
-                                if (Core::ERROR_NONE != request->mResult)
-                                {
-                                    LOGERR("Failed to HibernateContainer");
-                                    request->mErrorReason = "Failed to HibernateContainer";
-                                }
-                            }
-                            break;
-
-                            case OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_WAKE:
-                            {
-                                //Question: How should we pass the requested run state to the container?
-                                //There is no argument in the ociContainer interface to pass the input state.
-                                request->mResult = ociContainerObject->WakeupContainer(request->mContainerId,
-                                                                                       request->mSuccess,
-                                                                                       request->mErrorReason);
-
-                                if (Core::ERROR_NONE != request->mResult)
-                                {
-                                    LOGERR("Failed to WakeupContainer");
-                                    request->mErrorReason = "Failed to WakeupContainer";
-                                }
-                            }
-                            break;
-
-                            case OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_SUSPEND:
-                            {
-                                LOGINFO("Runtime Suspend Method");
-                                request->mResult = ociContainerObject->PauseContainer(request->mContainerId,
-                                                                                          request->mSuccess,
-                                                                                          request->mErrorReason);
-                                if (Core::ERROR_NONE != request->mResult)
-                                {
-                                    LOGERR("Failed to PauseContainer");
-                                    request->mErrorReason = "Failed to PauseContainer";
-                                }
-                            }
-                            break;
-
-                            case OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_RESUME:
-                            {
-                                LOGINFO("Runtime Resume Method");
-                                request->mResult = ociContainerObject->ResumeContainer(request->mContainerId,
-                                                                                          request->mSuccess,
-                                                                                          request->mErrorReason);
-                                if (Core::ERROR_NONE != request->mResult)
-                                {
-                                    LOGERR("Failed to ResumeContainer");
-                                    request->mErrorReason = "Failed to ResumeContainer";
-                                }
-                            }
-                            break;
-
-                            case OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_TERMINATE:
-                            {
-                                request->mResult = ociContainerObject->StopContainer(request->mContainerId,
-                                                                                    false,
-                                                                                    request->mSuccess,
-                                                                                    request->mErrorReason);
-                                if (request->mErrorReason.compare("Container not found") == 0)
-                                {
-                                    LOGINFO("Container is not running, no need to StopContainer");
-                                    request->mSuccess = true;
-                                    request->mResult = Core::ERROR_NONE;
-                                    mUserIdManager->clearUserId(request->mAppInstanceId);
-                                }
-                                else if (Core::ERROR_NONE != request->mResult) // TODO mResult is always set to Core::ERROR_NONE in StopContainer
-                                {
-                                    LOGERR("Failed to StopContainer to terminate");
-                                    request->mErrorReason = "Failed to StopContainer";
-                                }
-                                else
-				{
-                                    mUserIdManager->clearUserId(request->mAppInstanceId);
-				}
-                            }
-                            break;
-
-                            case OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_KILL:
-                            {
-                                request->mResult = ociContainerObject->StopContainer( request->mContainerId,
-                                                                                      true,
-                                                                                      request->mSuccess,
-                                                                                      request->mErrorReason);
-                                if (Core::ERROR_NONE != request->mResult)
-                                {
-                                    LOGERR("Failed to StopContainer");
-                                    request->mErrorReason = "Failed to StopContainer";
-                                }
-                                else
-				{
-                                    mUserIdManager->clearUserId(request->mAppInstanceId);
-				}
-                            }
-                            break;
-
-                            case OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_GETINFO:
-                            {
-                                LOGINFO("Runtime GetInfo Method");
-                                request->mResult = ociContainerObject->GetContainerInfo(request->mContainerId,
-                                                                                        request->mResponseData.getInfo,
-                                                                                        request->mSuccess,
-                                                                                        request->mErrorReason);
-                                if (Core::ERROR_NONE != request->mResult)
-                                {
-                                    LOGERR("Failed to GetContainerInfo");
-                                    request->mErrorReason = "Failed to GetContainerInfo";
-                                }
-                            }
-                            break;
-
-                            case OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_ANNONATE:
-                            {
-                                request->mResult = ociContainerObject->Annotate( request->mContainerId,
-                                                                                 request->mAnnotateKey,
-                                                                                 request->mAnnotateKeyValue,
-                                                                                 request->mSuccess,
-                                                                                 request->mErrorReason);
-                                if (Core::ERROR_NONE != request->mResult)
-                                {
-                                    LOGERR("Failed to Annotate property key: %s value: %s", request->mAnnotateKey.c_str(), request->mAnnotateKeyValue.c_str());
-                                    request->mErrorReason = "Failed to Annotate property key";
-                                }
-                            }
-                            break;
-
-                            case OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_MOUNT:
-                            case OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_UNMOUNT:
-                            default:
-                            {
-                                LOGWARN("Unknown Method type %d", static_cast<int>(request->mRequestType));
-                                request->mResult = Core::ERROR_GENERAL;
-                                request->mErrorReason = "Unknown Method type";
-                            }
-                            break;
-                        }
-                    }
-
-                    if (0 != sem_post(&request->mSemaphore))
-                    {
-                        LOGERR("sem_post failed. Error: %s", strerror(errno));
-                    }
-                }
-            }
-
-            /* Release OCI Object */
-            releaseOCIContainerPluginObject(ociContainerObject);
-        }
-
         uint32_t RuntimeManagerImplementation::Configure(PluginHost::IShell* service)
         {
             uint32_t result = Core::ERROR_GENERAL;
@@ -560,9 +206,6 @@ namespace WPEFramework
 
                 mCurrentservice = service;
                 mCurrentservice->AddRef();
-
-                /* Set IsRunning to true */
-                setRunningState(true);
 
                 /* Create Storage Manager Plugin Object */
                 if (Core::ERROR_NONE != createStorageManagerPluginObject())
@@ -578,16 +221,15 @@ namespace WPEFramework
                 }
 
                 mUserIdManager = new UserIdManager();
-                /* Create the worker thread */
-                try
+
+                if (Core::ERROR_NONE != createOCIContainerPluginObject())
                 {
-                    mContainerWorkerThread = std::thread(&RuntimeManagerImplementation::OCIContainerWorkerThread, RuntimeManagerImplementation::getInstance());
-                    LOGINFO("Container Worker thread created");
-                    result = Core::ERROR_NONE;
+                    LOGERR("Failed to create OCIContainerPluginObject");
                 }
-                catch (const std::system_error& e)
+                else
                 {
-                    LOGERR("Failed to create container worker thread: %s", e.what());
+                    LOGINFO("created OCIContainerPluginObject");
+                    result = Core::ERROR_NONE;
                 }
             }
             else
@@ -599,7 +241,7 @@ namespace WPEFramework
 
 
 
-        Core::hresult RuntimeManagerImplementation::createOCIContainerPluginObject(Exchange::IOCIContainer*& ociContainerObject)
+        Core::hresult RuntimeManagerImplementation::createOCIContainerPluginObject()
         {
             #define MAX_OCI_OBJECT_CREATION_RETRIES 2
 
@@ -614,10 +256,10 @@ namespace WPEFramework
 
             do
             {
-                ociContainerObject = mCurrentservice->QueryInterfaceByCallsign<WPEFramework::Exchange::IOCIContainer>("org.rdk.OCIContainer");
-                if (nullptr == ociContainerObject)
+                mOciContainerObject = mCurrentservice->QueryInterfaceByCallsign<WPEFramework::Exchange::IOCIContainer>("org.rdk.OCIContainer");
+                if (nullptr == mOciContainerObject)
                 {
-                    LOGERR("ociContainerObject is null (Attempt %d)", retryCount + 1);
+                    LOGERR("mOciContainerObject is null (Attempt %d)", retryCount + 1);
                     retryCount++;
                     std::this_thread::sleep_for(std::chrono::milliseconds(200));
                 }
@@ -627,11 +269,14 @@ namespace WPEFramework
                     status = Core::ERROR_NONE;
                     /* Initialize OCIContainerNotification Connector to listen to Dobby Events */
                     mDobbyEventListener = new DobbyEventListener();
-                    if (false == mDobbyEventListener->initialize(mCurrentservice, this, ociContainerObject))
+                    if(nullptr != mDobbyEventListener)
                     {
-                        LOGERR("Failed to initialize DobbyEventListener");
+                        if (false == mDobbyEventListener->initialize(mCurrentservice, this, mOciContainerObject))
+                        {
+                            LOGERR("Failed to initialize DobbyEventListener");
+                        }
+                        break;
                     }
-                    break;
                 }
             } while (retryCount < MAX_OCI_OBJECT_CREATION_RETRIES);
 
@@ -643,10 +288,10 @@ err_ret:
             return status;
         }
 
-        void RuntimeManagerImplementation::releaseOCIContainerPluginObject(Exchange::IOCIContainer*& ociContainerObject)
+        void RuntimeManagerImplementation::releaseOCIContainerPluginObject()
         {
-            ASSERT(nullptr != ociContainerObject);
-            if(ociContainerObject)
+            ASSERT(nullptr != mOciContainerObject);
+            if(mOciContainerObject)
             {
                 LOGINFO("releaseOCIContainerPluginObject\n");
                 /* Deinitialize DobbyEventListener */
@@ -656,8 +301,8 @@ err_ret:
                     delete mDobbyEventListener;
                     mDobbyEventListener = nullptr;
                 }
-                ociContainerObject->Release();
-                ociContainerObject = nullptr;
+                mOciContainerObject->Release();
+                mOciContainerObject = nullptr;
             }
         }
 
@@ -785,6 +430,22 @@ err_ret:
             return runtimeState;
         }
 
+        bool RuntimeManagerImplementation::isOCIPluginObjectValid(void)
+        {
+            return (mOciContainerObject != nullptr) ||
+                      (createOCIContainerPluginObject() == Core::ERROR_NONE);
+        }
+
+        std::string RuntimeManagerImplementation::getContainerId(const string& appInstanceId)
+        {
+           string containerId = "";
+
+            if (!appInstanceId.empty())
+            {
+                containerId = std::string(RUNTIME_APP_PORTAL) + (appInstanceId);
+            }
+            return containerId;
+        }
         Core::hresult RuntimeManagerImplementation::Run(const string& appId, const string& appInstanceId, const string& appPath, const string& runtimePath, IStringIterator* const& envVars, const uint32_t userId, const uint32_t groupId, IValueIterator* const& ports, IStringIterator* const& paths, IStringIterator* const& debugSettings, const WPEFramework::Exchange::RuntimeConfig& runtimeConfigObject)
         {
             Core::hresult status = Core::ERROR_GENERAL;
@@ -793,16 +454,21 @@ err_ret:
             std::string waylandDisplay = "";
             std::string dobbySpec;
             AppStorageInfo appStorageInfo;
+            int32_t descriptor = -1;
+            std::string errorReason = "";
+            bool success = false;
+            std::string westerosSocket = "";
+            ApplicationConfiguration config;
+            config.mAppId = appId;
+            config.mAppInstanceId = appInstanceId;
 
-	    JsonObject eventData;
+            JsonObject eventData;
             eventData["containerId"] = appInstanceId;
             eventData["state"] = static_cast<int>(RUNTIME_STATE_STARTING);
             eventData["eventName"] = "onContainerStateChanged";
             dispatchEvent(RuntimeManagerImplementation::RuntimeEventType::RUNTIME_MANAGER_EVENT_STATECHANGED, eventData);
 
-            ApplicationConfiguration config;
-            config.mAppId = appId;
-            config.mAppInstanceId = appInstanceId;
+            mRuntimeManagerImplLock.Lock();
 
             uid_t uid = mUserIdManager->getUserId(appInstanceId);
             gid_t gid = mUserIdManager->getAppsGid();
@@ -888,7 +554,7 @@ err_ret:
 
             if (!xdgRuntimeDir.empty() && !waylandDisplay.empty())
             {
-                std::string westerosSocket = xdgRuntimeDir + "/" + waylandDisplay;
+                westerosSocket = xdgRuntimeDir + "/" + waylandDisplay;
                 config.mWesterosSocketPath = westerosSocket;
             }
 
@@ -912,128 +578,283 @@ err_ret:
 
                 LOGINFO("Environment Variables: XDG_RUNTIME_DIR=%s, WAYLAND_DISPLAY=%s",
                      xdgRuntimeDir.c_str(), waylandDisplay.c_str());
-                std::string westerosSocket = xdgRuntimeDir + "/" + waylandDisplay;
                 std::string command = "";
-
-                OCIContainerRequest request;
-                request.mAppInstanceId = std::move(appInstanceId);
-                request.mRequestType = OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_RUN;
-                request.mDobbySpec = std::move(dobbySpec);
-                request.mCommand = std::move(command);
-                request.mWesterosSocket = std::move(westerosSocket);
-
-
-                status = handleContainerRequest(request);
-
-                if (status == Core::ERROR_NONE)
+                if(isOCIPluginObjectValid())
                 {
-                    LOGINFO("Update Info for %s",appInstanceId.c_str());
-                    if (!appId.empty())
+                    string containerId = getContainerId(appInstanceId);
+                    if (!containerId.empty())
                     {
-                        runtimeAppInfo.appId = std::move(appId);
-                    }
-                    runtimeAppInfo.appInstanceId = std::move(appInstanceId);
-                    runtimeAppInfo.appPath = std::move(appPath);
-                    runtimeAppInfo.runtimePath = std::move(runtimePath);
-                    runtimeAppInfo.descriptor = std::move(request.mResponseData.descriptor);
-                    runtimeAppInfo.containerState = Exchange::IRuntimeManager::RUNTIME_STATE_STARTING;
+                        status =  mOciContainerObject->StartContainerFromDobbySpec(containerId, dobbySpec, command, westerosSocket, descriptor, success, errorReason);
+                        if ((success == false) || (status != Core::ERROR_NONE))
+                        {
+                            LOGERR("Failed to Run Container %s",errorReason.c_str());
+                        }
+                        else
+                        {
+                            LOGINFO("Update Info for %s",appInstanceId.c_str());
+                            if (!appId.empty())
+                            {
+                                runtimeAppInfo.appId = std::move(appId);
+                            }
+                            runtimeAppInfo.appInstanceId = std::move(appInstanceId);
+                            runtimeAppInfo.appPath = std::move(appPath);
+                            runtimeAppInfo.runtimePath = std::move(runtimePath);
+                            runtimeAppInfo.descriptor = std::move(descriptor);
+                            runtimeAppInfo.containerState = Exchange::IRuntimeManager::RUNTIME_STATE_STARTING;
 
-                    /* Insert/update runtime app info */
-                    Core::SafeSyncType<Core::CriticalSection> lock(mRuntimeManagerImplLock);
-                    mRuntimeAppInfo[runtimeAppInfo.appInstanceId] = std::move(runtimeAppInfo);
+                            /* Insert/update runtime app info */
+                            mRuntimeAppInfo[runtimeAppInfo.appInstanceId] = std::move(runtimeAppInfo);
+                        }
+                    }
+                    else
+                    {
+                        LOGERR("appInstanceId is not found ");
+                    }
+                }
+                else
+                {
+                    LOGERR("OCI Plugin object is not valid. Aborting Run.");
                 }
             }
-
+            mRuntimeManagerImplLock.Unlock();
             return status;
         }
 
         Core::hresult RuntimeManagerImplementation::Hibernate(const string& appInstanceId)
         {
             Core::hresult status = Core::ERROR_GENERAL;
-            OCIContainerRequest request;
-            request.mAppInstanceId = std::move(appInstanceId);
-            request.mRequestType = OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_HIBERNATE;
-            status = handleContainerRequest(request);
+            std::string options = "";
+            std::string errorReason = "";
+            bool success = false;
 
+            mRuntimeManagerImplLock.Lock();
+
+            if(isOCIPluginObjectValid())
+            {
+               string containerId = getContainerId(appInstanceId);
+                if (!containerId.empty())
+                {
+                    status =  mOciContainerObject->HibernateContainer(containerId, options, success, errorReason);
+                    if ((success == false) || (status != Core::ERROR_NONE))
+                    {
+                        LOGERR("Failed to HibernateContainer %s",errorReason.c_str());
+                    }
+                    else
+                    {
+                        if (mRuntimeAppInfo.find(appInstanceId) != mRuntimeAppInfo.end())
+                        {
+                            mRuntimeAppInfo[appInstanceId].containerState = Exchange::IRuntimeManager::RUNTIME_STATE_HIBERNATING;
+                        }
+                    }
+                }
+                else
+                {
+                    LOGERR("appInstanceId is not found or mOciContainerObject is not ready");
+                }
+            }
+            else
+            {
+                LOGERR("OCI Plugin object is not valid. Aborting Hibernate.");
+            }
+            mRuntimeManagerImplLock.Unlock();
             return status;
         }
 
         Core::hresult RuntimeManagerImplementation::Wake(const string& appInstanceId, const RuntimeState runtimeState)
         {
             Core::hresult status = Core::ERROR_GENERAL;
+            std::string errorReason = "";
+            bool success = false;
 
-            LOGINFO("Entered Wake Implementation");
-
-            OCIContainerRequest request;
-            request.mAppInstanceId = std::move(appInstanceId);
-            request.mRequestType = OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_WAKE;
-
-            RuntimeState currentRuntimeState = getRuntimeState(appInstanceId);
-            if (Exchange::IRuntimeManager::RUNTIME_STATE_HIBERNATING == currentRuntimeState ||
-                Exchange::IRuntimeManager::RUNTIME_STATE_HIBERNATED == currentRuntimeState)
+            mRuntimeManagerImplLock.Lock();
+            if(isOCIPluginObjectValid())
             {
-                status = handleContainerRequest(request);
+                string containerId = getContainerId(appInstanceId);
+                if (!containerId.empty())
+                {
+                    RuntimeState currentRuntimeState = getRuntimeState(appInstanceId);
+                    if (Exchange::IRuntimeManager::RUNTIME_STATE_HIBERNATING == currentRuntimeState ||
+                        Exchange::IRuntimeManager::RUNTIME_STATE_HIBERNATED == currentRuntimeState)
+                    {
+                        status =  mOciContainerObject->WakeupContainer(containerId, success, errorReason);
+                        if ((success == false) || (status != Core::ERROR_NONE))
+                        {
+                            LOGERR("Failed to WakeupContainer %s",errorReason.c_str());
+                        }
+                        else
+                        {
+                            if (mRuntimeAppInfo.find(appInstanceId) != mRuntimeAppInfo.end())
+                            {
+                                mRuntimeAppInfo[appInstanceId].containerState = Exchange::IRuntimeManager::RUNTIME_STATE_WAKING;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        LOGERR("Container is Not in Hibernating/Hiberanted state");
+                    }
+                }
+                else
+                {
+                    LOGERR("appInstanceId is not found ");
+                }
             }
             else
             {
-                LOGERR("Container is Not in Hibernating/Hiberanted state");
+                LOGERR("OCI Plugin object is not valid. Aborting Wake.");
             }
-
+            mRuntimeManagerImplLock.Unlock();
             return status;
         }
 
         Core::hresult RuntimeManagerImplementation::Suspend(const string& appInstanceId)
         {
             Core::hresult status = Core::ERROR_GENERAL;
-            OCIContainerRequest request;
+            std::string errorReason = "";
+            bool success = false;
 
-            LOGINFO("Entered Suspend Implementation with appInstanceId: %s", appInstanceId.c_str());
+            mRuntimeManagerImplLock.Lock();
 
-            request.mAppInstanceId = std::move(appInstanceId);
-            request.mRequestType = OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_SUSPEND;
-            status = handleContainerRequest(request);
+            if(isOCIPluginObjectValid())
+            {
+                string containerId = getContainerId(appInstanceId);
 
+                if (!containerId.empty())
+                {
+                    status =  mOciContainerObject->PauseContainer(containerId, success, errorReason);
+                    if ((success == false) || (status != Core::ERROR_NONE))
+                    {
+                        LOGERR("Failed to PauseContainer %s",errorReason.c_str());
+                    }
+                }
+                else
+                {
+                    LOGERR("appInstanceId is not found ");
+                }
+            }
+            else
+            {
+                LOGERR("OCI Plugin object is not valid. Aborting Suspend.");
+            }
+            mRuntimeManagerImplLock.Unlock();
             return status;
         }
 
         Core::hresult RuntimeManagerImplementation::Resume(const string& appInstanceId)
         {
             Core::hresult status = Core::ERROR_GENERAL;
-            OCIContainerRequest request;
+            std::string errorReason = "";
+            bool success = false;
 
-            LOGINFO("Entered Resume Implementation with appInstanceId: %s", appInstanceId.c_str());
+            mRuntimeManagerImplLock.Lock();
+            if(isOCIPluginObjectValid())
+            {
+                string containerId = getContainerId(appInstanceId);
 
-            request.mAppInstanceId = std::move(appInstanceId);
-            request.mRequestType = OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_RESUME;
-            status = handleContainerRequest(request);
-
+                if (!containerId.empty())
+                {
+                    status =  mOciContainerObject->ResumeContainer(containerId, success, errorReason);
+                    if ((success == false) || (status != Core::ERROR_NONE))
+                    {
+                        LOGERR("Failed to ResumeContainer %s",errorReason.c_str());
+                    }
+                }
+                else
+                {
+                    LOGERR("appInstanceId is empty ");
+                }
+            }
+            else
+            {
+                LOGERR("OCI Plugin object is not valid. Aborting Resume.");
+            }
+            mRuntimeManagerImplLock.Unlock();
             return status;
         }
 
         Core::hresult RuntimeManagerImplementation::Terminate(const string& appInstanceId)
         {
             Core::hresult status = Core::ERROR_GENERAL;
-            LOGINFO("Entered Terminate Implementation");
+            std::string errorReason = "";
+            bool success = false;
 
-            OCIContainerRequest request;
-            request.mAppInstanceId = std::move(appInstanceId);
-            request.mRequestType = OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_TERMINATE;
+            mRuntimeManagerImplLock.Lock();
+            if(isOCIPluginObjectValid())
+            {
+                string containerId = getContainerId(appInstanceId);
 
-            status = handleContainerRequest(request);
+                if (!containerId.empty())
+                {
+                    status =  mOciContainerObject->StopContainer(containerId, false, success, errorReason);
+                    if (errorReason.compare("Container not found") == 0)
+                    {
+                        LOGINFO("Container is not running, no need to StopContainer");
+                        status = Core::ERROR_NONE;
+                        mUserIdManager->clearUserId(appInstanceId);
+                    }
+                    else if ((success == false) || (status != Core::ERROR_NONE))
+                    {
+                        LOGERR("Failed to StopContainer to terminate %s",errorReason.c_str());
+                    }
+                    else
+                    {
+                        mUserIdManager->clearUserId(appInstanceId);
+                        if (mRuntimeAppInfo.find(appInstanceId) != mRuntimeAppInfo.end())
+                        {
+                            mRuntimeAppInfo[appInstanceId].containerState = Exchange::IRuntimeManager::RUNTIME_STATE_TERMINATING;
+                        }
+                    }
+                }
+                else
+                {
+                    LOGERR("appInstanceId is not found");
+                }
+            }
+            else
+            {
+                LOGERR("OCI Plugin object is not valid. Aborting Terminate.");
+            }
+            mRuntimeManagerImplLock.Unlock();
             return status;
         }
 
         Core::hresult RuntimeManagerImplementation::Kill(const string& appInstanceId)
         {
             Core::hresult status = Core::ERROR_GENERAL;
-            LOGINFO("Entered Kill Implementation");
+            std::string errorReason = "";
+            bool success = false;
 
-            OCIContainerRequest request;
-            request.mAppInstanceId = std::move(appInstanceId);
-            request.mRequestType = OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_KILL;
+            mRuntimeManagerImplLock.Lock();
+            if(isOCIPluginObjectValid())
+            {
+                string containerId = getContainerId(appInstanceId);
 
-            status = handleContainerRequest(request);
-
+                if (!containerId.empty())
+                {
+                    status =  mOciContainerObject->StopContainer(containerId, true, success, errorReason);
+                    if ((success == false) || (status != Core::ERROR_NONE))
+                    {
+                        LOGERR("Failed to StopContainer for Kill %s",errorReason.c_str());
+                    }
+                    else
+                    {
+                        mUserIdManager->clearUserId(appInstanceId);
+                        if (mRuntimeAppInfo.find(appInstanceId) != mRuntimeAppInfo.end())
+                        {
+                            mRuntimeAppInfo[appInstanceId].containerState = Exchange::IRuntimeManager::RUNTIME_STATE_TERMINATING;
+                        }
+                    }
+                }
+                else
+                {
+                    LOGERR("appInstanceId is not found");
+                }
+            }
+            else
+            {
+                LOGERR("OCI Plugin object is not valid. Aborting Kill.");
+            }
+            mRuntimeManagerImplLock.Unlock();
             return status;
         }
 
@@ -1041,40 +862,77 @@ err_ret:
         {
             Core::hresult status = Core::ERROR_GENERAL;
             LOGINFO("Entered GetInfo Implementation");
+            std::string errorReason = "";
+            bool success = false;
 
-            OCIContainerRequest request;
-            request.mAppInstanceId = std::move(appInstanceId);
-            request.mRequestType = OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_GETINFO;
+            mRuntimeManagerImplLock.Lock();
 
-            status = handleContainerRequest(request);
-
-            if(status == Core::ERROR_NONE)
+            if(isOCIPluginObjectValid())
             {
-                info = std::move(mRuntimeAppInfo[appInstanceId].getInfo);
-            }
+                string containerId = getContainerId(appInstanceId);
 
+                if (!containerId.empty())
+                {
+                    status =  mOciContainerObject->GetContainerInfo(containerId, info, success, errorReason);
+                    if ((success == false) || (status != Core::ERROR_NONE))
+                    {
+                        LOGERR("Failed to GetContainerInfo %s",errorReason.c_str());
+                    }
+                    else
+                    {
+                        LOGINFO("GetContainerInfo is success");
+                    }
+                }
+                else
+                {
+                    LOGERR("appInstanceId is not found or mOciContainerObject is not ready");
+                }
+            }
+            else
+            {
+                LOGERR("OCI Plugin object is not valid. Aborting GetInfo.");
+            }
+            mRuntimeManagerImplLock.Unlock();
             return status;
         }
 
         Core::hresult RuntimeManagerImplementation::Annotate(const string& appInstanceId, const string& key, const string& value)
         {
             Core::hresult status = Core::ERROR_GENERAL;
-            OCIContainerRequest request;
+            std::string errorReason = "";
+            bool success = false;
 
-            LOGINFO("Entered Annotate Implementation");
+            mRuntimeManagerImplLock.Lock();
 
-            if (key.empty())
+            if(isOCIPluginObjectValid())
             {
-                LOGERR("Annotate: key is empty");
+                string containerId = getContainerId(appInstanceId);
+
+                if (!containerId.empty())
+                {
+                    if (key.empty())
+                    {
+                        LOGERR("Annotate: key is empty");
+                    }
+                    else
+                    {
+                        status =  mOciContainerObject->Annotate(containerId, key, value, success, errorReason);
+                        if ((success == false) || (status != Core::ERROR_NONE))
+                        {
+                            LOGERR("Failed to Annotate property key: %s value: %s errorReason %s",key.c_str(), value.c_str(), errorReason.c_str());
+                        }
+                    }
+                }
+                else
+                {
+                    LOGERR("appInstanceId is empty ");
+                }
             }
             else
             {
-                request.mAppInstanceId = std::move(appInstanceId);
-                request.mRequestType = OCIRequestType::RUNTIME_OCI_REQUEST_METHOD_ANNONATE;
-                request.mAnnotateKey = std::move(key);
-                request.mAnnotateKeyValue = std::move(value);
-                status = handleContainerRequest(request);
+                LOGERR("OCI Plugin object is not valid. Aborting GetInfo.");
             }
+            mRuntimeManagerImplLock.Unlock();
             return status;
         }
 
