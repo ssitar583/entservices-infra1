@@ -175,11 +175,6 @@ namespace Plugin {
         }
     }
 
-    void SharedStorageImplementation::ValueChanged(const Exchange::ISharedStorage::ScopeType eScope, const string& ns, const string& key, const string& value)
-    {
-        LOGINFO("ns:%s key:%s value:%s", ns.c_str(), key.c_str(), value.c_str());
-    }
-
     uint32_t SharedStorageImplementation::SetValue(const ISharedStorage::ScopeType eScope, const string& ns, const string& key, const string& value, const uint32_t ttl, Success& success)
     {
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
