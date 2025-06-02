@@ -211,4 +211,4 @@ namespace WPEFramework
             return success;
         }
     }
-} /* namespa
+} /* namespace WPEFramework */
