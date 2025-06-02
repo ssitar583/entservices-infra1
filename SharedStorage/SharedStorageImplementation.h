@@ -94,7 +94,7 @@ namespace Plugin {
         Core::hresult GetStorageSizes(const ISharedStorageInspector::ScopeType eScope, INamespaceSizeIterator*& storageList, bool& success) override;
 
         //ISharedStorageLimit APIs
-        Core::hresult SetNamespaceStorageLimit(const ISharedStorageLimit::ScopeType eScope, const string& ns, const uint32_t size, bool& success) override;
+        Core::hresult SetNamespaceStorageLimit(const ISharedStorageLimit::ScopeType eScope, const string& ns, const uint32_t storageLimit, bool& success) override;
         Core::hresult GetNamespaceStorageLimit(const ISharedStorageLimit::ScopeType eScope, const string& ns, StorageLimit& storageLimit) override;
 
         //ISharedStorageCache APIs
