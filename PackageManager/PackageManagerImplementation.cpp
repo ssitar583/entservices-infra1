@@ -665,7 +665,7 @@ namespace Plugin {
         #ifdef USE_LIBPACKAGE
         packagemanager::ConfigMetadataArray aConfigMetadata;
         packagemanager::Result pmResult = packageImpl->Initialize(configStr, aConfigMetadata);
-        LOGDBG("aConfigMetadata.count:%ld pmResult=%d", aConfigMetadata.size(), pmResult);
+        LOGDBG("aConfigMetadata.count:%d pmResult=%d", aConfigMetadata.size(), pmResult);
         for (auto it = aConfigMetadata.begin(); it != aConfigMetadata.end(); ++it ) {
             StateKey key = it->first;
             State state(it->second);

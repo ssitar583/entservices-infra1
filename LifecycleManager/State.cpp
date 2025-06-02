@@ -204,10 +204,11 @@ namespace WPEFramework
                 {
                     success = runtimeManagerHandler->terminate(context->getAppInstanceId(), errorReason);
                 }
+                //TODO: handle return properly
+                success = true;
             }
-            //TODO: handle return properly
-	    return true;
-	}
-
-    } /* namespace Plugin */
+            //TODO: handle return properly	
+            return success;
+        }
+    }
 } /* namespace WPEFramework */
