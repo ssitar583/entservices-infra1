@@ -152,6 +152,7 @@ namespace WPEFramework
                 void releaseStorageManagerPluginObject();
                 static bool generate(const ApplicationConfiguration& config, const WPEFramework::Exchange::RuntimeConfig& runtimeConfig, std::string& dobbySpec);
                 std::string getContainerId(const string& appInstanceId);
+                bool isOCIPluginObjectValid(void);
                 Exchange::IRuntimeManager::RuntimeState getRuntimeState(const string& appInstanceId);
                 Core::hresult getAppStorageInfo(const string& appId, AppStorageInfo& appStorageInfo);
 

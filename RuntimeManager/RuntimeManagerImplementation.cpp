@@ -430,17 +430,16 @@ err_ret:
             return runtimeState;
         }
 
+        bool RuntimeManagerImplementation::isOCIPluginObjectValid(void)
+        {
+            return (mOciContainerObject != nullptr) ||
+                      (createOCIContainerPluginObject() == Core::ERROR_NONE);
+        }
+
         std::string RuntimeManagerImplementation::getContainerId(const string& appInstanceId)
         {
            string containerId = "";
-           /* Re-attempting to create ociContainerObject if the previous attempt failed (i.e., object is null) */
-            if (nullptr == mOciContainerObject)
-            {
-                if (Core::ERROR_NONE != createOCIContainerPluginObject())
-                {
-                    LOGERR("Failed to create OCIContainerPluginObject");
-                }
-            }
+
             if (!appInstanceId.empty())
             {
                 containerId = std::string(RUNTIME_APP_PORTAL) + (appInstanceId);
@@ -580,36 +579,42 @@ err_ret:
                 LOGINFO("Environment Variables: XDG_RUNTIME_DIR=%s, WAYLAND_DISPLAY=%s",
                      xdgRuntimeDir.c_str(), waylandDisplay.c_str());
                 std::string command = "";
-                string containerId = getContainerId(appInstanceId);
-                if ((!containerId.empty()) && (nullptr != mOciContainerObject))
+                if(isOCIPluginObjectValid())
                 {
-                    status =  mOciContainerObject->StartContainerFromDobbySpec(containerId, dobbySpec, command, westerosSocket, descriptor, success, errorReason);
-                    if ((success == false) || (status != Core::ERROR_NONE))
+                    string containerId = getContainerId(appInstanceId);
+                    if (!containerId.empty())
                     {
-                        LOGERR("Failed to Run Container %s",errorReason.c_str());
+                        status =  mOciContainerObject->StartContainerFromDobbySpec(containerId, dobbySpec, command, westerosSocket, descriptor, success, errorReason);
+                        if ((success == false) || (status != Core::ERROR_NONE))
+                        {
+                            LOGERR("Failed to Run Container %s",errorReason.c_str());
+                        }
+                        else
+                        {
+                            LOGINFO("Update Info for %s",appInstanceId.c_str());
+                            if (!appId.empty())
+                            {
+                                runtimeAppInfo.appId = std::move(appId);
+                            }
+                            runtimeAppInfo.appInstanceId = std::move(appInstanceId);
+                            runtimeAppInfo.appPath = std::move(appPath);
+                            runtimeAppInfo.runtimePath = std::move(runtimePath);
+                            runtimeAppInfo.descriptor = std::move(descriptor);
+                            runtimeAppInfo.containerState = Exchange::IRuntimeManager::RUNTIME_STATE_STARTING;
+
+                            /* Insert/update runtime app info */
+                            mRuntimeAppInfo[runtimeAppInfo.appInstanceId] = std::move(runtimeAppInfo);
+                        }
                     }
                     else
                     {
-                        LOGINFO("Update Info for %s",appInstanceId.c_str());
-                        if (!appId.empty())
-                        {
-                            runtimeAppInfo.appId = std::move(appId);
-                        }
-                        runtimeAppInfo.appInstanceId = std::move(appInstanceId);
-                        runtimeAppInfo.appPath = std::move(appPath);
-                        runtimeAppInfo.runtimePath = std::move(runtimePath);
-                        runtimeAppInfo.descriptor = std::move(descriptor);
-                        runtimeAppInfo.containerState = Exchange::IRuntimeManager::RUNTIME_STATE_STARTING;
-
-                        /* Insert/update runtime app info */
-                        mRuntimeAppInfo[runtimeAppInfo.appInstanceId] = std::move(runtimeAppInfo);
+                        LOGERR("appInstanceId is not found ");
                     }
                 }
                 else
                 {
-                    LOGERR("appInstanceId is not found or mOciContainerObject is not ready");
+                    LOGERR("OCI Plugin object is not valid. Aborting Run.");
                 }
-
             }
             mRuntimeManagerImplLock.Unlock();
             return status;
@@ -623,26 +628,33 @@ err_ret:
             bool success = false;
 
             mRuntimeManagerImplLock.Lock();
-            string containerId = getContainerId(appInstanceId);
 
-            if ((!containerId.empty()) && (nullptr != mOciContainerObject))
+            if(isOCIPluginObjectValid())
             {
-                status =  mOciContainerObject->HibernateContainer(containerId, options, success, errorReason);
-                if ((success == false) || (status != Core::ERROR_NONE))
+               string containerId = getContainerId(appInstanceId);
+                if (!containerId.empty())
                 {
-                    LOGERR("Failed to HibernateContainer %s",errorReason.c_str());
+                    status =  mOciContainerObject->HibernateContainer(containerId, options, success, errorReason);
+                    if ((success == false) || (status != Core::ERROR_NONE))
+                    {
+                        LOGERR("Failed to HibernateContainer %s",errorReason.c_str());
+                    }
+                    else
+                    {
+                        if (mRuntimeAppInfo.find(appInstanceId) != mRuntimeAppInfo.end())
+                        {
+                            mRuntimeAppInfo[appInstanceId].containerState = Exchange::IRuntimeManager::RUNTIME_STATE_HIBERNATING;
+                        }
+                    }
                 }
                 else
                 {
-                    if (mRuntimeAppInfo.find(appInstanceId) != mRuntimeAppInfo.end())
-                    {
-                        mRuntimeAppInfo[appInstanceId].containerState = Exchange::IRuntimeManager::RUNTIME_STATE_HIBERNATING;
-                    }
+                    LOGERR("appInstanceId is not found or mOciContainerObject is not ready");
                 }
             }
             else
             {
-                LOGERR("appInstanceId is not found or mOciContainerObject is not ready");
+                LOGERR("OCI Plugin object is not valid. Aborting Hibernate.");
             }
             mRuntimeManagerImplLock.Unlock();
             return status;
@@ -655,35 +667,41 @@ err_ret:
             bool success = false;
 
             mRuntimeManagerImplLock.Lock();
-            string containerId = getContainerId(appInstanceId);
-
-            if ((!containerId.empty()) && (nullptr != mOciContainerObject))
+            if(isOCIPluginObjectValid())
             {
-                RuntimeState currentRuntimeState = getRuntimeState(appInstanceId);
-                if (Exchange::IRuntimeManager::RUNTIME_STATE_HIBERNATING == currentRuntimeState ||
-                    Exchange::IRuntimeManager::RUNTIME_STATE_HIBERNATED == currentRuntimeState)
+                string containerId = getContainerId(appInstanceId);
+                if (!containerId.empty())
                 {
-                    status =  mOciContainerObject->WakeupContainer(containerId, success, errorReason);
-                    if ((success == false) || (status != Core::ERROR_NONE))
+                    RuntimeState currentRuntimeState = getRuntimeState(appInstanceId);
+                    if (Exchange::IRuntimeManager::RUNTIME_STATE_HIBERNATING == currentRuntimeState ||
+                        Exchange::IRuntimeManager::RUNTIME_STATE_HIBERNATED == currentRuntimeState)
                     {
-                        LOGERR("Failed to WakeupContainer %s",errorReason.c_str());
+                        status =  mOciContainerObject->WakeupContainer(containerId, success, errorReason);
+                        if ((success == false) || (status != Core::ERROR_NONE))
+                        {
+                            LOGERR("Failed to WakeupContainer %s",errorReason.c_str());
+                        }
+                        else
+                        {
+                            if (mRuntimeAppInfo.find(appInstanceId) != mRuntimeAppInfo.end())
+                            {
+                                mRuntimeAppInfo[appInstanceId].containerState = Exchange::IRuntimeManager::RUNTIME_STATE_WAKING;
+                            }
+                        }
                     }
                     else
                     {
-                        if (mRuntimeAppInfo.find(appInstanceId) != mRuntimeAppInfo.end())
-                        {
-                            mRuntimeAppInfo[appInstanceId].containerState = Exchange::IRuntimeManager::RUNTIME_STATE_WAKING;
-                        }
+                        LOGERR("Container is Not in Hibernating/Hiberanted state");
                     }
                 }
                 else
                 {
-                    LOGERR("Container is Not in Hibernating/Hiberanted state");
+                    LOGERR("appInstanceId is not found ");
                 }
             }
             else
             {
-                LOGERR("appInstanceId is not found or mOciContainerObject is not ready");
+                LOGERR("OCI Plugin object is not valid. Aborting Wake.");
             }
             mRuntimeManagerImplLock.Unlock();
             return status;
@@ -696,19 +714,27 @@ err_ret:
             bool success = false;
 
             mRuntimeManagerImplLock.Lock();
-            string containerId = getContainerId(appInstanceId);
 
-            if ((!containerId.empty()) && (nullptr != mOciContainerObject))
+            if(isOCIPluginObjectValid())
             {
-                status =  mOciContainerObject->PauseContainer(containerId, success, errorReason);
-                if ((success == false) || (status != Core::ERROR_NONE))
+                string containerId = getContainerId(appInstanceId);
+
+                if (!containerId.empty())
                 {
-                    LOGERR("Failed to PauseContainer %s",errorReason.c_str());
+                    status =  mOciContainerObject->PauseContainer(containerId, success, errorReason);
+                    if ((success == false) || (status != Core::ERROR_NONE))
+                    {
+                        LOGERR("Failed to PauseContainer %s",errorReason.c_str());
+                    }
+                }
+                else
+                {
+                    LOGERR("appInstanceId is not found ");
                 }
             }
             else
             {
-                LOGERR("appInstanceId is not found or mOciContainerObject is not ready");
+                LOGERR("OCI Plugin object is not valid. Aborting Suspend.");
             }
             mRuntimeManagerImplLock.Unlock();
             return status;
@@ -721,19 +747,26 @@ err_ret:
             bool success = false;
 
             mRuntimeManagerImplLock.Lock();
-            string containerId = getContainerId(appInstanceId);
-
-            if ((!containerId.empty()) && (nullptr != mOciContainerObject))
+            if(isOCIPluginObjectValid())
             {
-                status =  mOciContainerObject->ResumeContainer(containerId, success, errorReason);
-                if ((success == false) || (status != Core::ERROR_NONE))
+                string containerId = getContainerId(appInstanceId);
+
+                if (!containerId.empty())
                 {
-                    LOGERR("Failed to ResumeContainer %s",errorReason.c_str());
+                    status =  mOciContainerObject->ResumeContainer(containerId, success, errorReason);
+                    if ((success == false) || (status != Core::ERROR_NONE))
+                    {
+                        LOGERR("Failed to ResumeContainer %s",errorReason.c_str());
+                    }
+                }
+                else
+                {
+                    LOGERR("appInstanceId is empty ");
                 }
             }
             else
             {
-                LOGERR("appInstanceId is empty or mOciContainerObject is null");
+                LOGERR("OCI Plugin object is not valid. Aborting Resume.");
             }
             mRuntimeManagerImplLock.Unlock();
             return status;
@@ -746,27 +779,40 @@ err_ret:
             bool success = false;
 
             mRuntimeManagerImplLock.Lock();
-            string containerId = getContainerId(appInstanceId);
-
-            if ((!containerId.empty()) && (nullptr != mOciContainerObject))
+            if(isOCIPluginObjectValid())
             {
-                status =  mOciContainerObject->StopContainer(containerId, false, success, errorReason);
-                if ((success == false) || (status != Core::ERROR_NONE))
+                string containerId = getContainerId(appInstanceId);
+
+                if (!containerId.empty())
                 {
-                    LOGERR("Failed to StopContainer to terminate %s",errorReason.c_str());
+                    status =  mOciContainerObject->StopContainer(containerId, false, success, errorReason);
+                    if (errorReason.compare("Container not found") == 0)
+                    {
+                        LOGINFO("Container is not running, no need to StopContainer");
+                        status = Core::ERROR_NONE;
+                        mUserIdManager->clearUserId(appInstanceId);
+                    }
+                    else if ((success == false) || (status != Core::ERROR_NONE))
+                    {
+                        LOGERR("Failed to StopContainer to terminate %s",errorReason.c_str());
+                    }
+                    else
+                    {
+                        mUserIdManager->clearUserId(appInstanceId);
+                        if (mRuntimeAppInfo.find(appInstanceId) != mRuntimeAppInfo.end())
+                        {
+                            mRuntimeAppInfo[appInstanceId].containerState = Exchange::IRuntimeManager::RUNTIME_STATE_TERMINATING;
+                        }
+                    }
                 }
                 else
                 {
-                    mUserIdManager->clearUserId(appInstanceId);
-                    if (mRuntimeAppInfo.find(appInstanceId) != mRuntimeAppInfo.end())
-                    {
-                        mRuntimeAppInfo[appInstanceId].containerState = Exchange::IRuntimeManager::RUNTIME_STATE_TERMINATING;
-                    }
+                    LOGERR("appInstanceId is not found");
                 }
             }
             else
             {
-                LOGERR("appInstanceId is not found or mOciContainerObject is not ready");
+                LOGERR("OCI Plugin object is not valid. Aborting Terminate.");
             }
             mRuntimeManagerImplLock.Unlock();
             return status;
@@ -779,27 +825,34 @@ err_ret:
             bool success = false;
 
             mRuntimeManagerImplLock.Lock();
-            string containerId = getContainerId(appInstanceId);
-
-            if ((!containerId.empty()) && (nullptr != mOciContainerObject))
+            if(isOCIPluginObjectValid())
             {
-                status =  mOciContainerObject->StopContainer(containerId, true, success, errorReason);
-                if ((success == false) || (status != Core::ERROR_NONE))
+                string containerId = getContainerId(appInstanceId);
+
+                if (!containerId.empty())
                 {
-                    LOGERR("Failed to StopContainer for Kill %s",errorReason.c_str());
+                    status =  mOciContainerObject->StopContainer(containerId, true, success, errorReason);
+                    if ((success == false) || (status != Core::ERROR_NONE))
+                    {
+                        LOGERR("Failed to StopContainer for Kill %s",errorReason.c_str());
+                    }
+                    else
+                    {
+                        mUserIdManager->clearUserId(appInstanceId);
+                        if (mRuntimeAppInfo.find(appInstanceId) != mRuntimeAppInfo.end())
+                        {
+                            mRuntimeAppInfo[appInstanceId].containerState = Exchange::IRuntimeManager::RUNTIME_STATE_TERMINATING;
+                        }
+                    }
                 }
                 else
                 {
-                    mUserIdManager->clearUserId(appInstanceId);
-                    if (mRuntimeAppInfo.find(appInstanceId) != mRuntimeAppInfo.end())
-                    {
-                        mRuntimeAppInfo[appInstanceId].containerState = Exchange::IRuntimeManager::RUNTIME_STATE_TERMINATING;
-                    }
+                    LOGERR("appInstanceId is not found");
                 }
             }
             else
             {
-                LOGERR("appInstanceId is not found or mOciContainerObject is not ready");
+                LOGERR("OCI Plugin object is not valid. Aborting Kill.");
             }
             mRuntimeManagerImplLock.Unlock();
             return status;
@@ -813,23 +866,31 @@ err_ret:
             bool success = false;
 
             mRuntimeManagerImplLock.Lock();
-            string containerId = getContainerId(appInstanceId);
 
-            if ((!containerId.empty()) && (nullptr != mOciContainerObject))
+            if(isOCIPluginObjectValid())
             {
-                status =  mOciContainerObject->GetContainerInfo(containerId, info, success, errorReason);
-                if ((success == false) || (status != Core::ERROR_NONE))
+                string containerId = getContainerId(appInstanceId);
+
+                if (!containerId.empty())
                 {
-                    LOGERR("Failed to GetContainerInfo %s",errorReason.c_str());
+                    status =  mOciContainerObject->GetContainerInfo(containerId, info, success, errorReason);
+                    if ((success == false) || (status != Core::ERROR_NONE))
+                    {
+                        LOGERR("Failed to GetContainerInfo %s",errorReason.c_str());
+                    }
+                    else
+                    {
+                        LOGINFO("GetContainerInfo is success");
+                    }
                 }
                 else
                 {
-                    LOGINFO("GetContainerInfo is success");
+                    LOGERR("appInstanceId is not found or mOciContainerObject is not ready");
                 }
             }
             else
             {
-                LOGERR("appInstanceId is not found or mOciContainerObject is not ready");
+                LOGERR("OCI Plugin object is not valid. Aborting GetInfo.");
             }
             mRuntimeManagerImplLock.Unlock();
             return status;
@@ -842,26 +903,34 @@ err_ret:
             bool success = false;
 
             mRuntimeManagerImplLock.Lock();
-            string containerId = getContainerId(appInstanceId);
 
-            if ((!containerId.empty()) && (nullptr != mOciContainerObject))
+            if(isOCIPluginObjectValid())
             {
-                if (key.empty())
+                string containerId = getContainerId(appInstanceId);
+
+                if (!containerId.empty())
                 {
-                    LOGERR("Annotate: key is empty");
+                    if (key.empty())
+                    {
+                        LOGERR("Annotate: key is empty");
+                    }
+                    else
+                    {
+                        status =  mOciContainerObject->Annotate(containerId, key, value, success, errorReason);
+                        if ((success == false) || (status != Core::ERROR_NONE))
+                        {
+                            LOGERR("Failed to Annotate property key: %s value: %s errorReason %s",key.c_str(), value.c_str(), errorReason.c_str());
+                        }
+                    }
                 }
                 else
                 {
-                    status =  mOciContainerObject->Annotate(containerId, key, value, success, errorReason);
-                    if ((success == false) || (status != Core::ERROR_NONE))
-                    {
-                        LOGERR("Failed to Annotate property key: %s value: %s errorReason %s",key.c_str(), value.c_str(), errorReason.c_str());
-                    }
+                    LOGERR("appInstanceId is empty ");
                 }
             }
             else
             {
-                LOGERR("appInstanceId is empty or mOciContainerObject is null");
+                LOGERR("OCI Plugin object is not valid. Aborting GetInfo.");
             }
             mRuntimeManagerImplLock.Unlock();
             return status;
