@@ -206,9 +206,8 @@ namespace WPEFramework
                 }
                 //TODO: handle return properly
                 success = true;
-            }
-
-           //TODO: handle return properly
+      }
+      //TODO: handle return properly
 	    return success;
 	}
 } /* namespace WPEFramework */
