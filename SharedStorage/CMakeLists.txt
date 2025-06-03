@@ -24,7 +24,7 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 set(CMAKE_CXX_STANDARD 11)
 
 set(PLUGIN_SHAREDSTORAGE_MODE "Off" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
-set(PLUGIN_SHAREDSTORAGE_STARTUPORDER "" CACHE STRING "To configure startup order of the plugin")
+set(PLUGIN_SHAREDSTORAGE_STARTUPORDER "51" CACHE STRING "To configure startup order of the plugin")
 
 add_library(${MODULE_NAME} SHARED
         SharedStorage.cpp
