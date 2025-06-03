@@ -472,7 +472,7 @@ MATCHER_P(MatchRequestStatus, data, "")
 
     return match;
 }
-#if 0
+
 TEST_F(USBMassStorageTest, comrpc_getpartitionInfo_success)
 {
     uint32_t status = Core::ERROR_GENERAL;
@@ -1662,4 +1662,4 @@ TEST_F(USBMassStorageTest, comrpc_Multiple_getDeviceListAndMount_success)
     }
 
 }
-#endif
+
