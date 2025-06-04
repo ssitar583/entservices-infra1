@@ -76,12 +76,59 @@ namespace Plugin {
         INTERFACE_ENTRY(ISharedStorageCache)
         INTERFACE_ENTRY(Exchange::IConfiguration)
         END_INTERFACE_MAP
+ 
+    public:
+        enum Event
+        {
+            SHAREDSTORAGE_EVT_VALUE_CHANGED
+        };
+ 
+        class EXTERNAL Job : public Core::IDispatch {
+            protected:
+                Job(SharedStorageImplementation* sharedStorageImplementation, Event event, JsonObject& params)
+                    : _sharedStorageImplementation(sharedStorageImplementation)
+                    , _event(event)
+                    , _params(params) {
+                    if (_sharedStorageImplementation != nullptr) {
+                        _sharedStorageImplementation->AddRef();
+                    }
+                }
+
+            public:
+                Job() = delete;
+                Job(const Job&) = delete;
+                Job& operator=(const Job&) = delete;
+                ~Job() {
+                    if (_sharedStorageImplementation != nullptr) {
+                        _sharedStorageImplementation->Release();
+                    }
+                }
+
+            public:
+                static Core::ProxyType<Core::IDispatch> Create(SharedStorageImplementation* sharedStorageImplementation, Event event, JsonObject params) {
+#ifndef USE_THUNDER_R4
+                    return (Core::proxy_cast<Core::IDispatch>(Core::ProxyType<Job>::Create(sharedStorageImplementation, event, params)));
+#else
+                    return (Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create(sharedStorageImplementation, event, params)));
+#endif
+                }
+
+                virtual void Dispatch() {
+                    _sharedStorageImplementation->Dispatch(_event, _params);
+                }
+
+            private:
+                SharedStorageImplementation *_sharedStorageImplementation;
+                const Event _event;
+                const JsonObject _params;
+        };
 
     private:
         // IConfiguration interface
         Core::hresult Configure(PluginHost::IShell* service) override;
         Core::hresult Register(ISharedStorage::INotification* notification) override;
         Core::hresult Unregister(ISharedStorage::INotification* notification) override;
+
         //ISharedStorage APIs
         Core::hresult SetValue(const ISharedStorage::ScopeType eScope, const string& ns, const string& key, const string& value, const uint32_t ttl, Success& success) override;
         Core::hresult GetValue(const ISharedStorage::ScopeType eScope, const string& ns, const string& key, string& value, uint32_t& ttl, bool& success) override;
@@ -102,6 +149,9 @@ namespace Plugin {
 
         Exchange::IStore2* getRemoteStoreObject(const Exchange::ISharedStorageLimit::ScopeType eScope);
         void ValueChanged(const Exchange::ISharedStorage::ScopeType eScope, const string& ns, const string& key, const string& value);
+        
+        void dispatchEvent(Event, const JsonObject &params);
+        void Dispatch(Event event, const JsonObject &params);
 
     private:
         mutable Core::CriticalSection _adminLock;
@@ -112,6 +162,10 @@ namespace Plugin {
         Exchange::IStoreLimit* _psLimit;
         Exchange::IStoreCache* _psCache;
         Exchange::IStore2* _csObject;
+        std::list<Exchange::ISharedStorage::INotification*> _sharedStorageNotification;
+
+    public:
+        friend class Job;
 };
 
 } // namespace Plugin
