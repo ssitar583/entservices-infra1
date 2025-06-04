@@ -237,7 +237,7 @@ namespace Plugin {
             uint8_t scopeVal = static_cast<uint8_t>(params["scope"].Number());
             Exchange::ISharedStorage::ScopeType scope = static_cast<Exchange::ISharedStorage::ScopeType>(scopeVal);
 
-            (*index)->ValueChanged(scope,ns,key,value);
+            (*index)->OnValueChanged(scope,ns,key,value);
             index++;
         }
 
