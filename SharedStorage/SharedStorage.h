@@ -44,10 +44,10 @@ namespace Plugin {
             ~Store2Notification() override = default;
 
         public:
-            void ValueChanged(const Exchange::ISharedStorage::ScopeType scope, const string& ns, const string& key, const string& value) override
+            void OnValueChanged(const Exchange::ISharedStorage::ScopeType scope, const string& ns, const string& key, const string& value) override
             {
-		SYSLOG(Logging::Startup, (_T("SharedStorage ValueChanged")));
-                Exchange::JSharedStorage::Event::ValueChanged(_parent, scope, ns, key, value);
+		SYSLOG(Logging::Startup, (_T("SharedStorage OnValueChanged")));
+                Exchange::JSharedStorage::Event::OnValueChanged(_parent, scope, ns, key, value);
             }
 
             BEGIN_INTERFACE_MAP(Store2Notification)
