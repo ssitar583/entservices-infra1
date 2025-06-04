@@ -26,7 +26,8 @@ namespace Plugin {
     SERVICE_REGISTRATION(SharedStorageImplementation, 1, 0);
 
     SharedStorageImplementation::SharedStorageImplementation() : 
-                                _service(nullptr)
+                                _adminLock()
+                                , _service(nullptr)
                                 , _storeNotification(*this)
                                 , _psObject(nullptr)
                                 , _psInspector(nullptr)
@@ -85,12 +86,43 @@ namespace Plugin {
 
     uint32_t SharedStorageImplementation::Register(ISharedStorage::INotification* notification)
     {
+        // Make sure we can't register the same notification callback multiple times
+        if (std::find(_sharedStorageNotification.begin(), _sharedStorageNotification.end(), notification) == _sharedStorageNotification.end())
+        {
+            LOGINFO("Register notification");
+            _sharedStorageNotification.push_back(notification);
+            notification->AddRef();
+        }
+        else
+        {
+            LOGERR("notification is already available in the _sharedStorageNotification");
+        }
+
         return Core::ERROR_NONE;
     }
+
     uint32_t SharedStorageImplementation::Unregister(ISharedStorage::INotification* notification)
     {
-        return Core::ERROR_NONE;
+        uint32_t status = Core::ERROR_GENERAL;
+
+        // Make sure we can't unregister the same notification callback multiple times
+        auto itr = std::find(_sharedStorageNotification.begin(), _sharedStorageNotification.end(), notification);
+
+        if (itr != _sharedStorageNotification.end())
+        {
+            (*itr)->Release();
+            LOGINFO("Unregister notification");
+            _sharedStorageNotification.erase(itr);
+            status = Core::ERROR_NONE;
+        }
+        else
+        {
+            LOGERR("notification not found");
+        }
+
+        return status;
     }
+
     uint32_t SharedStorageImplementation::Configure(PluginHost::IShell* service)
     {
         uint32_t result = Core::ERROR_GENERAL;
@@ -178,7 +210,39 @@ namespace Plugin {
     void SharedStorageImplementation::ValueChanged(const Exchange::ISharedStorage::ScopeType eScope, const string& ns, const string& key, const string& value)
     {
         LOGINFO("ns:%s key:%s value:%s", ns.c_str(), key.c_str(), value.c_str());
+        JsonObject params;
+        params["namespace"] = ns;
+        params["key"] = key;
+        params["value"] = value;
+        params["scope"] = static_cast<uint8_t>(eScope);
+        dispatchEvent(SHAREDSTORAGE_EVT_VALUE_CHANGED, params); 
     }
+    
+    void SharedStorageImplementation::dispatchEvent(Event event, const JsonObject &params)
+    {
+        Core::IWorkerPool::Instance().Submit(Job::Create(this, event, params));
+    }
+
+    void SharedStorageImplementation::Dispatch(Event event, const JsonObject &params)
+    {
+        _adminLock.Lock();
+
+        std::list<ISharedStorage::INotification*>::const_iterator index(_sharedStorageNotification.begin());
+
+        while (index != _sharedStorageNotification.end()) 
+        {
+            string ns = params["namespace"].String();
+            string key = params["key"].String();
+            string value = params["value"].String();
+            uint8_t scopeVal = static_cast<uint8_t>(params["scope"].Number());
+            Exchange::ISharedStorage::ScopeType scope = static_cast<Exchange::ISharedStorage::ScopeType>(scopeVal);
+
+            (*index)->ValueChanged(scope,ns,key,value);
+            index++;
+        }
+
+        _adminLock.Unlock();
+}
 
     uint32_t SharedStorageImplementation::SetValue(const ISharedStorage::ScopeType eScope, const string& ns, const string& key, const string& value, const uint32_t ttl, Success& success)
     {
