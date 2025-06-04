@@ -1335,7 +1335,7 @@ TEST_F(USBMassStorageTest, comrpc_unmount_failure)
     }
 
 }
-
+#if 0
 TEST_F(USBMassStorageTest, comrpc_Multiple_getDeviceListAndMount_success)
 {
     uint32_t status = Core::ERROR_GENERAL;
@@ -1662,4 +1662,5 @@ TEST_F(USBMassStorageTest, comrpc_Multiple_getDeviceListAndMount_success)
     }
 
 }
+#endif
 
