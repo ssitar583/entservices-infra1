@@ -15,12 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set(PLUGIN_NAME EntOSMigrationTestApp)
+set(PLUGIN_NAME MigrationRestorer)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
-set(PLUGIN_ENTOSMIGRATIONTESTAPP_AUTOSTART "true" CACHE STRING "Automatically start plugin")
-set(PLUGIN_ENTOSMIGRATIONTESTAPP_STARTUPORDER "" CACHE STRING "To configure startup order of plugin")
-set(PLUGIN_ENTOSMIGRATIONTESTAPP_MODE "Off" CACHE STRING "Controls if the plugin should run in process or out of process")
+set(PLUGIN_MIGRATIONRESTORER_AUTOSTART "true" CACHE STRING "Automatically start plugin")
+set(PLUGIN_MIGRATIONRESTORER_STARTUPORDER "" CACHE STRING "To configure startup order of plugin")
+set(PLUGIN_MIGRATIONRESTORER_MODE "Off" CACHE STRING "Controls if the plugin should run in process or out of process")
 
 #list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -29,8 +29,7 @@ find_package(${NAMESPACE}Definitions REQUIRED)
 # find_package(CompileSettingsDebug CONFIG REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
-    EntOSMigrationTestApp.cpp
-    #EntOSMigrationTestAppJsonRpc.cpp
+    MigrationRestorer.cpp
     Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
@@ -54,17 +53,11 @@ target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 #target_include_directories(${MODULE_NAME} PRIVATE ../common)
 #target_include_directories(${MODULE_NAME} PRIVATE ./)
 
-# add_library(${PLUGIN_IMPLEMENTATION} SHARED
-#     MigrationPreparerImplementation.cpp
-#     Module.cpp)
 
 set_target_properties(${PLUGIN_IMPLEMENTATION} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
-#target_include_directories(${PLUGIN_IMPLEMENTATION} PRIVATE ../helpers)
-#target_include_directories(${PLUGIN_IMPLEMENTATION} PRIVATE ../common)
-#target_include_directories(${PLUGIN_IMPLEMENTATION} PRIVATE ./)
 
 # if (RDK_SERVICE_L2_TEST)
 #    find_library(TESTMOCKLIB_LIBRARIES NAMES TestMocklib)

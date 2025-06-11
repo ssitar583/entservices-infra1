@@ -1,0 +1,13 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
+    "info": {
+        "title": "MigrationRestorer Plugin",
+        "callsign": "org.rdk.MigrationRestorer",
+        "locator": "libWPEFrameworkMigrationRestorer.so",
+        "status": "production",
+        "description": "The `MigrationRestorer` that is responsible for set the device settings"
+   },
+    "interface": {
+        "$ref": "MigrationRestorer.json#"
+    }
+}

@@ -19,7 +19,7 @@
 
 #pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME EntOSMigrationTestApp
+#define MODULE_NAME MigrationRestorer
 #endif
 
 #include <plugins/plugins.h>

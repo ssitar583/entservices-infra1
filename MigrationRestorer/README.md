@@ -2,7 +2,7 @@
 # MigrationPreparer
 
 ## Versions
-`org.rdk.EntOSMigrationTestApp
+`org.rdk.MigrationRestorer
 
 ## Methods:
 ```

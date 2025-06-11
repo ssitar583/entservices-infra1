@@ -30,17 +30,17 @@
 namespace WPEFramework {
 namespace Plugin {
 
-    class EntOSMigrationTestApp: public PluginHost::IPlugin, public PluginHost::JSONRPC
+    class MigrationRestorer: public PluginHost::IPlugin, public PluginHost::JSONRPC
     {         
         public:
             // We do not allow this plugin to be copied !!
-            EntOSMigrationTestApp(const EntOSMigrationTestApp&) = delete;
-            EntOSMigrationTestApp& operator=(const EntOSMigrationTestApp&) = delete;
+            MigrationRestorer(const MigrationRestorer&) = delete;
+            MigrationRestorer& operator=(const MigrationRestorer&) = delete;
 
-            EntOSMigrationTestApp();
-            virtual ~EntOSMigrationTestApp();
+            MigrationRestorer();
+            virtual ~MigrationRestorer();
 
-            BEGIN_INTERFACE_MAP(EntOSMigrationTestApp)
+            BEGIN_INTERFACE_MAP(MigrationRestorer)
             INTERFACE_ENTRY(PluginHost::IPlugin)
             INTERFACE_ENTRY(PluginHost::IDispatcher)
             END_INTERFACE_MAP
@@ -61,7 +61,6 @@ namespace Plugin {
 
        
             uint32_t ApplyDeviceSettings(const JsonObject& parameters, JsonObject& response);
-	   // void ApplyDeviceSettings();
             
         private:
             PluginHost::IShell* _service{};

@@ -2,9 +2,9 @@
     "$schema": "interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
-      "title": "EntOSMigrationTestApp API",
-      "class": "EntOSMigrationTestApp",
-      "description": "EntOSMigrationTestApp Store JSON-RPC interface"
+      "title": "MigrationRestorer API",
+      "class": "MigrationRestorer",
+      "description": "MigrationRestorer Store JSON-RPC interface"
     },
     "common": {
       "$ref": "common.json"

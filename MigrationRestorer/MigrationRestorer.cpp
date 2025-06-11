@@ -17,7 +17,7 @@
 * limitations under the License.
 */
 
-#include "EntOSMigrationTestApp.h"
+#include "MigrationRestorer.h"
 #include "cJSON.h"
 #include <iostream>
 #include <fstream>
@@ -56,7 +56,7 @@ namespace WPEFramework
 
     namespace {
 
-        static Plugin::Metadata<Plugin::EntOSMigrationTestApp> metadata(
+        static Plugin::Metadata<Plugin::MigrationRestorer> metadata(
             // Version (Major, Minor, Patch)
             API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
             // Preconditions
@@ -74,29 +74,29 @@ namespace WPEFramework
     /*
      *Register MigrationPreparer module as wpeframework plugin
      **/
-    SERVICE_REGISTRATION(EntOSMigrationTestApp, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
+    SERVICE_REGISTRATION(MigrationRestorer, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
-    EntOSMigrationTestApp::EntOSMigrationTestApp() : _service(nullptr)
+    MigrationRestorer::MigrationRestorer() : _service(nullptr)
     {
-        SYSLOG(Logging::Startup, (_T("EntOSMigrationTestApp Constructor")));
-        LOGINFO("EntOSMigrationTestApp's Constructor called");
-        printf("EntOSMigrationTestApp's Constructor called");
+        SYSLOG(Logging::Startup, (_T("MigrationRestorer Constructor")));
+        LOGINFO("MigrationRestorer's Constructor called");
+        printf("MigrationRestorer's Constructor called");
 
         PopulateMigrationDataStore();
         PopulateMigrationDataStoreSchema();
         
     }
 
-    EntOSMigrationTestApp::~EntOSMigrationTestApp()
+    MigrationRestorer::~MigrationRestorer()
     {
-        SYSLOG(Logging::Shutdown, (string(_T("EntOSMigrationTestApp Destructor"))));
-        LOGINFO("EntOSMigrationTestApp's destructor called");
-        printf("EntOSMigrationTestApp's destructor called");        
+        SYSLOG(Logging::Shutdown, (string(_T("MigrationRestorer Destructor"))));
+        LOGINFO("MigrationRestorer's destructor called");
+        printf("MigrationRestorer's destructor called");        
 
         
     }
 
-    void EntOSMigrationTestApp :: extractFromSchema(cJSON* node, const string& parentKey) {
+    void MigrationRestorer :: extractFromSchema(cJSON* node, const string& parentKey) {
         if (!node || !cJSON_IsObject(node)) return;
 
         cJSON* properties = cJSON_GetObjectItem(node, "properties");
@@ -179,7 +179,7 @@ namespace WPEFramework
 
 
 
-    void EntOSMigrationTestApp :: ParseInputJson(cJSON* node, const string& parentKey) 
+    void MigrationRestorer :: ParseInputJson(cJSON* node, const string& parentKey) 
     {
         if (cJSON_IsObject(node)) {
             cJSON* child = nullptr;
@@ -195,9 +195,9 @@ namespace WPEFramework
     }
 
 
-    void EntOSMigrationTestApp :: PopulateMigrationDataStore()
+    void MigrationRestorer :: PopulateMigrationDataStore()
     {
-        printf("EntOSMigrationTestApp'S PopulateMigrationDataStore Method called");
+        printf("MigrationRestorer'S PopulateMigrationDataStore Method called");
         char *jsonDoc = NULL;
         FILE *file = fopen(MIGRATION_DATA_STORE_PATH, "r");
 
@@ -235,9 +235,9 @@ namespace WPEFramework
 
     }
 
-    void EntOSMigrationTestApp :: PopulateMigrationDataStoreSchema()
+    void MigrationRestorer :: PopulateMigrationDataStoreSchema()
     {
-        printf("EntOSMigrationTestApp'S PopulateMigrationDataStoreSchema Method called");
+        printf("MigrationRestorer'S PopulateMigrationDataStoreSchema Method called");
         char *jsonDoc = NULL;
         std::string retVal = "";
         FILE *file = fopen(MIGARTION_SCHEMA_PATH, "r");
@@ -277,16 +277,16 @@ namespace WPEFramework
         cJSON_Delete(schema);
     }
 
-    const string EntOSMigrationTestApp::Initialize(PluginHost::IShell* service)
+    const string MigrationRestorer::Initialize(PluginHost::IShell* service)
     {
-        LOGINFO("EntOSMigrationTestApp's Initialize method called");
-        printf("EntOSMigrationTestApp's Initialize method called");
+        LOGINFO("MigrationRestorer's Initialize method called");
+        printf("MigrationRestorer's Initialize method called");
         string message="";
 
         ASSERT(nullptr != service);
         ASSERT(nullptr == _service);
 
-        SYSLOG(Logging::Startup, (_T("EntOSMigrationTestApp::Initialize: PID=%u"), getpid()));
+        SYSLOG(Logging::Startup, (_T("MigrationRestorer::Initialize: PID=%u"), getpid()));
 
         _service = service;
         _service->AddRef();
@@ -301,39 +301,39 @@ namespace WPEFramework
         return message;
     }
 
-    void EntOSMigrationTestApp::Deinitialize(PluginHost::IShell* service)
+    void MigrationRestorer::Deinitialize(PluginHost::IShell* service)
     {
-        LOGINFO("EntOSMigrationTestApp'S Deinitialize Method called");
-        printf("EntOSMigrationTestApp'S Deinitialize Method called");
+        LOGINFO("MigrationRestorer'S Deinitialize Method called");
+        printf("MigrationRestorer'S Deinitialize Method called");
         ASSERT(_service == service);
 
-        SYSLOG(Logging::Shutdown, (string(_T("EntOSMigrationTestApp::Deinitialize"))));
+        SYSLOG(Logging::Shutdown, (string(_T("MigrationRestorer::Deinitialize"))));
 
        
         UnregisterAll();
         _connectionId = 0;
         _service->Release();
         _service = nullptr;
-        SYSLOG(Logging::Shutdown, (string(_T("EntOSMigrationTestApp de-initialised"))));
+        SYSLOG(Logging::Shutdown, (string(_T("MigrationRestorer de-initialised"))));
     }
 
-    string EntOSMigrationTestApp::Information() const
+    string MigrationRestorer::Information() const
     {
-       return (string("{\"service\": \"") + string("org.rdk.EntOSMigrationTestApp") + string("\"}"));
+       return (string("{\"service\": \"") + string("org.rdk.MigrationRestorer") + string("\"}"));
     }
 
-    void EntOSMigrationTestApp::RegisterAll()
+    void MigrationRestorer::RegisterAll()
     {
-        printf("EntOSMigrationTestApp'S RegisterAll Method called");
-        registerMethod("ApplyDeviceSettings", &EntOSMigrationTestApp::ApplyDeviceSettings, this);
+        printf("MigrationRestorer'S RegisterAll Method called");
+        registerMethod("ApplyDeviceSettings", &MigrationRestorer::ApplyDeviceSettings, this);
     }
 
-    void EntOSMigrationTestApp::UnregisterAll()
+    void MigrationRestorer::UnregisterAll()
     {
-        printf("EntOSMigrationTestApp'S UnregisterAll Method called");
+        printf("MigrationRestorer'S UnregisterAll Method called");
     }
 
-    bool EntOSMigrationTestApp :: validateKey(const string& key,cJSON* value)
+    bool MigrationRestorer :: validateKey(const string& key,cJSON* value)
     {
         // Check enum constraints first
         auto enumIt = enumMap.find(key);
@@ -372,10 +372,9 @@ namespace WPEFramework
         std::cout << "Schema validation failed , missing key " << key << "in input json file" << std::endl;
         return false;
     }
-    uint32_t EntOSMigrationTestApp :: ApplyDeviceSettings(const JsonObject& parameters, JsonObject& response)
-    //void EntOSMigrationTestApp :: ApplyDeviceSettings()
+    uint32_t MigrationRestorer :: ApplyDeviceSettings(const JsonObject& parameters, JsonObject& response)
     {
-        printf("EntOSMigrationTestApp'S ApplyDeviceSettings Method called");
+        printf("MigrationRestorer'S ApplyDeviceSettings Method called");
         string settings;
         for(const auto& pair : parserData)
         {
