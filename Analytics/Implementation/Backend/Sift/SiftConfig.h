@@ -141,7 +141,7 @@ namespace WPEFramework
                 void AuthTokenChanged() override {}
                 void SessionTokenChanged() override {}
                 void ServiceAccessTokenChanged() override {}
-                void OnPartnerIdChanged(const string& oldPartnerId, const string& newPartnerId, const bool isNew) override {}
+                void OnPartnerIdChanged(const string& oldPartnerId, const string& newPartnerId) override {}
 
                 void RegisterActivationStatusCallback(Callback callback) { mActivationStatusCallback = callback; }
 
