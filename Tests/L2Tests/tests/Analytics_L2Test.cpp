@@ -207,11 +207,10 @@ AnalyticsTest::AnalyticsTest()
     string response;
     uint32_t status = Core::ERROR_GENERAL;
 
-    // PowerManager is needed by System plugin
+    // Activate plugin in constructor
     status = ActivateService("org.rdk.PowerManager");
     EXPECT_EQ(Core::ERROR_NONE, status);
 
-    // Activate plugin in constructor
     status = ActivateService("org.rdk.System");
     EXPECT_EQ(Core::ERROR_NONE, status);
 
