@@ -762,11 +762,15 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
 
     TEST_LOG("Testing getMigrationState before migrating properties");
 
+    sleep(5);
+
     paramsMigrationState["key"] = "PREFERRED_AUDIO_LANGUAGES";
     status = InvokeServiceMethod("org.rdk.UserSettings", "getMigrationState", paramsMigrationState, result_bool);
     EXPECT_EQ(status, Core::ERROR_NONE);
     EXPECT_TRUE(result_bool.Value());
     paramsMigrationState.Clear();
+
+    sleep(5);
 
     paramsMigrationState["key"] = "AUDIO_DESCRIPTION";
     status = InvokeServiceMethod("org.rdk.UserSettings", "getMigrationState", paramsMigrationState, result_bool);
@@ -774,11 +778,15 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     EXPECT_TRUE(result_bool.Value());
     paramsMigrationState.Clear();
 
+    sleep(5);
+
     paramsMigrationState["key"] = "CAPTIONS";
     status = InvokeServiceMethod("org.rdk.UserSettings", "getMigrationState", paramsMigrationState, result_bool);
     EXPECT_EQ(status, Core::ERROR_NONE);
     EXPECT_TRUE(result_bool.Value());
     paramsMigrationState.Clear();
+
+    sleep(5);
 
     paramsMigrationState["key"] = "PREFERRED_CAPTIONS_LANGUAGES";
     status = InvokeServiceMethod("org.rdk.UserSettings", "getMigrationState", paramsMigrationState, result_bool);
@@ -786,11 +794,15 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     EXPECT_TRUE(result_bool.Value());
     paramsMigrationState.Clear();
 
+    sleep(5);
+
     paramsMigrationState["key"] = "PREFERRED_CLOSED_CAPTION_SERVICE";
     status = InvokeServiceMethod("org.rdk.UserSettings", "getMigrationState", paramsMigrationState, result_bool);
     EXPECT_EQ(status, Core::ERROR_NONE);
     EXPECT_TRUE(result_bool.Value());
     paramsMigrationState.Clear();
+
+    sleep(5);
 
     paramsMigrationState["key"] = "PRESENTATION_LANGUAGE";
     status = InvokeServiceMethod("org.rdk.UserSettings", "getMigrationState", paramsMigrationState, result_bool);
@@ -798,11 +810,15 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     EXPECT_TRUE(result_bool.Value());
     paramsMigrationState.Clear();
 
+    sleep(5);
+
     paramsMigrationState["key"] = "HIGH_CONTRAST";
     status = InvokeServiceMethod("org.rdk.UserSettings", "getMigrationState", paramsMigrationState, result_bool);
     EXPECT_EQ(status, Core::ERROR_NONE);
     EXPECT_TRUE(result_bool.Value());
     paramsMigrationState.Clear();
+
+    sleep(5);
 
     paramsMigrationState["key"] = "PIN_CONTROL";
     status = InvokeServiceMethod("org.rdk.UserSettings", "getMigrationState", paramsMigrationState, result_bool);
@@ -810,11 +826,15 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     EXPECT_TRUE(result_bool.Value());
     paramsMigrationState.Clear();
 
+    sleep(5);
+
     paramsMigrationState["key"] = "VIEWING_RESTRICTIONS";
     status = InvokeServiceMethod("org.rdk.UserSettings", "getMigrationState", paramsMigrationState, result_bool);
     EXPECT_EQ(status, Core::ERROR_NONE);
     EXPECT_TRUE(result_bool.Value());
     paramsMigrationState.Clear();
+
+    sleep(5);
 
     paramsMigrationState["key"] = "VIEWING_RESTRICTIONS_WINDOW";
     status = InvokeServiceMethod("org.rdk.UserSettings", "getMigrationState", paramsMigrationState, result_bool);
@@ -822,11 +842,15 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     EXPECT_TRUE(result_bool.Value());
     paramsMigrationState.Clear();
 
+    sleep(5);
+
     paramsMigrationState["key"] = "LIVE_WATERSHED";
     status = InvokeServiceMethod("org.rdk.UserSettings", "getMigrationState", paramsMigrationState, result_bool);
     EXPECT_EQ(status, Core::ERROR_NONE);
     EXPECT_TRUE(result_bool.Value());
     paramsMigrationState.Clear();
+
+    sleep(5);
 
     paramsMigrationState["key"] = "PLAYBACK_WATERSHED";
     status = InvokeServiceMethod("org.rdk.UserSettings", "getMigrationState", paramsMigrationState, result_bool);
@@ -834,11 +858,15 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     EXPECT_TRUE(result_bool.Value());
     paramsMigrationState.Clear();
 
+    sleep(5);
+
     paramsMigrationState["key"] = "BLOCK_NOT_RATED_CONTENT";
     status = InvokeServiceMethod("org.rdk.UserSettings", "getMigrationState", paramsMigrationState, result_bool);
     EXPECT_EQ(status, Core::ERROR_NONE);
     EXPECT_TRUE(result_bool.Value());
     paramsMigrationState.Clear();
+
+    sleep(5);
 
     paramsMigrationState["key"] = "PIN_ON_PURCHASE";
     status = InvokeServiceMethod("org.rdk.UserSettings", "getMigrationState", paramsMigrationState, result_bool);
@@ -846,11 +874,15 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     EXPECT_TRUE(result_bool.Value());
     paramsMigrationState.Clear();
 
+    sleep(5);
+
     paramsMigrationState["key"] = "VOICE_GUIDANCE";
     status = InvokeServiceMethod("org.rdk.UserSettings", "getMigrationState", paramsMigrationState, result_bool);
     EXPECT_EQ(status, Core::ERROR_NONE);
     EXPECT_TRUE(result_bool.Value());
     paramsMigrationState.Clear();
+
+    sleep(5);
 
     paramsMigrationState["key"] = "VOICE_GUIDANCE_RATE";
     status = InvokeServiceMethod("org.rdk.UserSettings", "getMigrationState", paramsMigrationState, result_bool);
@@ -858,11 +890,15 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     EXPECT_TRUE(result_bool.Value());
     paramsMigrationState.Clear();
 
+    sleep(5);
+
     paramsMigrationState["key"] = "VOICE_GUIDANCE_HINTS";
     status = InvokeServiceMethod("org.rdk.UserSettings", "getMigrationState", paramsMigrationState, result_bool);
     EXPECT_EQ(status, Core::ERROR_NONE);
     EXPECT_TRUE(result_bool.Value());
     paramsMigrationState.Clear();
+
+    sleep(5);
 
     paramsMigrationState["key"] = "CONTENT_PIN";
     status = InvokeServiceMethod("org.rdk.UserSettings", "getMigrationState", paramsMigrationState, result_bool);
@@ -870,8 +906,12 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     EXPECT_TRUE(result_bool.Value());
     paramsMigrationState.Clear();
 
+    sleep(5);
+
     status = InvokeServiceMethod("org.rdk.UserSettings", "getMigrationStates", paramsMigrationState, result_json);
     EXPECT_EQ(status, Core::ERROR_NONE);
+
+    sleep(5);
 
     TEST_LOG("Testing AudioDescriptionSuccess");
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
