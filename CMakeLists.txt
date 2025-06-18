@@ -124,6 +124,10 @@ if(PLUGIN_APPMANAGER)
     add_subdirectory(AppManager)
 endif()
 
+if(PLUGIN_MIGRATIONRESTORER)
+    add_subdirectory(MigrationRestorer)
+endif()
+
 if(PLUGIN_RUNTIME_MANAGER)
 	add_subdirectory(RuntimeManager)
 endif()
