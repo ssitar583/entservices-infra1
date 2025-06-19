@@ -399,6 +399,7 @@ UserSettingTest:: UserSettingTest():L2TestMocks()
          /* Activate plugin in constructor */
          status = ActivateService("org.rdk.PersistentStore");
          EXPECT_EQ(Core::ERROR_NONE, status);
+         sleep(1);
          status = ActivateService("org.rdk.UserSettings");
          EXPECT_EQ(Core::ERROR_NONE, status);
 }
