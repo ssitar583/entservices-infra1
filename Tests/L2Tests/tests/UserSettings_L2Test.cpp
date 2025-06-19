@@ -424,7 +424,7 @@ UserSettingTest::~UserSettingTest()
     EXPECT_EQ(Core::ERROR_NONE, status);
 
     sleep(5);
-    #if 0
+    
     int file_status = remove("/tmp/secure/persistent/rdkservicestore");
     // Check if the file has been successfully removed
     if (file_status != 0)
@@ -435,7 +435,7 @@ UserSettingTest::~UserSettingTest()
     {
         TEST_LOG("File[/tmp/secure/persistent/rdkservicestore] successfully deleted");
     }
-    #endif
+    
 }
 
 uint32_t UserSettingTest::WaitForRequestStatus(uint32_t timeout_ms, UserSettingsL2test_async_events_t expected_status)
@@ -476,17 +476,37 @@ uint32_t UserSettingTest::CreateUserSettingInterfaceObjectUsingComRPCConnection(
     {
         TEST_LOG("Invalid Client_UserSettings");
     }
-    else
-    {
-        std::this_thread::sleep_for(std::chrono::seconds(5));
-        m_controller_usersettings = Client_UserSettings->Open<PluginHost::IShell>(_T("org.rdk.UserSettings"), ~0, 10000);
-        if (m_controller_usersettings)
-        {
+    const int max_retries = 5;
+    int retry_count = 0;
+    
+    while (retry_count < max_retries) {
+        m_controller_usersettings = Client_UserSettings->Open<PluginHost::IShell>(
+            _T("org.rdk.UserSettings"), ~0, 3000
+        );
+
+        if (m_controller_usersettings) {
             m_usersettingsplugin = m_controller_usersettings->QueryInterface<Exchange::IUserSettings>();
             m_usersettings_inspe_plugin = m_controller_usersettings->QueryInterface<Exchange::IUserSettingsInspector>();
-            return_value = Core::ERROR_NONE;
+            
+            // Check if we got valid interfaces
+            if (m_usersettingsplugin) {
+                return_value = Core::ERROR_NONE;
+                TEST_LOG("Successfully created UserSettings interface on attempt %d", retry_count + 1);
+                break;
+            }
         }
+        
+        TEST_LOG("Retrying UserSettings connection... (%d/%d)", retry_count + 1, max_retries);
+        
+        // Wait before retrying
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        retry_count++;
     }
+
+    if (return_value != Core::ERROR_NONE) {
+        TEST_LOG("Failed to create UserSettings interface after %d attempts", max_retries);
+    }
+
     return return_value;
 }
 
