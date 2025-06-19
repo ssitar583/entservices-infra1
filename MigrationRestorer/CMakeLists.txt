@@ -18,7 +18,7 @@
 set(PLUGIN_NAME MigrationRestorer)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
-set(PLUGIN_MIGRATIONRESTORER_AUTOSTART true CACHE STRING "Automatically start plugin")
+set(PLUGIN_MIGRATIONRESTORER_AUTOSTART "true" CACHE STRING "Automatically start plugin")
 set(PLUGIN_MIGRATIONRESTORER_STARTUPORDER "" CACHE STRING "To configure startup order of plugin")
 set(PLUGIN_MIGRATIONRESTORER_MODE "Off" CACHE STRING "Controls if the plugin should run in process or out of process")
 
@@ -26,6 +26,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
+find_package(DS)
+find_package(IARMBus)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
@@ -42,9 +44,15 @@ target_link_libraries(${MODULE_NAME}
     PRIVATE
         CompileSettingsDebug::CompileSettingsDebug
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-        ${NAMESPACE}Definitions::${NAMESPACE}Definitions)
+        ${NAMESPACE}Definitions::${NAMESPACE}Definitions
+	${DS_LIBRARIES}
+        ${IARMBUS_LIBRARIES})
 
-target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
+target_include_directories(${MODULE_NAME} PRIVATE
+        ${DS_INCLUDE_DIRS}
+        ${IARMBUS_INCLUDE_DIRS}
+        ../helpers)
+
 
 set(MIGRATIONRESTORER_INCLUDES $ENV{MIGRATIONRESTORER_INCLUDES})
 separate_arguments(MIGRATIONRESTORER_INCLUDES)

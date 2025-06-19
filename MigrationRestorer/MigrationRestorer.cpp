@@ -24,17 +24,17 @@
 #include <sstream>
 #include <vector>
 #include <string>
-#include <unordered_map>
+#include <map>
 #include <algorithm>
 //#include <UtilsSynchro.hpp>
 #include "UtilsCStr.h"
-//#include "UtilsIarm.h"
+#include "UtilsIarm.h"
 #include "UtilsJsonRpc.h"
 #include "UtilsString.h"
 #include "UtilsisValidInt.h"
 //#include "dsRpc.h"
 
-//#include "UtilsSynchroIarm.hpp"
+#include "UtilsSynchroIarm.hpp"
 
 #include <cstdio>
 #include <cstdlib>
@@ -42,7 +42,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_PATCH 0
 
 #define MIGRATION_DATA_STORE_PATH "/opt/secure/migration/migration_data_store.json"
 #define MIGARTION_SCHEMA_PATH "/opt/secure/migration/entos_settings_migration.schema.json"
@@ -96,104 +96,6 @@ namespace WPEFramework
         
     }
 
-    void MigrationRestorer :: extractFromSchema(cJSON* node, const string& parentKey) {
-        if (!node || !cJSON_IsObject(node)) return;
-
-        cJSON* properties = cJSON_GetObjectItem(node, "properties");
-        if (properties && cJSON_IsObject(properties)) {
-            cJSON* child = nullptr;
-            cJSON_ArrayForEach(child, properties) {
-                if (!child->string) continue;
-                string key = child->string;
-                string fullKey = parentKey.empty() ? key : parentKey + "/" + key;
-                extractFromSchema(child, fullKey);
-            }
-            return;
-        }
-
-        cJSON* typeNode = cJSON_GetObjectItem(node, "type");
-        if (typeNode && cJSON_IsString(typeNode)) {
-            const char* typeStr = typeNode->valuestring;
-
-            if (strcmp(typeStr, "array") == 0) {
-                // For array type, check "items"
-                cJSON* itemsNode = cJSON_GetObjectItem(node, "items");
-                if (itemsNode) {
-                    // If "items" is array: multiple item schemas, else one schema
-                    if (cJSON_IsArray(itemsNode)) {
-                        int size = cJSON_GetArraySize(itemsNode);
-                        for (int i = 0; i < size; i++) {
-                            cJSON* item = cJSON_GetArrayItem(itemsNode, i);
-                            extractFromSchema(item, parentKey);
-                        }
-                    } else {
-                        extractFromSchema(itemsNode, parentKey);
-                    }
-                }
-                return;
-            }
-
-            if (strcmp(typeStr, "object") == 0) {
-                // Object can have "properties"
-                cJSON* props = cJSON_GetObjectItem(node, "properties");
-                if (props && cJSON_IsObject(props)) {
-                    cJSON* child = nullptr;
-                    cJSON_ArrayForEach(child, props) {
-                        if (!child->string) continue;
-                        string key = child->string;
-                        string fullKey = parentKey.empty() ? key : parentKey + "/" + key;
-                        extractFromSchema(child, fullKey);
-                    }
-                }
-                return;
-            }
-
-            if (strcmp(typeStr, "string") == 0) {
-                // Extract enum array for this string key
-                cJSON* enumNode = cJSON_GetObjectItem(node, "enum");
-                if (enumNode && cJSON_IsArray(enumNode)) {
-			std::vector<string> enums;
-                    int size = cJSON_GetArraySize(enumNode);
-                    for (int i = 0; i < size; i++) {
-                        cJSON* item = cJSON_GetArrayItem(enumNode, i);
-                        if (cJSON_IsString(item))
-                            enums.push_back(item->valuestring);
-                    }
-                    if (!enums.empty())
-                        enumMap[parentKey] = enums;
-                }
-                return;
-            }
-
-            if (strcmp(typeStr, "number") == 0 || strcmp(typeStr, "integer") == 0) {
-                // Extract min, max if available
-                cJSON* minNode = cJSON_GetObjectItem(node, "minimum");
-                cJSON* maxNode = cJSON_GetObjectItem(node, "maximum");
-                if (minNode && cJSON_IsNumber(minNode) && maxNode && cJSON_IsNumber(maxNode)) {
-                    numberRangeMap[parentKey] = {minNode->valuedouble, maxNode->valuedouble};
-                }
-                return;
-            }
-        }
-    }
-
-
-
-    void MigrationRestorer :: ParseInputJson(cJSON* node, const string& parentKey) 
-    {
-        if (cJSON_IsObject(node)) {
-            cJSON* child = nullptr;
-            cJSON_ArrayForEach(child, node) {
-                if (!child->string) continue;
-                string newKey = parentKey.empty() ? child->string : parentKey + "/" + child->string;
-                ParseInputJson(child, newKey);
-            }
-        } else {
-            // store the value
-            parserData[parentKey] = node;
-        }
-    }
-
 
     void MigrationRestorer :: PopulateMigrationDataStore()
     {
@@ -220,17 +122,21 @@ namespace WPEFramework
         file =NULL;
         jsonDoc[numbytes] = '\0';
 
-        cJSON *parserRoot = cJSON_Parse(jsonDoc);
+        cJSON *inputRoot = cJSON_Parse(jsonDoc);
         free(jsonDoc);
         jsonDoc = NULL;
-        if (!parserRoot) {
+        if (!inputRoot) {
             std::cout << "Failed to parse data.json\n";
-            cJSON_Delete(parserRoot);
             return ;
         }
-        ParseInputJson(parserRoot, "");  
+        // ParseInputJson(parserRoot, "");  
+        // Store all input data in memory
+        cJSON* item = nullptr;
+        cJSON_ArrayForEach(item, inputRoot) {
+            inputMap[item->string] = item;
+        }
 
-        cJSON_Delete(parserRoot);
+        cJSON_Delete(inputRoot);
         
 
     }
@@ -261,23 +167,31 @@ namespace WPEFramework
         file = NULL;
         jsonDoc[numbytes] = '\0';
 
-        cJSON *schema = cJSON_Parse(jsonDoc);
+        schemaRoot = cJSON_Parse(jsonDoc);
         free(jsonDoc);
         jsonDoc = NULL;
 
 
-        if (!schema) {
+        if (!schemaRoot) {
         std::cout << "Failed to parse schema.json\n";
-        cJSON_Delete(schema);
+        // cJSON_Delete(schemaRoot);
         return ;
         }
 
-        extractFromSchema(schema, "");
+        // extractFromSchema(schema, "");
+        // Store all schema properties in memory
+        cJSON* properties = cJSON_GetObjectItem(schemaRoot, "properties");
+        if (properties) {
+            cJSON* prop = nullptr;
+            cJSON_ArrayForEach(prop, properties) {
+                schemaMap[prop->string] = prop;
+            }
 
-        cJSON_Delete(schema);
+        // cJSON_Delete(schemaRoot);
+     }
     }
 
-    const string MigrationRestorer::Initialize(PluginHost::IShell* service)
+    const std::string MigrationRestorer::Initialize(PluginHost::IShell* service)
     {
         LOGINFO("MigrationRestorer's Initialize method called");
         printf("MigrationRestorer's Initialize method called");
@@ -317,7 +231,7 @@ namespace WPEFramework
         SYSLOG(Logging::Shutdown, (string(_T("MigrationRestorer de-initialised"))));
     }
 
-    string MigrationRestorer::Information() const
+    std::string MigrationRestorer::Information() const
     {
        return (string("{\"service\": \"") + string("org.rdk.MigrationRestorer") + string("\"}"));
     }
@@ -325,7 +239,7 @@ namespace WPEFramework
     void MigrationRestorer::RegisterAll()
     {
         printf("MigrationRestorer'S RegisterAll Method called");
-        registerMethod("ApplyDeviceSettings", &MigrationRestorer::ApplyDeviceSettings, this);
+        registerMethod("ApplyDisplaySettings", &MigrationRestorer::ApplyDisplaySettings, this);
     }
 
     void MigrationRestorer::UnregisterAll()
@@ -333,95 +247,158 @@ namespace WPEFramework
         printf("MigrationRestorer'S UnregisterAll Method called");
     }
 
-    bool MigrationRestorer :: validateKey(const string& key,cJSON* value)
-    {
-        // Check enum constraints first
-        auto enumIt = enumMap.find(key);
-        if (enumIt != enumMap.end()) {
-            if (!cJSON_IsString(value)) {
-                std::cout << "Value for key " << key << " is not string but enum expected.\n";
-                return false;
-            }
-            const string valStr = value->valuestring;
-            const std::vector<string>& allowed = enumIt->second;
-            for (const string& s : allowed) {
-                if (valStr == s)
-                    return true;
-            }
-            std::cout << "Value '" << valStr << "' not in enum for key " << key << std::endl;
-            return false;
-        }
+    // bool MigrationRestorer :: validateKey(const string& key,cJSON* value)
 
-        // Check number range constraints
-        auto numIt = numberRangeMap.find(key);
-        if (numIt != numberRangeMap.end()) {
-            if (!cJSON_IsNumber(value)) {
-                std::cout << "Value for key " << key << " is not number but number expected.\n";
-                return false;
-            }
-            double v = value->valuedouble;
-            double minVal = numIt->second.first;
-            double maxVal = numIt->second.second;
-            if (v < minVal || v > maxVal) {
-                std::cout << "Number value " << v << " out of range [" << minVal << "," << maxVal << "] for key " << key << std::endl;
-                return false;
-            }
-            return true;
-        }
 
-        std::cout << "Schema validation failed , missing key " << key << "in input json file" << std::endl;
+    // Helper to resolve $ref in schema, including /items/N
+    cJSON* MigrationRestorer :: resolveRef( const std::string& ref) {
+        if (ref.rfind("#/definitions/", 0) == 0) {
+            std::string path = ref.substr(strlen("#/definitions/"));
+            size_t slash = path.find('/');
+            std::string defName = path.substr(0, slash);
+            cJSON* node = cJSON_GetObjectItem(cJSON_GetObjectItem(schemaRoot, "definitions"), defName.c_str());
+            while (slash != std::string::npos && node) {
+                path = path.substr(slash + 1);
+                slash = path.find('/');
+                std::string key = path.substr(0, slash);
+                if (key == "items") {
+                    node = cJSON_GetObjectItem(node, "items");
+                } else {
+                    int idx = std::atoi(key.c_str());
+                    node = cJSON_GetArrayItem(node, idx);
+                }
+            }
+            return node;
+        }
+        return nullptr;
+    }
+
+
+    // Helper to check if a value is in an enum array
+    bool MigrationRestorer :: isInEnum(cJSON* enumNode, const std::string& value) {
+        if (!enumNode || !cJSON_IsArray(enumNode)) return false;
+        cJSON* item = nullptr;
+        cJSON_ArrayForEach(item, enumNode) {
+            if (cJSON_IsString(item) && value == item->valuestring) return true;
+        }
         return false;
     }
-    uint32_t MigrationRestorer :: ApplyDeviceSettings(const JsonObject& parameters, JsonObject& response)
-    {
-        printf("MigrationRestorer'S ApplyDeviceSettings Method called");
-        string settings;
-        for(const auto& pair : parserData)
-        {
-            settings = pair.first;
-            auto position = parserData.find(settings);
-            if (position == parserData.end()) {
-                std::cout << "Key not found in parser.json: " << settings << std::endl;
-                // return false;
+
+    // Validate a value against a schema node
+    bool MigrationRestorer :: validateValue(cJSON* value, cJSON* schema) {
+        if (!schema) return false;
+
+        // Handle $ref
+        cJSON* refNode = cJSON_GetObjectItem(schema, "$ref");
+        if (refNode && cJSON_IsString(refNode)) {
+            cJSON* resolved = resolveRef(refNode->valuestring);
+            if (!resolved) return false;
+            return validateValue(value, resolved);
+        }
+
+        // Handle type
+        cJSON* typeNode = cJSON_GetObjectItem(schema, "type");
+        if (typeNode && cJSON_IsString(typeNode)) {
+            std::string type = typeNode->valuestring;
+            if (type == "string") {
+                if (!cJSON_IsString(value)) return false;
+                cJSON* enumNode = cJSON_GetObjectItem(schema, "enum");
+                if (enumNode && !isInEnum(enumNode, value->valuestring)) return false;
+                return true;
             }
-            cJSON* value = position->second;
+            if (type == "number" || type == "integer") {
+                if (!cJSON_IsNumber(value)) return false;
+                cJSON* minNode = cJSON_GetObjectItem(schema, "minimum");
+                cJSON* maxNode = cJSON_GetObjectItem(schema, "maximum");
+                if (minNode && value->valuedouble < minNode->valuedouble) return false;
+                if (maxNode && value->valuedouble > maxNode->valuedouble) return false;
+                return true;
+            }
+            if (type == "array") {
+                if (!cJSON_IsArray(value)) return false;
+                cJSON* itemsNode = cJSON_GetObjectItem(schema, "items");
+                if (!itemsNode) return false;
+                // If items is an array, validate each item by index
+                if (cJSON_IsArray(itemsNode)) {
+                    int arrSize = cJSON_GetArraySize(itemsNode);
+                    for (int i = 0; i < cJSON_GetArraySize(value); ++i) {
+                        cJSON* v = cJSON_GetArrayItem(value, i);
+                        cJSON* s = cJSON_GetArrayItem(itemsNode, i % arrSize);
+                        if (!validateValue(v, s)) return false;
+                    }
+                    return true;
+                } else {
+                    // items is a schema, validate each element
+                    cJSON* arrItem = nullptr;
+                    cJSON_ArrayForEach(arrItem, value) {
+                        if (!validateValue(arrItem, itemsNode)) return false;
+                    }
+                    return true;
+                }
+            }
+            if (type == "object") {
+                // Not handled in this minimal example
+                return false;
+            }
+        }
+        // Handle enum at root
+        cJSON* enumNode = cJSON_GetObjectItem(schema, "enum");
+        if (enumNode && cJSON_IsString(value) && !isInEnum(enumNode, value->valuestring)) return false;
+
+        return true;
+    }
+    
+    uint32_t MigrationRestorer :: ApplyDisplaySettings(const JsonObject& parameters, JsonObject& response)
+    {
+        printf("MigrationRestorer'S ApplyDisplaySettings Method called");
+        string key;
+        for(const auto& pair : inputMap)
+        {
+            key = pair.first;
+            auto itInput = inputMap.find(key);
+            auto itSchema = schemaMap.find(key);
+            if (itInput == inputMap.end() || itSchema == schemaMap.end()) 
+            {
+                std::cout << key << " : NOT FOUND" << std::endl;
+                return false;
+            }
 
             
-            if( settings=="sound/dolbyvolume")
+            if( key=="sound/dolbyvolume")
             {
-                bool valid = validateKey(settings,value);
+                bool valid = validateValue(itInput->second, itSchema->second);
+                if(valid)
+                {
+                    //apply key
+                }
+            }
+            else if(key == "sound/enhancespeech")
+            {
+                bool valid = validateValue(itInput->second, itSchema->second);
                 if(valid)
                 {
                     //apply settings
                 }
             }
-            else if(settings == "sound/enhancespeech")
+            else if (key == "sound/opticalformat")
             {
-                bool valid = validateKey(settings,value);
+                bool valid = validateValue(itInput->second, itSchema->second);
                 if(valid)
                 {
                     //apply settings
                 }
             }
-            else if (settings == "sound/opticalformat")
+            else if (key == "sound/hdmi/earc/audioformat")
             {
-                bool valid = validateKey(settings,value);
+                bool valid = validateValue(itInput->second, itSchema->second);
                 if(valid)
                 {
                     //apply settings
                 }
             }
-            else if (settings == "sound/hdmi/earc/audioformat")
+            else if (key == "system/timezone")
             {
-                bool valid = validateKey(settings,value);
-                if(valid)
-                {
-                    //apply settings
-                }
-            }
-            else if (settings == "system/timezone")
-            {
-                bool valid = validateKey(settings,value);
+                bool valid = validateValue(itInput->second, itSchema->second);
                 if(valid)
                 {
                     //apply settings
@@ -432,5 +409,6 @@ namespace WPEFramework
 	return 0;
     }
 
-} // namespace Plugin
-} // namespace WPEFramework
+ } // namespace Plugin
+  
+ }// namespace WPEFramework

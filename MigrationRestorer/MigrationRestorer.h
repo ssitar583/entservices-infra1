@@ -54,21 +54,21 @@ namespace Plugin {
             void UnregisterAll();
             void PopulateMigrationDataStore();
             void PopulateMigrationDataStoreSchema();
-            void extractFromSchema(cJSON* node, const string& parentKey);
-            void ParseInputJson(cJSON* node, const string& parentKey);
-            bool validateKey(const string& key,cJSON* value);
+            cJSON* resolveRef( const std::string& ref);
+            bool isInEnum(cJSON* enumNode, const std::string& value);
+            bool validateValue(cJSON* value, cJSON* schema);
            
 
        
-            uint32_t ApplyDeviceSettings(const JsonObject& parameters, JsonObject& response);
+            uint32_t ApplyDisplaySettings(const JsonObject& parameters, JsonObject& response);
             
         private:
             PluginHost::IShell* _service{};
             uint32_t _connectionId{};
-            std :: unordered_map<string,std::vector<string>> enumMap; 
-            std :: unordered_map<string, std::pair<double, double>> numberRangeMap; 
 
-            std :: unordered_map<string, cJSON*> parserData;
+            std::map<std::string, cJSON*> inputMap;
+            std::map<std::string, cJSON*> schemaMap;
+            cJSON* schemaRoot = nullptr;
     };
 
 } // namespace Plugin
