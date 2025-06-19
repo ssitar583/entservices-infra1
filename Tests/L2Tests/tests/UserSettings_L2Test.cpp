@@ -399,7 +399,6 @@ UserSettingTest:: UserSettingTest():L2TestMocks()
          /* Activate plugin in constructor */
          status = ActivateService("org.rdk.PersistentStore");
          EXPECT_EQ(Core::ERROR_NONE, status);
-         sleep(1);
          status = ActivateService("org.rdk.UserSettings");
          EXPECT_EQ(Core::ERROR_NONE, status);
 }
@@ -421,7 +420,7 @@ UserSettingTest::~UserSettingTest()
     status = DeactivateService("org.rdk.PersistentStore");
     EXPECT_EQ(Core::ERROR_NONE, status);
 
-    sleep(5);
+    
     int file_status = remove("/tmp/secure/persistent/rdkservicestore");
     // Check if the file has been successfully removed
     if (file_status != 0)
