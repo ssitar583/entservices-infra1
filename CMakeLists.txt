@@ -64,6 +64,11 @@ if(PLUGIN_OCICONTAINER)
     add_subdirectory(OCIContainer)
 endif()
 
+if(PLUGIN_MIGRATIONRESTORER)
+    add_subdirectory(MigrationRestorer)
+endif()
+
+
 if(PLUGIN_PERSISTENTSTORE)
     add_subdirectory(PersistentStore)
 endif()
@@ -122,10 +127,6 @@ endif()
 
 if(PLUGIN_APPMANAGER)
     add_subdirectory(AppManager)
-endif()
-
-if(PLUGIN_MIGRATIONRESTORER)
-    add_subdirectory(MigrationRestorer)
 endif()
 
 if(PLUGIN_RUNTIME_MANAGER)
