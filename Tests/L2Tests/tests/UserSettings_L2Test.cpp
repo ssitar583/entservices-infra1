@@ -26,6 +26,8 @@
 #include <fstream>
 #include <interfaces/IStore2.h>
 #include <interfaces/IUserSettings.h>
+#include <chrono>
+#include <thread>
 
 #define TEST_LOG(x, ...) fprintf(stderr, "\033[1;32m[%s:%d](%s)<PID:%d><TID:%d>" x "\n\033[0m", __FILE__, __LINE__, __FUNCTION__, getpid(), gettid(), ##__VA_ARGS__); fflush(stderr);
 
@@ -401,6 +403,7 @@ UserSettingTest:: UserSettingTest():L2TestMocks()
          EXPECT_EQ(Core::ERROR_NONE, status);
          status = ActivateService("org.rdk.UserSettings");
          EXPECT_EQ(Core::ERROR_NONE, status);
+         std::this_thread::sleep_for(std::chrono::seconds(5));
 }
 
 /**
@@ -473,7 +476,8 @@ uint32_t UserSettingTest::CreateUserSettingInterfaceObjectUsingComRPCConnection(
     }
     else
     {
-        m_controller_usersettings = Client_UserSettings->Open<PluginHost::IShell>(_T("org.rdk.UserSettings"), ~0, 3000);
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+        m_controller_usersettings = Client_UserSettings->Open<PluginHost::IShell>(_T("org.rdk.UserSettings"), ~0, 10000);
         if (m_controller_usersettings)
         {
             m_usersettingsplugin = m_controller_usersettings->QueryInterface<Exchange::IUserSettings>();
