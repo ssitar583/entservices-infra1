@@ -424,6 +424,7 @@ UserSettingTest::~UserSettingTest()
     EXPECT_EQ(Core::ERROR_NONE, status);
 
     sleep(5);
+    #if 0
     int file_status = remove("/tmp/secure/persistent/rdkservicestore");
     // Check if the file has been successfully removed
     if (file_status != 0)
@@ -434,6 +435,7 @@ UserSettingTest::~UserSettingTest()
     {
         TEST_LOG("File[/tmp/secure/persistent/rdkservicestore] successfully deleted");
     }
+    #endif
 }
 
 uint32_t UserSettingTest::WaitForRequestStatus(uint32_t timeout_ms, UserSettingsL2test_async_events_t expected_status)
