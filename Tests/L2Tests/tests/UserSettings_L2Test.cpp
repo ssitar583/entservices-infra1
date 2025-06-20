@@ -735,7 +735,7 @@ MATCHER_P(MatchRequestStatusDouble, expected, "")
     return expected == actual;
 
 }
-#if 0
+
 TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
 {
     JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(USERSETTING_CALLSIGN, USERSETTINGL2TEST_CALLSIGN);
@@ -2854,7 +2854,7 @@ TEST_F(UserSettingTest, PersistentstoreIsDeactivatedErrorCase)
         }
     }
 }
-#endif
+
 TEST_F(UserSettingTest, PersistentstoreIsNotActivatedWhileUserSettingsActivatingErrorCase)
 {
     uint32_t status = Core::ERROR_GENERAL;
