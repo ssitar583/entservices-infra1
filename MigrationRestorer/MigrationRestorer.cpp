@@ -112,12 +112,16 @@ namespace WPEFramework
         FILE *file = fopen(MIGRATION_DATA_STORE_PATH, "r");
 
         if (!file)
+        {
+            printf("The migration_data_store.json file failed to open\n");
             return ;
+        }
 
         fseek(file, 0, SEEK_END);
         long numbytes = ftell(file);
         jsonDoc = (char*)malloc(sizeof(char)*(numbytes + 1));
         if(jsonDoc == NULL) {
+            printf("Failed to allocated memory for jsonDoc inside PopulateMigrationDataStore function\n");
             fclose(file);
             return ;
         }
@@ -157,12 +161,16 @@ namespace WPEFramework
         FILE *file = fopen(MIGARTION_SCHEMA_PATH, "r");
 
         if (!file)
+        {
+            printf("The entos_settings_migration.schema.json file failed to open\n");
             return ;
+        }
 
         fseek(file, 0, SEEK_END);
         long numbytes = ftell(file);
         jsonDoc = (char*)malloc(sizeof(char)*(numbytes + 1));
         if(jsonDoc == NULL) {
+            printf("Failed to allocated memory for jsonDoc inside PopulateMigrationDataStoreSchema function\n");
             fclose(file);
             return ;
         }
@@ -260,7 +268,9 @@ namespace WPEFramework
 
     // Helper to resolve $ref in schema, including /items/N
     cJSON* MigrationRestorer :: resolveRef( const std::string& ref) {
+        printf("Entering the resolveRef function\n");
         if (ref.rfind("#/definitions/", 0) == 0) {
+            printf("Entered resolveRef function if block\n");
             std::string path = ref.substr(strlen("#/definitions/"));
             size_t slash = path.find('/');
             std::string defName = path.substr(0, slash);
@@ -278,27 +288,35 @@ namespace WPEFramework
             }
             return node;
         }
+        printf("Enterning NULL in resolveRef function\n");
         return nullptr;
     }
 
 
     // Helper to check if a value is in an enum array
     bool MigrationRestorer :: isInEnum(cJSON* enumNode, const std::string& value) {
+        printf("Entered in isInEnum function\n");
         if (!enumNode || !cJSON_IsArray(enumNode)) return false;
         cJSON* item = nullptr;
         cJSON_ArrayForEach(item, enumNode) {
             if (cJSON_IsString(item) && value == item->valuestring) return true;
         }
+        printf("Enterning false in isInEnum function\n");
         return false;
     }
 
     // Validate a value against a schema node
     bool MigrationRestorer :: validateValue(cJSON* value, cJSON* schema) {
-        if (!schema) return false;
-
+        printf("Entered validateValue function\n");
+        if (!schema)
+        {
+            printf("The schema cjson object is NULL returning false in validateValue function\n");
+            return false;
+        }
         // Handle $ref
         cJSON* refNode = cJSON_GetObjectItem(schema, "$ref");
         if (refNode && cJSON_IsString(refNode)) {
+            printf("Entered in ref block\n");
             cJSON* resolved = resolveRef(refNode->valuestring);
             if (!resolved) return false;
             return validateValue(value, resolved);
@@ -307,6 +325,7 @@ namespace WPEFramework
         // Handle type
         cJSON* typeNode = cJSON_GetObjectItem(schema, "type");
         if (typeNode && cJSON_IsString(typeNode)) {
+            printf("Entered in type block\n");
             std::string type = typeNode->valuestring;
             if (type == "string") {
                 if (!cJSON_IsString(value)) return false;
@@ -315,6 +334,7 @@ namespace WPEFramework
                 return true;
             }
             if (type == "number" || type == "integer") {
+                printf("Entered in number || integer block\n");
                 if (!cJSON_IsNumber(value)) return false;
                 cJSON* minNode = cJSON_GetObjectItem(schema, "minimum");
                 cJSON* maxNode = cJSON_GetObjectItem(schema, "maximum");
@@ -323,6 +343,7 @@ namespace WPEFramework
                 return true;
             }
             if (type == "array") {
+                printf("Entered in array block\n");
                 if (!cJSON_IsArray(value)) return false;
                 cJSON* itemsNode = cJSON_GetObjectItem(schema, "items");
                 if (!itemsNode) return false;
@@ -366,26 +387,36 @@ namespace WPEFramework
             key = pair.first;
             auto itInput = inputMap.find(key);
             auto itSchema = schemaMap.find(key);
+
             if (itInput == inputMap.end() || itSchema == schemaMap.end()) 
             {
                 std::cout << key << " : NOT FOUND" << std::endl;
-                printf("The key is not found inside json file\n");
+                printf("The key is not found inside schema json file\n");
                 return false;
             }
 
+            cJSON* inputVal = itInput->second;
+            cJSON* schemaVal = itSchema->second;
+
+            if (!inputVal || !schemaVal) {
+                printf("Null JSON pointers for key: %s\n", key.c_str());
+                continue;
+            }
             
             if( key=="picture/resolution")
             {
                 printf("Entered inside picture/resolution block\n" );
-                bool valid = validateValue(itInput->second, itSchema->second);
+                bool valid = validateValue(inputVal, schemaVal);
+                printf("The value of bool valid or return value of validateValue: %d\n", valid);
+                printf("validateValue for key '%s' returned: %s\n", key.c_str(), valid ? "true" : "false");
                 if(valid)
                 {
                     printf("picture/resolution validation success\n" );
-                    cJSON* values = itInput->second;
+                    // cJSON* values = itInput->second;
                     string resolution;
-                    if (cJSON_IsString(values))
+                    if (cJSON_IsString(inputVal))
                     {
-                      resolution = values->valuestring;
+                      resolution = inputVal->valuestring;
 
                     }
                     string videoDisplay = "HDMI0";
@@ -413,7 +444,8 @@ namespace WPEFramework
 	        else if( key=="sound/dolbyvolume")
             {
                 printf("Entered inside sound/dolbyvolume block\n" );
-                bool valid = validateValue(itInput->second, itSchema->second);
+                bool valid = validateValue(inputVal, schemaVal);
+                printf("The value of bool valid or return value of validateValue: %d\n", valid);
                 if(valid)
                 {
                     printf("sound/dolbyvolume validation success\n" );
@@ -423,7 +455,8 @@ namespace WPEFramework
             else if(key == "sound/enhancespeech")
             {
                 printf("Entered inside sound/enhancespeech block\n" );
-                bool valid = validateValue(itInput->second, itSchema->second);
+                bool valid = validateValue(inputVal, schemaVal);
+                printf("The value of bool valid or return value of validateValue: %d\n", valid);
                 if(valid)
                 {
                     printf("sound/enhancespeech validation success\n" );
@@ -433,7 +466,8 @@ namespace WPEFramework
             else if (key == "sound/opticalformat")
             {
                 printf("Entered inside sound/opticalformat block\n" );
-                bool valid = validateValue(itInput->second, itSchema->second);
+                bool valid = validateValue(inputVal, schemaVal);
+                printf("The value of bool valid or return value of validateValue: %d\n", valid);
                 if(valid)
                 {
                     printf("sound/opticalformat validation success\n" );
@@ -442,7 +476,8 @@ namespace WPEFramework
             }
             else if (key == "sound/hdmi/earc/audioformat")
             {
-                bool valid = validateValue(itInput->second, itSchema->second);
+                bool valid = validateValue(inputVal, schemaVal);
+                printf("The value of bool valid or return value of validateValue: %d\n", valid);
                 if(valid)
                 {
                     printf("sound/hdmi/earc/audioformat validation success\n" );
@@ -452,7 +487,8 @@ namespace WPEFramework
             else if (key == "system/timezone")
             {
                 printf("Entered inside system/timezone block\n" );
-                bool valid = validateValue(itInput->second, itSchema->second);
+                bool valid = validateValue(inputVal, schemaVal);
+                printf("The value of bool valid or return value of validateValue: %d\n", valid);
                 if(valid)
                 {
                     printf("system/timezone validation success\n" );
@@ -466,4 +502,4 @@ namespace WPEFramework
 
  } // namespace Plugin
   
- }// namespace WPEFramework
+}// namespace WPEFramework
