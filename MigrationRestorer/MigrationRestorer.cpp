@@ -26,19 +26,27 @@
 #include <string>
 #include <map>
 #include <algorithm>
-//#include <UtilsSynchro.hpp>
+
 #include "UtilsCStr.h"
 #include "UtilsIarm.h"
 #include "UtilsJsonRpc.h"
 #include "UtilsString.h"
 #include "UtilsisValidInt.h"
-//#include "dsRpc.h"
-
 #include "UtilsSynchroIarm.hpp"
 
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include "exception.hpp"
+#include "dsMgr.h"
+#include "dsUtl.h"
+#include "dsError.h"
+#include "dsDisplay.h"
+#include "host.hpp"
+#include "videoOutputPort.hpp"
+#include "videoOutputPortType.hpp"
+#include "videoOutputPortConfig.hpp"
+#include "videoResolution.hpp"
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
@@ -189,7 +197,7 @@ namespace WPEFramework
 
         // cJSON_Delete(schemaRoot);
      }
-    }
+    }	
 
     const std::string MigrationRestorer::Initialize(PluginHost::IShell* service)
     {
@@ -347,10 +355,11 @@ namespace WPEFramework
 
         return true;
     }
+
     
     uint32_t MigrationRestorer :: ApplyDisplaySettings(const JsonObject& parameters, JsonObject& response)
     {
-        printf("MigrationRestorer'S ApplyDisplaySettings Method called");
+        printf("MigrationRestorer'S ApplyDisplaySettings Method called\n");
         string key;
         for(const auto& pair : inputMap)
         {
@@ -360,31 +369,74 @@ namespace WPEFramework
             if (itInput == inputMap.end() || itSchema == schemaMap.end()) 
             {
                 std::cout << key << " : NOT FOUND" << std::endl;
+                printf("The key is not found inside json file\n");
                 return false;
             }
 
             
-            if( key=="sound/dolbyvolume")
+            if( key=="picture/resolution")
             {
+                printf("Entered inside picture/resolution block\n" );
                 bool valid = validateValue(itInput->second, itSchema->second);
                 if(valid)
                 {
+                    printf("picture/resolution validation success\n" );
+                    cJSON* values = itInput->second;
+                    string resolution;
+                    if (cJSON_IsString(values))
+                    {
+                      resolution = values->valuestring;
+
+                    }
+                    string videoDisplay = "HDMI0";
+                    bool persist = true;
+                    bool isIgnoreEdid = true;
+                    bool success = true;
+                    try
+                    {
+                        printf("Entered inside resolution try block\n" );
+                        device::VideoOutputPort &vPort = device::Host::getInstance().getVideoOutputPort(videoDisplay);
+                        vPort.setResolution(resolution, persist, isIgnoreEdid);
+                    }
+                    catch (const device::Exception& err)
+                    {
+                        printf("Entered inside resolution catch block\n" );
+                       // LOG_DEVICE_EXCEPTION2(videoDisplay, resolution);
+                        success = false;
+                    }
+                    returnResponse(success);
+                }
+
+            }
+
+
+	        else if( key=="sound/dolbyvolume")
+            {
+                printf("Entered inside sound/dolbyvolume block\n" );
+                bool valid = validateValue(itInput->second, itSchema->second);
+                if(valid)
+                {
+                    printf("sound/dolbyvolume validation success\n" );
                     //apply key
                 }
             }
             else if(key == "sound/enhancespeech")
             {
+                printf("Entered inside sound/enhancespeech block\n" );
                 bool valid = validateValue(itInput->second, itSchema->second);
                 if(valid)
                 {
+                    printf("sound/enhancespeech validation success\n" );
                     //apply settings
                 }
             }
             else if (key == "sound/opticalformat")
             {
+                printf("Entered inside sound/opticalformat block\n" );
                 bool valid = validateValue(itInput->second, itSchema->second);
                 if(valid)
                 {
+                    printf("sound/opticalformat validation success\n" );
                     //apply settings
                 }
             }
@@ -393,14 +445,17 @@ namespace WPEFramework
                 bool valid = validateValue(itInput->second, itSchema->second);
                 if(valid)
                 {
+                    printf("sound/hdmi/earc/audioformat validation success\n" );
                     //apply settings
                 }
             }
             else if (key == "system/timezone")
             {
+                printf("Entered inside system/timezone block\n" );
                 bool valid = validateValue(itInput->second, itSchema->second);
                 if(valid)
                 {
+                    printf("system/timezone validation success\n" );
                     //apply settings
                 }
             }

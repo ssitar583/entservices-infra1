@@ -57,7 +57,6 @@ namespace Plugin {
             cJSON* resolveRef( const std::string& ref);
             bool isInEnum(cJSON* enumNode, const std::string& value);
             bool validateValue(cJSON* value, cJSON* schema);
-           
 
        
             uint32_t ApplyDisplaySettings(const JsonObject& parameters, JsonObject& response);
