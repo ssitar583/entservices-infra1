@@ -150,7 +150,7 @@ if (RDK_SERVICES_L1_TEST)
    find_library(TESTMOCKLIB_LIBRARIES NAMES L1TestMocklib)
    if (TESTMOCKLIB_LIBRARIES)
        message ("Found mock libraries ${TESTMOCKLIB_LIBRARIES} library")
-       target_link_libraries(${MODULE_NAME} ${TESTMOCKLIB_LIBRARIES})
+       target_link_libraries(${MODULE_NAME} PRIVATE ${TESTMOCKLIB_LIBRARIES})
    else (TESTMOCKLIB_LIBRARIES)
        message ("Require ${TESTMOCKLIB_LIBRARIES} library")
    endif (TESTMOCKLIB_LIBRARIES)
@@ -160,7 +160,7 @@ include_directories(${TEST_INC})
 
 target_link_directories(${MODULE_NAME} PUBLIC ${CMAKE_INSTALL_PREFIX}/lib ${CMAKE_INSTALL_PREFIX}/lib/wpeframework/plugins)
 
-target_link_libraries(${MODULE_NAME} ${TEST_LIB})
+target_link_libraries(${MODULE_NAME} PRIVATE ${TEST_LIB})
 
 target_include_directories(${MODULE_NAME}
         PUBLIC
