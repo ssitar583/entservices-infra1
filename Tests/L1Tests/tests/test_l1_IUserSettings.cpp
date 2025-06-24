@@ -26,6 +26,9 @@
 #include <WPEFramework/interfaces/Ids.h>
 #include <core/core.h>
 
+extern WPEFramework::Exchange::IUserSettings *InterfacePointer;
+extern WPEFramework::Exchange::IUserSettingsInspector *IUserSettingsInspectorPointer;
+
 using namespace WPEFramework::Exchange;
 using namespace WPEFramework;
 
