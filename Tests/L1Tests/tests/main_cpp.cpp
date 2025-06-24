@@ -22,8 +22,8 @@ distributed under the License is distributed on an "AS IS" BASIS,
 #include <WPEFramework/interfaces/IUserSettings.h>
 #include <WPEFramework/interfaces/Ids.h>
 
-IUserSettings *InterfacePointer = nullptr;
-IUserSettingsInspector *IUserSettingsInspectorPointer = nullptr;
+WPEFramework::Exchange::IUserSettings *InterfacePointer = nullptr;
+WPEFramework::Exchange::IUserSettingsInspector *IUserSettingsInspectorPointer = nullptr;
 
 int main(int argc, char **argv) {
     using namespace WPEFramework::Plugin;
