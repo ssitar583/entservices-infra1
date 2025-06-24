@@ -17,8 +17,10 @@ distributed under the License is distributed on an "AS IS" BASIS,
 * limitations under the License.
 */
 
-#include "IUserSettings.h"
+
 #include "UserSettingsImplementation.h"
+#include <WPEFramework/interfaces/IUserSettings.h>
+#include <WPEFramework/interfaces/Ids.h>
 
 IUserSettings *InterfacePointer = nullptr;
 IUserSettingsInspector *IUserSettingsInspectorPointer = nullptr;
