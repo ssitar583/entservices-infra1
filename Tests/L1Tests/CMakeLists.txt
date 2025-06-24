@@ -23,6 +23,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(${NAMESPACE}Plugins REQUIRED)
+find_package(${NAMESPACE}Core REQUIRED)
 
 set (TEST_SRC
     tests/test_UtilsFile.cpp
@@ -143,6 +144,7 @@ add_plugin_test_ex(PLUGIN_RESOURCEMANAGER tests/test_ResourceManager.cpp "${RESO
 
 
 add_library(${MODULE_NAME} SHARED ${TEST_SRC})
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Core::${NAMESPACE}Core)
 
 if (RDK_SERVICES_L1_TEST)
    find_library(TESTMOCKLIB_LIBRARIES NAMES L1TestMocklib)
