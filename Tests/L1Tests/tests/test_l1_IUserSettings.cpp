@@ -24,6 +24,7 @@
 
 #include <WPEFramework/interfaces/IUserSettings.h>
 #include <WPEFramework/interfaces/Ids.h>
+#include <core/core.h>
 
 using namespace WPEFramework::Exchange; 
 
