@@ -26,7 +26,8 @@
 #include <WPEFramework/interfaces/Ids.h>
 #include <core/core.h>
 
-using namespace WPEFramework::Exchange; 
+using namespace WPEFramework::Exchange;
+using namespace WPEFramework::Core;
 
 /**
 * @brief Test to verify that GetAudioDescription returns ERROR_NONE with valid value
