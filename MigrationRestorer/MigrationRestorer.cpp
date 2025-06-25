@@ -504,7 +504,7 @@ namespace WPEFramework
 
                     }
                     std::cout << "The value of resolution is :  " << resolution << std::endl ;
-                    string videoDisplay = "HDMI0";
+                    string videoDisplay = "HDMI1";
                     bool persist = true;
                     bool isIgnoreEdid = true;
                     bool success = true;
@@ -517,7 +517,7 @@ namespace WPEFramework
                     catch (const device::Exception& err)
                     {
                         printf("Entered inside resolution catch block\n" );
-                       // LOG_DEVICE_EXCEPTION2(videoDisplay, resolution);
+                        LOG_DEVICE_EXCEPTION2(videoDisplay, resolution);
                         success = false;
                     }
                     returnResponse(success);
