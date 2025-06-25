@@ -470,8 +470,8 @@ TEST(UserSettingsTest, ValidViewingRestrictions) {
 * | 04| Verify the viewingRestrictionsWindow value | viewingRestrictionsWindow = "ALWAYS" | viewingRestrictionsWindow = "ALWAYS" | Should Pass |
 * | 05| Exiting the test function | None | None | Should be successful |
 */
-TEST(UserSettingsTest, ValidViewingRestrictionsWindow) {
-    std::cout << "Entering ValidViewingRestrictionsWindow" << std::endl;
+TEST(UserSettingsTest, ValidGetViewingRestrictionsWindow) {
+    std::cout << "Entering ValidGetViewingRestrictionsWindow" << std::endl;
     
     string viewingRestrictionsWindow = "";
     Core::hresult result = InterfacePointer->GetViewingRestrictionsWindow(viewingRestrictionsWindow);
@@ -479,7 +479,7 @@ TEST(UserSettingsTest, ValidViewingRestrictionsWindow) {
     EXPECT_EQ(result, Core::ERROR_NONE);
     EXPECT_EQ(viewingRestrictionsWindow, "ALWAYS");
     
-    std::cout << "Exiting ValidViewingRestrictionsWindow" << std::endl;
+    std::cout << "Exiting ValidGetViewingRestrictionsWindow" << std::endl;
 }
 
 /**
@@ -2074,13 +2074,13 @@ TEST(UserSettingsTest, JSONWithUnsupportedValue) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetViewingRestrictionsWindow with "ALWAYS" | input = "ALWAYS" | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, ValidViewingRestrictionsWindow) {
-    std::cout << "Entering ValidViewingRestrictionsWindow" << std::endl;
+TEST(UserSettingsTest, ValidSetViewingRestrictionsWindow) {
+    std::cout << "Entering ValidSetViewingRestrictionsWindow" << std::endl;
 
     Core::hresult result = InterfacePointer->SetViewingRestrictionsWindow("ALWAYS");
 
     EXPECT_EQ(result, Core::ERROR_NONE);
-    std::cout << "Exiting ValidViewingRestrictionsWindow" << std::endl;
+    std::cout << "Exiting ValidSetViewingRestrictionsWindow" << std::endl;
 }
 
 /**
