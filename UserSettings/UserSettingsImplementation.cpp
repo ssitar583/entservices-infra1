@@ -165,6 +165,11 @@ Core::hresult UserSettingsImplementation::Register(Exchange::IUserSettings::INot
 {
     _adminLock.Lock();
 
+    if (notification == nullptr) {
+        _adminLock.Unlock();
+        return Core::ERROR_INVALID_PARAMETER;
+    }
+
     // Make sure we can't register the same notification callback multiple times
     if (std::find(_userSettingNotification.begin(), _userSettingNotification.end(), notification) == _userSettingNotification.end())
     {
