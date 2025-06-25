@@ -58,7 +58,7 @@ public:
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call GetAudioDescription with valid InterfacePointer | enabled = false | result = Core::ERROR_NONE, enabled = true or false | Should Pass |
 */
-TEST(UserSettingsTest, GetAudioDescription_ReturnsErrorNone_WithValidValue) {
+TEST(UserSettingsTestAI, GetAudioDescription_ReturnsErrorNone_WithValidValue) {
     std::cout << "Entering GetAudioDescription_ReturnsErrorNone_WithValidValue" << std::endl;
     
     bool enabled = false;
@@ -88,7 +88,7 @@ TEST(UserSettingsTest, GetAudioDescription_ReturnsErrorNone_WithValidValue) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call GetBlockNotRatedContent function | blockNotRatedContent = false | result = Core::ERROR_NONE, blockNotRatedContent = true or false | Should Pass |
 */
-TEST(UserSettingsTest, GetBlockNotRatedContentReturnsEnabledStateSuccessfully) {
+TEST(UserSettingsTestAI, GetBlockNotRatedContentReturnsEnabledStateSuccessfully) {
     std::cout << "Entering GetBlockNotRatedContentReturnsEnabledStateSuccessfully" << std::endl;
     
     bool blockNotRatedContent = false;
@@ -118,7 +118,7 @@ TEST(UserSettingsTest, GetBlockNotRatedContentReturnsEnabledStateSuccessfully) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Call GetCaptions to retrieve the enabled state | enabled = false | result = Core::ERROR_NONE, enabled = true | Should Pass |
 */
-TEST(UserSettingsTest, GetCaptionsReturnsEnabledStateSuccessfully) {
+TEST(UserSettingsTestAI, GetCaptionsReturnsEnabledStateSuccessfully) {
     std::cout << "Entering GetCaptionsReturnsEnabledStateSuccessfully" << std::endl;
 
     bool enabled = false;
@@ -153,7 +153,7 @@ TEST(UserSettingsTest, GetCaptionsReturnsEnabledStateSuccessfully) {
 * | 05| Verify the enabled state | enabled = true or false | enabled = true or false | Should Pass |
 * | 06| Exit the test function | None | None | Should be successful |
 */
-TEST(UserSettingsTest, GetHighContrastReturnsEnabledStateSuccessfully) {
+TEST(UserSettingsTestAI, GetHighContrastReturnsEnabledStateSuccessfully) {
     std::cout << "Entering GetHighContrastReturnsEnabledStateSuccessfully" << std::endl;
     
     bool enabled = false;
@@ -185,7 +185,7 @@ TEST(UserSettingsTest, GetHighContrastReturnsEnabledStateSuccessfully) {
 * | 02| Check result value | result = Core::ERROR_NONE | result = Core::ERROR_NONE | Should be successful |
 * | 03| Validate liveWatershed value | liveWatershed = true or false | liveWatershed = true or false | Should be successful |
 */
-TEST(UserSettingsTest, GetLiveWatershedReturnsLiveWatershedSuccessfully) {
+TEST(UserSettingsTestAI, GetLiveWatershedReturnsLiveWatershedSuccessfully) {
     std::cout << "Entering GetLiveWatershedReturnsLiveWatershedSuccessfully" << std::endl;
 
     bool liveWatershed = false;
@@ -215,7 +215,7 @@ TEST(UserSettingsTest, GetLiveWatershedReturnsLiveWatershedSuccessfully) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call GetPinControl method | pinControl = false | result = Core::ERROR_NONE, pinControl = true or false | Should Pass |
 */
-TEST(UserSettingsTest, GetPinControlReturnsPinControlSuccessfully) {
+TEST(UserSettingsTestAI, GetPinControlReturnsPinControlSuccessfully) {
     std::cout << "Entering GetPinControlReturnsPinControlSuccessfully" << std::endl;
 
     bool pinControl = false;
@@ -249,7 +249,7 @@ TEST(UserSettingsTest, GetPinControlReturnsPinControlSuccessfully) {
 * | 04| Check the result of GetPinOnPurchase | result = Core::ERROR_NONE, pinOnPurchase = true/false | result == Core::ERROR_NONE, pinOnPurchase == true/false | Should Pass |
 * | 05| Exit the test function | None | None | Should be successful |
 */
-TEST(UserSettingsTest, GetPinOnPurchaseReturnsPinOnPurchaseSuccessfully) {
+TEST(UserSettingsTestAI, GetPinOnPurchaseReturnsPinOnPurchaseSuccessfully) {
     std::cout << "Entering GetPinOnPurchaseReturnsPinOnPurchaseSuccessfully test";
     
     bool pinOnPurchase = false;
@@ -279,7 +279,7 @@ TEST(UserSettingsTest, GetPinOnPurchaseReturnsPinOnPurchaseSuccessfully) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call GetPlaybackWatershed function | playbackWatershed = false | result = Core::ERROR_NONE, playbackWatershed = true or false | Should Pass |
 */
-TEST(UserSettingsTest, GetPlaybackWatershed_ReturnsErrorNone_WithValidPlaybackWatershed) {
+TEST(UserSettingsTestAI, GetPlaybackWatershed_ReturnsErrorNone_WithValidPlaybackWatershed) {
     std::cout << "Entering GetPlaybackWatershed_ReturnsErrorNone_WithValidPlaybackWatershed test";
     
     bool playbackWatershed = false;
@@ -309,7 +309,7 @@ TEST(UserSettingsTest, GetPlaybackWatershed_ReturnsErrorNone_WithValidPlaybackWa
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Initialize preferredLanguages string and call GetPreferredAudioLanguages | preferredLanguages = "" | result = Core::ERROR_NONE, preferredLanguages = "eng" | Should Pass |
 */
-TEST(UserSettingsTest, ValidPreferredLanguagesString) {
+TEST(UserSettingsTestAI, ValidPreferredLanguagesString) {
     std::cout << "Entering ValidPreferredLanguagesString test" << std::endl;
     string preferredLanguages = "";
     
@@ -339,7 +339,7 @@ TEST(UserSettingsTest, ValidPreferredLanguagesString) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call GetPreferredCaptionsLanguages API | preferredLanguages = "" | result = Core::ERROR_NONE, preferredLanguages = "eng,fra" | Should Pass |
 */
-TEST(UserSettingsTest, ValidPreferredLanguages) {
+TEST(UserSettingsTestAI, ValidPreferredLanguages) {
     std::cout << "Entering ValidPreferredLanguages test";
     string preferredLanguages = "";
     
@@ -372,7 +372,7 @@ TEST(UserSettingsTest, ValidPreferredLanguages) {
 * | 01| Call GetPreferredClosedCaptionService method | service = "" | result should be Core::ERROR_NONE, service should be one of the valid names | Should Pass |
 * | 02| Check if the service name is valid | service = returned value | service should be "CC1", "CC2", "CC3", "CC4", "TEXT1", "TEXT2", "TEXT3", "TEXT4", or "SERVICE" followed by a number between 1 and 64 | Should Pass |
 */
-TEST(UserSettingsTest, ValidServiceNameReturned) {
+TEST(UserSettingsTestAI, ValidServiceNameReturned) {
     std::cout << "Entering ValidServiceNameReturned" << std::endl;
     
     string service = "";
@@ -404,7 +404,7 @@ TEST(UserSettingsTest, ValidServiceNameReturned) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call GetPresentationLanguage method | presentationLanguage = "" | result = Core::ERROR_NONE, presentationLanguage = "en-US" or "es-US" or "en-CA" or "fr-CA" | Should Pass |
 */
-TEST(UserSettingsTest, ValidPresentationLanguage) {
+TEST(UserSettingsTestAI, ValidPresentationLanguage) {
     std::cout << "Entering ValidPresentationLanguage test" << std::endl;
     
     string presentationLanguage = "";
@@ -436,7 +436,7 @@ TEST(UserSettingsTest, ValidPresentationLanguage) {
 * | 02 | Call GetViewingRestrictions method | viewingRestrictions = "" | result = Core::ERROR_NONE, viewingRestrictions is not empty | Should Pass |
 * | 03 | Exiting ValidViewingRestrictions test | - | - | Should be successful |
 */
-TEST(UserSettingsTest, ValidViewingRestrictions) {
+TEST(UserSettingsTestAI, ValidViewingRestrictions) {
     std::cout << "Entering ValidViewingRestrictions test";
     string viewingRestrictions = "";
     
@@ -470,7 +470,7 @@ TEST(UserSettingsTest, ValidViewingRestrictions) {
 * | 04| Verify the viewingRestrictionsWindow value | viewingRestrictionsWindow = "ALWAYS" | viewingRestrictionsWindow = "ALWAYS" | Should Pass |
 * | 05| Exiting the test function | None | None | Should be successful |
 */
-TEST(UserSettingsTest, ValidGetViewingRestrictionsWindow) {
+TEST(UserSettingsTestAI, ValidGetViewingRestrictionsWindow) {
     std::cout << "Entering ValidGetViewingRestrictionsWindow" << std::endl;
     
     string viewingRestrictionsWindow = "";
@@ -500,7 +500,7 @@ TEST(UserSettingsTest, ValidGetViewingRestrictionsWindow) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call GetVoiceGuidance with a valid enabled variable | enabled = false | result = Core::ERROR_NONE, enabled = true or false | Should Pass |
 */
-TEST(UserSettingsTest, GetVoiceGuidance_ReturnsErrorNoneWithValidEnabledValue) {
+TEST(UserSettingsTestAI, GetVoiceGuidance_ReturnsErrorNoneWithValidEnabledValue) {
     std::cout << "Entering GetVoiceGuidance_ReturnsErrorNoneWithValidEnabledValue" << std::endl;
     
     bool enabled = false;
@@ -530,7 +530,7 @@ TEST(UserSettingsTest, GetVoiceGuidance_ReturnsErrorNoneWithValidEnabledValue) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call GetVoiceGuidanceHints with a valid hints value | hints = false | result = Core::ERROR_NONE, hints = true or false | Should Pass |
 */
-TEST(UserSettingsTest, GetVoiceGuidanceHints_ReturnsErrorNone_WithValidHintsValue) {
+TEST(UserSettingsTestAI, GetVoiceGuidanceHints_ReturnsErrorNone_WithValidHintsValue) {
     std::cout << "Entering GetVoiceGuidanceHints_ReturnsErrorNone_WithValidHintsValue" << std::endl;
     
     bool hints = false;
@@ -560,7 +560,7 @@ TEST(UserSettingsTest, GetVoiceGuidanceHints_ReturnsErrorNone_WithValidHintsValu
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Call GetVoiceGuidanceRate with a valid rate variable | rate = 0.0 | result = Core::ERROR_NONE, Rate should fall within the inclusive range of 0.1 to 10 | Should Pass |
 */
-TEST(UserSettingsTest, ValidRateRetrieval) {
+TEST(UserSettingsTestAI, ValidRateRetrieval) {
     std::cout << "Entering ValidRateRetrieval" << std::endl;
     double rate = 0.0;
     
@@ -594,7 +594,7 @@ TEST(UserSettingsTest, ValidRateRetrieval) {
 * | 02| Register the notification object | InterfacePointer->Register(notification) | result = Core::ERROR_NONE | Should Pass |
 * | 03| Verify the result | EXPECT_EQ(result, Core::ERROR_NONE) | result = Core::ERROR_NONE | Should Pass |
 */
-TEST(UserSettingsTest, RegisterWithValidNotificationObject) {
+TEST(UserSettingsTestAI, RegisterWithValidNotificationObject) {
     std::cout << "Entering RegisterWithValidNotificationObject" << std::endl;
     Exchange::IUserSettings::INotification* notification = new TestNotification();
     
@@ -624,7 +624,7 @@ TEST(UserSettingsTest, RegisterWithValidNotificationObject) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call Register with null notification object | notification = nullptr | result = Core::ERROR_INVALID_PARAMETER, EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER) | Should Fail |
 */
-TEST(UserSettingsTest, RegisterWithNullNotificationObject) {
+TEST(UserSettingsTestAI, RegisterWithNullNotificationObject) {
     std::cout << "Entering RegisterWithNullNotificationObject" << std::endl;
     Exchange::IUserSettings::INotification* notification = nullptr;
     
@@ -654,7 +654,7 @@ TEST(UserSettingsTest, RegisterWithNullNotificationObject) {
 * | 01| Get the interface pointer | None | Interface pointer should be valid | Should be successful |
 * | 02| Enable audio description | input = true | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, EnableAudioDescription) {
+TEST(UserSettingsTestAI, EnableAudioDescription) {
     std::cout << "Entering EnableAudioDescription" << std::endl;
     bool enabled = true;
     
@@ -683,7 +683,7 @@ TEST(UserSettingsTest, EnableAudioDescription) {
 * | 01| Get the interface pointer | None | Interface pointer should be obtained | Should be successful |
 * | 02| Disable audio description | input: false | result should be Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, DisableAudioDescription) {
+TEST(UserSettingsTestAI, DisableAudioDescription) {
     std::cout << "Entering DisableAudioDescription" << std::endl;
     bool enabled = false;
     
@@ -711,7 +711,7 @@ TEST(UserSettingsTest, DisableAudioDescription) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetBlockNotRatedContent with true | input = true | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, SetBlockNotRatedContent_True) {
+TEST(UserSettingsTestAI, SetBlockNotRatedContent_True) {
     std::cout << "Entering SetBlockNotRatedContent_True" << std::endl;
     bool blockNotRatedContent = true;
     
@@ -739,7 +739,7 @@ TEST(UserSettingsTest, SetBlockNotRatedContent_True) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetBlockNotRatedContent with false | input = false | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, SetBlockNotRatedContent_False) {
+TEST(UserSettingsTestAI, SetBlockNotRatedContent_False) {
     std::cout << "Entering SetBlockNotRatedContent_False" << std::endl;
     bool blockNotRatedContent = false;
 
@@ -769,7 +769,7 @@ TEST(UserSettingsTest, SetBlockNotRatedContent_False) {
 * | 02| Enable captions using SetCaptions method | input: true | result should be Core::ERROR_NONE | Should Pass |
 * | 03| Verify the result using EXPECT_EQ | result: Core::ERROR_NONE | EXPECT_EQ should pass | Should be successful |
 */
-TEST(UserSettingsTest, EnableCaptionsSuccessfully) {
+TEST(UserSettingsTestAI, EnableCaptionsSuccessfully) {
     std::cout << "Entering EnableCaptionsSuccessfully" << std::endl;
     bool enabled = true;
     
@@ -799,7 +799,7 @@ TEST(UserSettingsTest, EnableCaptionsSuccessfully) {
 * | 02| Call SetCaptions with false to disable captions | input: false | result should be Core::ERROR_NONE | Should Pass |
 * | 03| Verify the result | result from SetCaptions | result should be Core::ERROR_NONE | Should Pass |
 */
-TEST(UserSettingsTest, DisableCaptionsSuccessfully) {
+TEST(UserSettingsTestAI, DisableCaptionsSuccessfully) {
     std::cout << "Entering DisableCaptionsSuccessfully" << std::endl;
     bool enabled = false;
 
@@ -827,7 +827,7 @@ TEST(UserSettingsTest, DisableCaptionsSuccessfully) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Enable high contrast mode | enabled = true | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, EnableHighContrastMode) {
+TEST(UserSettingsTestAI, EnableHighContrastMode) {
     std::cout << "Entering EnableHighContrastMode" << std::endl;
     bool enabled = true;
     
@@ -855,7 +855,7 @@ TEST(UserSettingsTest, EnableHighContrastMode) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetHighContrast with enabled set to false | enabled = false | result should be Core::ERROR_NONE | Should Pass |
 */
-TEST(UserSettingsTest, DisableHighContrastMode) {
+TEST(UserSettingsTestAI, DisableHighContrastMode) {
     std::cout << "Entering DisableHighContrastMode" << std::endl;
     bool enabled = false;
     
@@ -883,7 +883,7 @@ TEST(UserSettingsTest, DisableHighContrastMode) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetLiveWatershed with true | input = true | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, SetLiveWatershed_True) {
+TEST(UserSettingsTestAI, SetLiveWatershed_True) {
     std::cout << "Entering SetLiveWatershed_True" << std::endl;
     bool liveWatershed = true;
 
@@ -911,7 +911,7 @@ TEST(UserSettingsTest, SetLiveWatershed_True) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetLiveWatershed with false | input = false | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, SetLiveWatershed_False) {
+TEST(UserSettingsTestAI, SetLiveWatershed_False) {
     std::cout << "Entering SetLiveWatershed_False" << std::endl;
     bool liveWatershed = false;
 
@@ -940,7 +940,7 @@ TEST(UserSettingsTest, SetLiveWatershed_False) {
 * | 01 | Get the interface pointer | None | InterfacePointer should not be null | Should be successful |
 * | 02 | Call SetPinControl with true | input = true | result should be Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, SetPinControlTrue) {
+TEST(UserSettingsTestAI, SetPinControlTrue) {
     std::cout << "Entering SetPinControlTrue test" << std::endl;
     bool pinControl = true;
 
@@ -969,7 +969,7 @@ TEST(UserSettingsTest, SetPinControlTrue) {
 * | 01| Get the interface pointer | None | InterfacePointer should not be null | Should be successful |
 * | 02| Call SetPinControl with false | input = false | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, SetPinControlFalse) {
+TEST(UserSettingsTestAI, SetPinControlFalse) {
     std::cout << "Entering SetPinControlFalse test" << std::endl;
     bool pinControl = true;
 
@@ -997,7 +997,7 @@ TEST(UserSettingsTest, SetPinControlFalse) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Call SetPinOnPurchase with true | input = true | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, SetPinOnPurchaseTrue) {
+TEST(UserSettingsTestAI, SetPinOnPurchaseTrue) {
     std::cout << "Entering SetPinOnPurchaseTrue" << std::endl;
     bool pinOnPurchase = true;
 
@@ -1025,7 +1025,7 @@ TEST(UserSettingsTest, SetPinOnPurchaseTrue) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetPinOnPurchase with false | input = false | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, SetPinOnPurchaseFalse) {
+TEST(UserSettingsTestAI, SetPinOnPurchaseFalse) {
     std::cout << "Entering SetPinOnPurchaseFalse" << std::endl;
     bool pinOnPurchase = false;
 
@@ -1053,7 +1053,7 @@ TEST(UserSettingsTest, SetPinOnPurchaseFalse) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetPlaybackWatershed with true | input = true | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, SetPlaybackWatershedTrue) {
+TEST(UserSettingsTestAI, SetPlaybackWatershedTrue) {
     std::cout << "Entering SetPlaybackWatershedTrue" << std::endl;
     bool playbackWatershed = true;
 
@@ -1081,7 +1081,7 @@ TEST(UserSettingsTest, SetPlaybackWatershedTrue) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetPlaybackWatershed with false | input = false | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, SetPlaybackWatershedFalse) {
+TEST(UserSettingsTestAI, SetPlaybackWatershedFalse) {
     std::cout << "Entering SetPlaybackWatershedFalse" << std::endl;
     bool playbackWatershed = false;
 
@@ -1109,7 +1109,7 @@ TEST(UserSettingsTest, SetPlaybackWatershedFalse) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetPreferredAudioLanguages with a valid single language code | input = "eng" | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, SetPreferredAudioLanguages_ValidSingleLanguageCode) {
+TEST(UserSettingsTestAI, SetPreferredAudioLanguages_ValidSingleLanguageCode) {
     std::cout << "Entering SetPreferredAudioLanguages_ValidSingleLanguageCode" << std::endl;
     std::string preferred_languages = "eng";
 
@@ -1137,7 +1137,7 @@ TEST(UserSettingsTest, SetPreferredAudioLanguages_ValidSingleLanguageCode) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetPreferredAudioLanguages with an empty string | input = "" | result = Core::ERROR_INVALID_PARAMETER, EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER) | Should Fail |
 */
-TEST(UserSettingsTest, SetPreferredAudioLanguages_EmptyString) {
+TEST(UserSettingsTestAI, SetPreferredAudioLanguages_EmptyString) {
     std::cout << "Entering SetPreferredAudioLanguages_EmptyString" << std::endl;
     std::string preferred_languages = "";
 
@@ -1165,7 +1165,7 @@ TEST(UserSettingsTest, SetPreferredAudioLanguages_EmptyString) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetPreferredAudioLanguages with invalid language code | input: "xyz" | result: Core::ERROR_INVALID_PARAMETER | Should Fail |
 */
-TEST(UserSettingsTest, SetPreferredAudioLanguages_InvalidLanguageCode) {
+TEST(UserSettingsTestAI, SetPreferredAudioLanguages_InvalidLanguageCode) {
     std::cout << "Entering SetPreferredAudioLanguages_InvalidLanguageCode" << std::endl;
     std::string preferred_languages = "xyz";
 
@@ -1193,7 +1193,7 @@ TEST(UserSettingsTest, SetPreferredAudioLanguages_InvalidLanguageCode) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Call SetPreferredAudioLanguages with mixed valid and invalid language codes | input = "eng,xyz,spa" | result = Core::ERROR_INVALID_PARAMETER, EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER) | Should Fail |
 */
-TEST(UserSettingsTest, SetPreferredAudioLanguages_MixedValidAndInvalidLanguageCodes) {
+TEST(UserSettingsTestAI, SetPreferredAudioLanguages_MixedValidAndInvalidLanguageCodes) {
     std::cout << "Entering SetPreferredAudioLanguages_MixedValidAndInvalidLanguageCodes" << std::endl;
     std::string preferred_languages = "eng,xyz,spa";
 
@@ -1221,7 +1221,7 @@ TEST(UserSettingsTest, SetPreferredAudioLanguages_MixedValidAndInvalidLanguageCo
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetPreferredAudioLanguages with special characters in the input string | input = "eng,spa,@#$" | result = Core::ERROR_INVALID_PARAMETER, EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER) | Should Fail |
 */
-TEST(UserSettingsTest, SetPreferredAudioLanguages_SpecialCharacters) {
+TEST(UserSettingsTestAI, SetPreferredAudioLanguages_SpecialCharacters) {
     std::cout << "Entering SetPreferredAudioLanguages_SpecialCharacters" << std::endl;
     std::string preferred_languages = "eng,spa,@#$";
 
@@ -1251,7 +1251,7 @@ TEST(UserSettingsTest, SetPreferredAudioLanguages_SpecialCharacters) {
 * | 02 | Set preferred languages to "eng,fra" | preferredLanguages = "eng,fra" | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 * | 03 | Exiting the test function | None | None | Should be successful |
 */
-TEST(UserSettingsTest, SetValidPreferredLanguages) {
+TEST(UserSettingsTestAI, SetValidPreferredLanguages) {
     std::cout << "Entering SetValidPreferredLanguages" << std::endl;
     std::string preferredLanguages = "eng,fra";
     
@@ -1279,7 +1279,7 @@ TEST(UserSettingsTest, SetValidPreferredLanguages) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Set a single valid preferred language | preferredLanguages = "eng" | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, SetSingleValidPreferredLanguage) {
+TEST(UserSettingsTestAI, SetSingleValidPreferredLanguage) {
     std::cout << "Entering SetSingleValidPreferredLanguage" << std::endl;
     std::string preferredLanguages = "eng";
    
@@ -1307,7 +1307,7 @@ TEST(UserSettingsTest, SetSingleValidPreferredLanguage) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Call SetPreferredCaptionsLanguages with empty string | preferredLanguages = "" | result = Core::ERROR_INVALID_PARAMETER, EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER) | Should Fail |
 */
-TEST(UserSettingsTest, SetEmptyPreferredLanguages) {
+TEST(UserSettingsTestAI, SetEmptyPreferredLanguages) {
     std::cout << "Entering SetEmptyPreferredLanguages" << std::endl;
     std::string preferredLanguages = "";
     
@@ -1335,7 +1335,7 @@ TEST(UserSettingsTest, SetEmptyPreferredLanguages) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetPreferredCaptionsLanguages with invalid language codes | preferredLanguages = "xyz,abc" | result = Core::ERROR_INVALID_PARAMETER, Assertion: EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER) | Should Fail |
 */
-TEST(UserSettingsTest, SetInvalidPreferredLanguages) {
+TEST(UserSettingsTestAI, SetInvalidPreferredLanguages) {
     std::cout << "Entering SetInvalidPreferredLanguages" << std::endl;
     std::string preferredLanguages = "xyz,abc";
     
@@ -1363,7 +1363,7 @@ TEST(UserSettingsTest, SetInvalidPreferredLanguages) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetPreferredCaptionsLanguages with invalid format string | preferredLanguages = "eng,,fra" | result = Core::ERROR_INVALID_PARAMETER, EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER) | Should Fail |
 */
-TEST(UserSettingsTest, SetPreferredLanguagesWithInvalidFormat) {
+TEST(UserSettingsTestAI, SetPreferredLanguagesWithInvalidFormat) {
     std::cout << "Entering SetPreferredLanguagesWithInvalidFormat" << std::endl;
     std::string preferredLanguages = "eng,,fra";
     
@@ -1391,7 +1391,7 @@ TEST(UserSettingsTest, SetPreferredLanguagesWithInvalidFormat) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Call SetPreferredCaptionsLanguages with special characters in the language string | preferredLanguages = "eng,@fra" | result = Core::ERROR_INVALID_PARAMETER, EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER) | Should Fail |
 */
-TEST(UserSettingsTest, SetPreferredLanguagesWithSpecialCharacters) {
+TEST(UserSettingsTestAI, SetPreferredLanguagesWithSpecialCharacters) {
     std::cout << "Entering SetPreferredLanguagesWithSpecialCharacters" << std::endl;
     std::string preferredLanguages = "eng,@fra";
     
@@ -1420,7 +1420,7 @@ TEST(UserSettingsTest, SetPreferredLanguagesWithSpecialCharacters) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetPreferredCaptionsLanguages with numeric values as input | preferredLanguages = "123,456" | result = Core::ERROR_INVALID_PARAMETER, EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER) | Should Fail |
 */
-TEST(UserSettingsTest, SetPreferredLanguagesWithNumericValues) {
+TEST(UserSettingsTestAI, SetPreferredLanguagesWithNumericValues) {
     std::cout << "Entering SetPreferredLanguagesWithNumericValues" << std::endl;
     std::string preferredLanguages = "123,456";
     
@@ -1448,7 +1448,7 @@ TEST(UserSettingsTest, SetPreferredLanguagesWithNumericValues) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetPreferredCaptionsLanguages with mixed valid and invalid language codes | preferredLanguages = "eng,xyz" | result = Core::ERROR_INVALID_PARAMETER, EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER) | Should Fail |
 */
-TEST(UserSettingsTest, SetPreferredLanguagesWithMixedValidAndInvalidCodes) {
+TEST(UserSettingsTestAI, SetPreferredLanguagesWithMixedValidAndInvalidCodes) {
     std::cout << "Entering SetPreferredLanguagesWithMixedValidAndInvalidCodes" << std::endl;
     std::string preferredLanguages = "eng,xyz";
     
@@ -1479,7 +1479,7 @@ TEST(UserSettingsTest, SetPreferredLanguagesWithMixedValidAndInvalidCodes) {
 * | 03 | Set closed caption service to CC3 | service = "CC3" | Core::ERROR_NONE | Should Pass |
 * | 04 | Set closed caption service to CC4 | service = "CC4" | Core::ERROR_NONE | Should Pass |
 */
-TEST(UserSettingsTest, SetValidClosedCaptionService_CC1ToCC4) {
+TEST(UserSettingsTestAI, SetValidClosedCaptionService_CC1ToCC4) {
     std::cout << "Entering SetValidClosedCaptionService_CC1ToCC4" << std::endl;
     
     for (int i = 1; i <= 4; ++i) {
@@ -1511,7 +1511,7 @@ TEST(UserSettingsTest, SetValidClosedCaptionService_CC1ToCC4) {
 * | 03| Set closed caption service to TEXT3 | service = TEXT3 | Core::ERROR_NONE, EXPECT_EQ check | Should Pass |
 * | 04| Set closed caption service to TEXT4 | service = TEXT4 | Core::ERROR_NONE, EXPECT_EQ check | Should Pass |
 */
-TEST(UserSettingsTest, SetValidClosedCaptionService_TEXT1ToTEXT4) {
+TEST(UserSettingsTestAI, SetValidClosedCaptionService_TEXT1ToTEXT4) {
     std::cout << "Entering SetValidClosedCaptionService_TEXT1ToTEXT4" << std::endl;
     
     for (int i = 1; i <= 4; ++i) {
@@ -1604,7 +1604,7 @@ TEST(UserSettingsTest, SetValidClosedCaptionService_TEXT1ToTEXT4) {
 * | 63 | Set closed caption service to SERVICE63 | service = "SERVICE63" | Core::ERROR_NONE | Should Pass |
 * | 64 | Set closed caption service to SERVICE64 | service = "SERVICE64" | Core::ERROR_NONE | Should Pass |
 */
-TEST(UserSettingsTest, SetValidClosedCaptionService_SERVICE1ToSERVICE64) {
+TEST(UserSettingsTestAI, SetValidClosedCaptionService_SERVICE1ToSERVICE64) {
     std::cout << "Entering SetValidClosedCaptionService_SERVICE1ToSERVICE64" << std::endl;
     
     for (int i = 1; i <= 64; ++i) {
@@ -1633,7 +1633,7 @@ TEST(UserSettingsTest, SetValidClosedCaptionService_SERVICE1ToSERVICE64) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetPreferredClosedCaptionService with invalid service "CC5" | service = "CC5" | Return value should be Core::ERROR_INVALID_PARAMETER, Assertion should pass | Should Fail |
 */
-TEST(UserSettingsTest, SetInvalidClosedCaptionService_CC5) {
+TEST(UserSettingsTestAI, SetInvalidClosedCaptionService_CC5) {
     std::cout << "Entering SetInvalidClosedCaptionService_CC5" << std::endl;
     std::string service = "CC5";
     
@@ -1660,7 +1660,7 @@ TEST(UserSettingsTest, SetInvalidClosedCaptionService_CC5) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetPreferredClosedCaptionService with invalid service name | service = "TEXT0" | Return value should be Core::ERROR_INVALID_PARAMETER, Assertion should pass | Should Fail |
 */
-TEST(UserSettingsTest, SetInvalidClosedCaptionService_TEXT0) {
+TEST(UserSettingsTestAI, SetInvalidClosedCaptionService_TEXT0) {
     std::cout << "Entering SetInvalidClosedCaptionService_TEXT0" << std::endl;
     std::string service = "TEXT0";
     
@@ -1687,7 +1687,7 @@ TEST(UserSettingsTest, SetInvalidClosedCaptionService_TEXT0) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Call SetPreferredClosedCaptionService with invalid service | service = "SERVICE65" | Return value should be Core::ERROR_INVALID_PARAMETER | Should Fail |
 */
-TEST(UserSettingsTest, SetInvalidClosedCaptionService_SERVICE65) {
+TEST(UserSettingsTestAI, SetInvalidClosedCaptionService_SERVICE65) {
     std::cout << "Entering SetInvalidClosedCaptionService_SERVICE65" << std::endl;
     std::string service = "SERVICE65";
     
@@ -1714,7 +1714,7 @@ TEST(UserSettingsTest, SetInvalidClosedCaptionService_SERVICE65) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Call SetPreferredClosedCaptionService with invalid service name | service = "INVALID" | Return value should be Core::ERROR_INVALID_PARAMETER, Assertion should pass | Should Fail |
 */
-TEST(UserSettingsTest, SetInvalidClosedCaptionService_INVALID) {
+TEST(UserSettingsTestAI, SetInvalidClosedCaptionService_INVALID) {
     std::cout << "Entering SetInvalidClosedCaptionService_INVALID" << std::endl;
     std::string service = "INVALID";
     
@@ -1741,7 +1741,7 @@ TEST(UserSettingsTest, SetInvalidClosedCaptionService_INVALID) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetPreferredClosedCaptionService with an empty string | service = "" | Core::ERROR_INVALID_PARAMETER | Should Fail |
 */
-TEST(UserSettingsTest, SetEmptyClosedCaptionService) {
+TEST(UserSettingsTestAI, SetEmptyClosedCaptionService) {
     std::cout << "Entering SetEmptyClosedCaptionService" << std::endl;
     std::string service = "";
     
@@ -1768,7 +1768,7 @@ TEST(UserSettingsTest, SetEmptyClosedCaptionService) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetPresentationLanguage with "en-US" | input = "en-US" | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, SetValidPresentationLanguage_enUS) {
+TEST(UserSettingsTestAI, SetValidPresentationLanguage_enUS) {
     std::cout << "Entering SetValidPresentationLanguage_enUS" << std::endl;
     
     Core::hresult result = InterfacePointer->SetPresentationLanguage("en-US");
@@ -1795,7 +1795,7 @@ TEST(UserSettingsTest, SetValidPresentationLanguage_enUS) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetPresentationLanguage with "es-US" | input = "es-US" | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, SetValidPresentationLanguage_esUS) {
+TEST(UserSettingsTestAI, SetValidPresentationLanguage_esUS) {
     std::cout << "Entering SetValidPresentationLanguage_esUS" << std::endl;
     
     Core::hresult result = InterfacePointer->SetPresentationLanguage("es-US");
@@ -1822,7 +1822,7 @@ TEST(UserSettingsTest, SetValidPresentationLanguage_esUS) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Call SetPresentationLanguage with "en-CA" | input: "en-CA" | result: Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, SetValidPresentationLanguage_enCA) {
+TEST(UserSettingsTestAI, SetValidPresentationLanguage_enCA) {
     std::cout << "Entering SetValidPresentationLanguage_enCA" << std::endl;
     
     Core::hresult result = InterfacePointer->SetPresentationLanguage("en-CA");
@@ -1849,7 +1849,7 @@ TEST(UserSettingsTest, SetValidPresentationLanguage_enCA) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetPresentationLanguage with "fr-CA" | input = "fr-CA" | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, SetValidPresentationLanguage_frCA) {
+TEST(UserSettingsTestAI, SetValidPresentationLanguage_frCA) {
     std::cout << "Entering SetValidPresentationLanguage_frCA" << std::endl;
     
     Core::hresult result = InterfacePointer->SetPresentationLanguage("fr-CA");
@@ -1876,7 +1876,7 @@ TEST(UserSettingsTest, SetValidPresentationLanguage_frCA) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Call SetPresentationLanguage with invalid language code | input = "xx-XX" | result = Core::ERROR_INVALID_PARAMETER, Assertion check: EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER) | Should Fail |
 */
-TEST(UserSettingsTest, SetInvalidPresentationLanguage_xxXX) {
+TEST(UserSettingsTestAI, SetInvalidPresentationLanguage_xxXX) {
     std::cout << "Entering SetInvalidPresentationLanguage_xxXX" << std::endl;
     
     Core::hresult result = InterfacePointer->SetPresentationLanguage("xx-XX");
@@ -1903,7 +1903,7 @@ TEST(UserSettingsTest, SetInvalidPresentationLanguage_xxXX) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Call SetPresentationLanguage with an empty string | input = "" | result = Core::ERROR_INVALID_PARAMETER | Should Fail |
 */
-TEST(UserSettingsTest, SetEmptyPresentationLanguage) {
+TEST(UserSettingsTestAI, SetEmptyPresentationLanguage) {
     std::cout << "Entering SetEmptyPresentationLanguage" << std::endl;
     
     Core::hresult result = InterfacePointer->SetPresentationLanguage("");
@@ -1933,7 +1933,7 @@ TEST(UserSettingsTest, SetEmptyPresentationLanguage) {
 * | 03| Verify the result using EXPECT_EQ | result = Core::ERROR_INVALID_PARAMETER | EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER) | Should Pass |
 * | 04| Exiting the test function | None | None | Should be successful |
 */
-TEST(UserSettingsTest, SetPresentationLanguageInvalidFormat) {
+TEST(UserSettingsTestAI, SetPresentationLanguageInvalidFormat) {
     std::cout << "Entering SetPresentationLanguageInvalidFormat" << std::endl;
     
     Core::hresult result = InterfacePointer->SetPresentationLanguage("english-US");
@@ -1960,7 +1960,7 @@ TEST(UserSettingsTest, SetPresentationLanguageInvalidFormat) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Call SetPresentationLanguage with special characters | input = "!@#$" | result = Core::ERROR_INVALID_PARAMETER, EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER) | Should Fail |
 */
-TEST(UserSettingsTest, SetPresentationLanguageSpecialCharacters) {
+TEST(UserSettingsTestAI, SetPresentationLanguageSpecialCharacters) {
     std::cout << "Entering SetPresentationLanguageSpecialCharacters" << std::endl;
     
     Core::hresult result = InterfacePointer->SetPresentationLanguage("!@#$");
@@ -1987,7 +1987,7 @@ TEST(UserSettingsTest, SetPresentationLanguageSpecialCharacters) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Call SetViewingRestrictions with valid JSON input | input = "{\"restrictions\": [{\"scheme\": \"US_TV\", \"restrict\": [\"TV-Y7/FV\"]}, {\"scheme\": \"MPAA\", \"restrict\": []}]}" | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, ValidJSONInput) {
+TEST(UserSettingsTestAI, ValidJSONInput) {
     std::cout << "Entering ValidJSONInput test" << std::endl;
     std::string input = "{\"restrictions\": [{\"scheme\": \"US_TV\", \"restrict\": [\"TV-Y7/FV\"]}, {\"scheme\": \"MPAA\", \"restrict\": []}]}";
     
@@ -2016,7 +2016,7 @@ TEST(UserSettingsTest, ValidJSONInput) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetViewingRestrictions with empty string | input = "" | result = Core::ERROR_INVALID_PARAMETER, EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER) | Should Fail |
 */
-TEST(UserSettingsTest, NullInput) {
+TEST(UserSettingsTestAI, NullInput) {
     std::cout << "Entering NullInput test" << std::endl;
     std::string input = "";
     
@@ -2046,7 +2046,7 @@ TEST(UserSettingsTest, NullInput) {
 * | 02 | Set unsupported JSON value | input = "{\"XYZ:123\"}", result = InterfacePointer->SetViewingRestrictions(input) | result = Core::ERROR_INVALID_PARAMETER, EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER) | Should Pass |
 * | 03 | Exiting the test | None | None | Should be successful |
 */
-TEST(UserSettingsTest, JSONWithUnsupportedValue) {
+TEST(UserSettingsTestAI, JSONWithUnsupportedValue) {
     std::cout << "Entering JSONWithUnsupportedValue test" << std::endl;
     std::string input = "{\"XYZ:123\"}";
     
@@ -2074,7 +2074,7 @@ TEST(UserSettingsTest, JSONWithUnsupportedValue) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetViewingRestrictionsWindow with "ALWAYS" | input = "ALWAYS" | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, ValidSetViewingRestrictionsWindow) {
+TEST(UserSettingsTestAI, ValidSetViewingRestrictionsWindow) {
     std::cout << "Entering ValidSetViewingRestrictionsWindow" << std::endl;
 
     Core::hresult result = InterfacePointer->SetViewingRestrictionsWindow("ALWAYS");
@@ -2101,7 +2101,7 @@ TEST(UserSettingsTest, ValidSetViewingRestrictionsWindow) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetViewingRestrictionsWindow with an empty string | input = "" | result = Core::ERROR_INVALID_PARAMETER, EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER) | Should Fail |
 */
-TEST(UserSettingsTest, EmptyViewingRestrictionsWindow) {
+TEST(UserSettingsTestAI, EmptyViewingRestrictionsWindow) {
     std::cout << "Entering EmptyViewingRestrictionsWindow" << std::endl;
 
     Core::hresult result = InterfacePointer->SetViewingRestrictionsWindow("");
@@ -2128,7 +2128,7 @@ TEST(UserSettingsTest, EmptyViewingRestrictionsWindow) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetViewingRestrictionsWindow with invalid input | input = "INVALID_VALUE" | result = Core::ERROR_INVALID_PARAMETER, EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER) | Should Fail |
 */
-TEST(UserSettingsTest, InvalidViewingRestrictionsWindow) {
+TEST(UserSettingsTestAI, InvalidViewingRestrictionsWindow) {
     std::cout << "Entering InvalidViewingRestrictionsWindow" << std::endl;
 
     Core::hresult result = InterfacePointer->SetViewingRestrictionsWindow("INVALID_VALUE");
@@ -2155,7 +2155,7 @@ TEST(UserSettingsTest, InvalidViewingRestrictionsWindow) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Call SetViewingRestrictionsWindow with special characters | input = "@!#%&*" | result = Core::ERROR_INVALID_PARAMETER, EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER) | Should Fail |
 */
-TEST(UserSettingsTest, ViewingRestrictionsWindowWithSpecialCharacters) {
+TEST(UserSettingsTestAI, ViewingRestrictionsWindowWithSpecialCharacters) {
     std::cout << "Entering ViewingRestrictionsWindowWithSpecialCharacters" << std::endl;
 
     Core::hresult result = InterfacePointer->SetViewingRestrictionsWindow("@!#%&*");
@@ -2182,7 +2182,7 @@ TEST(UserSettingsTest, ViewingRestrictionsWindowWithSpecialCharacters) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Call SetVoiceGuidance to enable voice guidance | input: true | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, EnableVoiceGuidance) {
+TEST(UserSettingsTestAI, EnableVoiceGuidance) {
     std::cout << "Entering EnableVoiceGuidance" << std::endl;
     bool enabled = true;
 
@@ -2210,7 +2210,7 @@ TEST(UserSettingsTest, EnableVoiceGuidance) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Call SetVoiceGuidance to disable voice guidance | input: false | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, DisableVoiceGuidance) {
+TEST(UserSettingsTestAI, DisableVoiceGuidance) {
     std::cout << "Entering DisableVoiceGuidance" << std::endl;
     bool enabled = false;
 
@@ -2238,7 +2238,7 @@ TEST(UserSettingsTest, DisableVoiceGuidance) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetVoiceGuidanceHints with true | input = true | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, SetVoiceGuidanceHints_True) {
+TEST(UserSettingsTestAI, SetVoiceGuidanceHints_True) {
     std::cout << "Entering SetVoiceGuidanceHints_True" << std::endl;
     bool hints = true; 
 
@@ -2266,7 +2266,7 @@ TEST(UserSettingsTest, SetVoiceGuidanceHints_True) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetVoiceGuidanceHints with false | input = false | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, SetVoiceGuidanceHints_False) {
+TEST(UserSettingsTestAI, SetVoiceGuidanceHints_False) {
     std::cout << "Entering SetVoiceGuidanceHints_False" << std::endl;
     bool hints = false; 
 
@@ -2294,7 +2294,7 @@ TEST(UserSettingsTest, SetVoiceGuidanceHints_False) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Set the minimum valid voice guidance rate | rate = 0.1 | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTest, SetVoiceGuidanceRate_ValidRange) {
+TEST(UserSettingsTestAI, SetVoiceGuidanceRate_ValidRange) {
     std::cout << "Entering SetVoiceGuidanceRate_ValidRange" << std::endl;
 
     for (double rate = 0.1; rate <= 10.0; rate += 0.5) {
@@ -2323,7 +2323,7 @@ TEST(UserSettingsTest, SetVoiceGuidanceRate_ValidRange) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Set the voice guidance rate below the minimum boundary | rate = 0.0 | result = Core::ERROR_INVALID_RANGE, EXPECT_EQ(result, Core::ERROR_INVALID_RANGE) | Should Fail |
 */
-TEST(UserSettingsTest, SetVoiceGuidanceRate_BelowMinimumBoundary) {
+TEST(UserSettingsTestAI, SetVoiceGuidanceRate_BelowMinimumBoundary) {
     std::cout << "Entering SetVoiceGuidanceRate_BelowMinimumBoundary" << std::endl;
     double rate = 0.0;
     
@@ -2351,7 +2351,7 @@ TEST(UserSettingsTest, SetVoiceGuidanceRate_BelowMinimumBoundary) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Set the voice guidance rate above the maximum boundary | rate = 10.1 | result = Core::ERROR_INVALID_RANGE, EXPECT_EQ(result, Core::ERROR_INVALID_RANGE) | Should Fail |
 */
-TEST(UserSettingsTest, SetVoiceGuidanceRate_AboveMaximumBoundary) {
+TEST(UserSettingsTestAI, SetVoiceGuidanceRate_AboveMaximumBoundary) {
     std::cout << "Entering SetVoiceGuidanceRate_AboveMaximumBoundary" << std::endl;
     double rate = 10.1;
     
@@ -2379,7 +2379,7 @@ TEST(UserSettingsTest, SetVoiceGuidanceRate_AboveMaximumBoundary) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetVoiceGuidanceRate with a negative rate | rate = -1.0 | result = Core::ERROR_INVALID_RANGE, EXPECT_EQ(result, Core::ERROR_INVALID_RANGE) | Should Fail |
 */
-TEST(UserSettingsTest, SetVoiceGuidanceRate_NegativeRate) {
+TEST(UserSettingsTestAI, SetVoiceGuidanceRate_NegativeRate) {
     std::cout << "Entering SetVoiceGuidanceRate_NegativeRate" << std::endl;
     double rate = -1.0;
     
@@ -2409,7 +2409,7 @@ TEST(UserSettingsTest, SetVoiceGuidanceRate_NegativeRate) {
 * | 02| Call Unregister with the notification object | notification = valid object | result = Core::ERROR_NONE | Should Pass |
 * | 03| Delete the notification object | delete notification | Notification object deleted | Should be successful |
 */
-TEST(UserSettingsTest, UnregisterWithValidNotificationObject) {
+TEST(UserSettingsTestAI, UnregisterWithValidNotificationObject) {
     std::cout << "Entering UnregisterWithValidNotificationObject" << std::endl;
     Exchange::IUserSettings::INotification* notification = new TestNotification();
 
@@ -2438,7 +2438,7 @@ TEST(UserSettingsTest, UnregisterWithValidNotificationObject) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Call Unregister with null notification object | notification = nullptr | result = Core::ERROR_INVALID_PARAMETER, EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER) | Should Fail |
 */
-TEST(UserSettingsTest, UnregisterWithNullNotificationObject) {
+TEST(UserSettingsTestAI, UnregisterWithNullNotificationObject) {
     std::cout << "Entering UnregisterWithNullNotificationObject" << std::endl;
     Exchange::IUserSettings::INotification* notification = nullptr;
     
@@ -2469,7 +2469,7 @@ TEST(UserSettingsTest, UnregisterWithNullNotificationObject) {
 * | 03| Attempt to unregister the already unregistered notification object | result = InterfacePointer->Unregister(notification) | result = Core::ERROR_FAILED_UNREGISTERED, EXPECT_EQ(result, Core::ERROR_FAILED_UNREGISTERED) | Should Pass |
 * | 04| Delete the notification object | delete notification | | Should be successful |
 */
-TEST(UserSettingsTest, UnregisterWithAlreadyUnregisteredNotificationObject) {
+TEST(UserSettingsTestAI, UnregisterWithAlreadyUnregisteredNotificationObject) {
     std::cout << "Entering UnregisterWithAlreadyUnregisteredNotificationObject" << std::endl;
     Exchange::IUserSettings::INotification* notification = new TestNotification();
     
