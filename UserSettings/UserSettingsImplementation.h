@@ -187,8 +187,8 @@ namespace Plugin {
         Core::hresult GetPreferredCaptionsLanguages(string &preferredLanguages) const override;
         Core::hresult SetPreferredClosedCaptionService(const string& service) override;
         Core::hresult GetPreferredClosedCaptionService(string &service) const override;
-        Core::hresult SetPrivacyMode(const string& privacyMode);
-        Core::hresult GetPrivacyMode(string &privacyMode) const;
+        uint32_t SetPrivacyMode(const string& privacyMode);
+        uint32_t GetPrivacyMode(string &privacyMode) const;
         Core::hresult SetPinControl(const bool pinControl) override;
         Core::hresult GetPinControl(bool &pinControl) const override;
         Core::hresult SetViewingRestrictions(const string& viewingRestrictions) override;

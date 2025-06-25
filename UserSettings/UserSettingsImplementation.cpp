@@ -650,7 +650,7 @@ Core::hresult UserSettingsImplementation::GetPreferredClosedCaptionService(strin
     return status;
 }
 
-Core::hresult UserSettingsImplementation::SetPrivacyMode(const string& privacyMode)
+uint32_t UserSettingsImplementation::SetPrivacyMode(const string& privacyMode)
 {
     uint32_t status = Core::ERROR_GENERAL;
 
@@ -684,7 +684,7 @@ Core::hresult UserSettingsImplementation::SetPrivacyMode(const string& privacyMo
     return status;
 }
 
-Core::hresult UserSettingsImplementation::GetPrivacyMode(string &privacyMode) const
+uint32_t UserSettingsImplementation::GetPrivacyMode(string &privacyMode) const
 {
     uint32_t status = Core::ERROR_NONE;
     std::string value = "";
