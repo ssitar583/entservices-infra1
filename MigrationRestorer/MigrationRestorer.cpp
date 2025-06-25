@@ -504,7 +504,8 @@ namespace WPEFramework
 
                     }
                     std::cout << "The value of resolution is :  " << resolution << std::endl ;
-                    string videoDisplay = "HDMI1";
+                    //string videoDisplay = "HDMI1";
+                    string videoDisplay = "Internal0";
                     bool persist = true;
                     bool isIgnoreEdid = true;
                     bool success = true;
