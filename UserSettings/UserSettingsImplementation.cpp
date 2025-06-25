@@ -79,6 +79,7 @@ UserSettingsImplementation::UserSettingsImplementation()
 , _storeNotification(*this)
 , _registeredEventHandlers(false)
 , _service(nullptr)
+, _refCount(0)
 {
     LOGINFO("Create UserSettingsImplementation Instance");
     UserSettingsImplementation::instance(this);
@@ -1133,6 +1134,18 @@ Core::hresult UserSettingsImplementation::GetMigrationStates(IUserSettingsMigrat
     _adminLock.Unlock();
 
     return status;
+}
+
+void UserSettingsImplementation::AddRef() const {
+    _refCount.fetch_add(1, std::memory_order_relaxed);
+}
+
+uint32_t UserSettingsImplementation::Release() const {
+    uint32_t count = _refCount.fetch_sub(1, std::memory_order_acq_rel) - 1;
+    if (count == 0) {
+        delete this;
+    }
+    return count;
 }
 
 } // namespace Plugin

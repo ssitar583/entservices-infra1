@@ -240,6 +240,13 @@ namespace Plugin {
         void Dispatch(Event event, const JsonValue params);
 
         friend class Job;
+
+    public:
+        void AddRef() const override;
+        uint32_t Release() const override;
+
+    private:
+        mutable std::atomic<uint32_t> _refCount{1};
     };
 } // namespace Plugin
 } // namespace WPEFramework
