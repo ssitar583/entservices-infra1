@@ -32,6 +32,14 @@ extern WPEFramework::Exchange::IUserSettingsInspector *IUserSettingsInspectorPoi
 using namespace WPEFramework::Exchange;
 using namespace WPEFramework;
 
+class TestNotification : public WPEFramework::Exchange::IUserSettings::INotification {
+public:
+    //IUnkown pure virtual methods implementations
+    void AddRef() const override {}
+    uint32_t Release() const override { return 0; }
+    void* QueryInterface(const uint32_t) override { return nullptr; }
+};
+
 /**
 * @brief Test to verify that GetAudioDescription returns ERROR_NONE with valid value
 *
@@ -588,7 +596,7 @@ TEST(UserSettingsTest, ValidRateRetrieval) {
 */
 TEST(UserSettingsTest, RegisterWithValidNotificationObject) {
     std::cout << "Entering RegisterWithValidNotificationObject" << std::endl;
-    Exchange::IUserSettings::INotification* notification = new Exchange::IUserSettings::INotification();
+    Exchange::IUserSettings::INotification* notification = new TestNotification();
     
     Core::hresult result = InterfacePointer->Register(notification);
     
@@ -2403,7 +2411,7 @@ TEST(UserSettingsTest, SetVoiceGuidanceRate_NegativeRate) {
 */
 TEST(UserSettingsTest, UnregisterWithValidNotificationObject) {
     std::cout << "Entering UnregisterWithValidNotificationObject" << std::endl;
-    Exchange::IUserSettings::INotification* notification = new Exchange::IUserSettings::INotification();
+    Exchange::IUserSettings::INotification* notification = new TestNotification();
 
     Core::hresult result = InterfacePointer->Unregister(notification);
 
@@ -2463,7 +2471,7 @@ TEST(UserSettingsTest, UnregisterWithNullNotificationObject) {
 */
 TEST(UserSettingsTest, UnregisterWithAlreadyUnregisteredNotificationObject) {
     std::cout << "Entering UnregisterWithAlreadyUnregisteredNotificationObject" << std::endl;
-    Exchange::IUserSettings::INotification* notification = new Exchange::IUserSettings::INotification();
+    Exchange::IUserSettings::INotification* notification = new TestNotification();
     
     InterfacePointer->Unregister(notification);
     Core::hresult result = InterfacePointer->Unregister(notification);
