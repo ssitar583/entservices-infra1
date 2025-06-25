@@ -2577,7 +2577,7 @@ TEST(UserSettingsInspectorTest, ValidStatesArray)
 {
     std::cout << "Entering ValidStatesArray" << std::endl;
 
-    WPEFramework::Exchange::IUserSettingsMigrationStateIterator* states = nullptr;
+    WPEFramework::Exchange::IUserSettingsInspector::IUserSettingsMigrationStateIterator* states = nullptr;
 
     const Core::hresult result = IUserSettingsInspectorPointer->GetMigrationStates(states);
 
