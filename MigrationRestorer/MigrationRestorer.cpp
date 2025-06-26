@@ -508,7 +508,7 @@ namespace WPEFramework
                     string videoDisplay = "Internal0";
                     bool persist = true;
                     bool isIgnoreEdid = true;
-                    bool success = true;
+           //         bool success = true;
                     try
                     {
                         printf("Entered inside resolution try block\n" );
@@ -519,9 +519,8 @@ namespace WPEFramework
                     {
                         printf("Entered inside resolution catch block\n" );
                         LOG_DEVICE_EXCEPTION2(videoDisplay, resolution);
-                        success = false;
+             //           success = false;
                     }
-                    returnResponse(success);
                 }
 
             }
@@ -535,7 +534,29 @@ namespace WPEFramework
                 if(valid)
                 {
                     printf("sound/dolbyvolume validation success\n" );
-                    //apply key
+
+                    string audioPort = "SPEAKER0";
+                    bool dolbyVolumeMode;
+                    string sDolbyVolumeMode;
+                    if (cJSON_IsString(inputVal))
+                    {
+                      sDolbyVolumeMode = inputVal->valuestring;
+                      dolbyVolumeMode = (sDolbyVolumeMode == "true") ? true : false;
+                    }
+		            std::cout << "The value of dolbyVolumeMode is :  " << dolbyVolumeMode << std::endl ;
+                    try
+                    {
+                        printf("Entered inside dolbyvolume try block\n" );
+                        device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                        aPort.setDolbyVolumeMode (dolbyVolumeMode);
+                    }
+                    catch (const device::Exception& err)
+                    {
+                        printf("Entered inside dolbyvolume catch block\n" );
+                        LOG_DEVICE_EXCEPTION2(audioPort, sDolbyVolumeMode);
+                     //   success = false;
+                    }                    
+                    
                 }
             }
             else if(key == "sound/enhancespeech")
