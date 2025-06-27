@@ -559,6 +559,57 @@ namespace WPEFramework
                     
                 }
             }
+            else if(key == "accessibility/voiceguidance")
+            {
+                printf("Entered inside accessibility/voiceguidance block\n" );
+                bool valid = validateValue(inputVal, schemaVal);
+                printf("The value of bool valid or return value of validateValue: %d\n", valid);
+                if(valid)
+                {
+                    printf("accessibility/voiceguidance validation success\n" );
+
+
+
+                    //apply settings
+                }
+            }
+
+            else if(key == "picture/zoomsetting")
+            {
+                printf("Entered inside picture/zoomsetting block\n" );
+                bool valid = validateValue(inputVal, schemaVal);
+                printf("The value of bool valid or return value of validateValue: %d\n", valid);
+                if(valid)
+                {
+                    printf("picture/zoomsetting validation success\n" );
+                    string zoomSetting;
+                    if (cJSON_IsString(inputVal))
+                    {
+                      zoomSetting = inputVal->valuestring;
+                    }
+                    try
+                    {
+                        printf("Entered inside picture/zoomsetting try block\n" );
+                        if (device::Host::getInstance().getVideoDevices().size() < 1)
+                        {
+                            LOGINFO("DSMGR_NOT_RUNNING");
+                            //returnResponse(false);
+                        }
+
+                        // TODO: why is this always the first one in the list?
+                        device::VideoDevice &decoder = device::Host::getInstance().getVideoDevices().at(0);
+                        decoder.setDFC(zoomSetting);
+                        printf("picture/zoomsetting try block executed\n" );
+                    }
+                    catch(const device::Exception& err)
+                    {
+                        printf("Entered inside picture/zoomsetting catch block\n" );
+                        LOG_DEVICE_EXCEPTION1(zoomSetting);
+                        //success = false;
+                    }
+                }
+            }
+
             else if(key == "sound/enhancespeech")
             {
                 printf("Entered inside sound/enhancespeech block\n" );
