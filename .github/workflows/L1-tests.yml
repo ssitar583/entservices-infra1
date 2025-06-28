@@ -541,7 +541,6 @@ jobs:
           -DPLUGIN_OCICONTAINER=ON
           -DPLUGIN_USERSETTINGS=ON
           -DPLUGIN_RESOURCEMANAGER=ON
-          -DPLUGIN_LIFECYCLE_MANAGER=ON
           &&
           cmake --build build/entservices-testframework -j8
           &&
