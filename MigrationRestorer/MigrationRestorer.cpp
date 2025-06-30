@@ -48,6 +48,8 @@
 #include "videoOutputPortConfig.hpp"
 #include "videoResolution.hpp"
 
+#include <interfaces/IUserSettings.h>
+
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 0
@@ -92,6 +94,7 @@ namespace WPEFramework
 
         PopulateMigrationDataStore();
         PopulateMigrationDataStoreSchema();
+        ValidateMigrationDataStore();
         
     }
 
@@ -206,9 +209,43 @@ namespace WPEFramework
             }
 
         // cJSON_Delete(schemaRoot);
-     }
+        }
     }	
 
+    void MigrationRestorer :: ValidateMigrationDataStore()
+    {
+        for(const auto& pair : inputMap)
+        {
+            string key = pair.first;
+            auto itInput = inputMap.find(key);
+            auto itSchema = schemaMap.find(key);
+
+            if (itSchema == schemaMap.end()) 
+            {
+                std::cout << key << " : NOT FOUND" << std::endl;
+                printf("The key is not found inside schema json file\n");
+                continue;
+            }
+
+            cJSON* inputVal = itInput->second;
+            cJSON* schemaVal = itSchema->second;
+
+            if (!inputVal || !schemaVal) {
+                printf("Null JSON pointers for key: %s\n", key.c_str());
+                continue;
+            }
+            bool valid = validateValue(inputVal, schemaVal);
+            if(valid)
+            {
+                validatedkeys.push_back(key);
+		std::cout << key << " : Schema Validation Success" << std::endl;
+            }
+	    else{
+		    std::cout << key << " : Schema Validation Failed" << std::endl;
+	    }
+        }
+    }
+	
     const std::string MigrationRestorer::Initialize(PluginHost::IShell* service)
     {
         LOGINFO("MigrationRestorer's Initialize method called");
@@ -296,207 +333,186 @@ namespace WPEFramework
 
 
     // Helper to check if a value is in an enum array
-    bool MigrationRestorer::isInEnum(cJSON* enumNode, const std::string& value) {
-    printf("Entered isInEnum: checking if '%s' is in enum array\n", value.c_str());
+    bool MigrationRestorer::isInEnum(cJSON* enumNode, const std::string& value) 
+    {
+        printf("Entered isInEnum: checking if '%s' is in enum array\n", value.c_str());
 
-    if (!enumNode || !cJSON_IsArray(enumNode)) {
-        printf("Invalid enum array\n");
-        return false;
-    }
-
-    cJSON* item = nullptr;
-    cJSON_ArrayForEach(item, enumNode) {
-        if (cJSON_IsString(item)) {
-            printf("Comparing with enum value: '%s'\n", item->valuestring);
-            if (strcasecmp(value.c_str(), item->valuestring) == 0) {
-                printf("Match found for '%s'\n", value.c_str());
-                return true;
-            }
-        }
-    }
-
-    printf("No match found for '%s' in enum\n", value.c_str());
-    return false;
-}
-
-    // Validate a value against a schema node
-    bool MigrationRestorer::validateValue(cJSON* value, cJSON* schema) {
-    printf("Entered validateValue function\n");
-
-    if (!schema) {
-        printf("The schema cJSON object is NULL, returning false\n");
-        return false;
-    }
-
-    // Handle $ref
-    cJSON* refNode = cJSON_GetObjectItem(schema, "$ref");
-    if (refNode && cJSON_IsString(refNode)) {
-        printf("Entered $ref block for ref: %s\n", refNode->valuestring);
-        cJSON* resolved = resolveRef(refNode->valuestring);
-        if (!resolved) {
-            printf("Failed to resolve $ref: %s\n", refNode->valuestring);
+        if (!enumNode || !cJSON_IsArray(enumNode)) {
+            printf("Invalid enum array\n");
             return false;
         }
-        return validateValue(value, resolved);
-    }
 
-    // Handle "type"
-    cJSON* typeNode = cJSON_GetObjectItem(schema, "type");
-    if (typeNode && cJSON_IsString(typeNode)) {
-        std::string type = typeNode->valuestring;
-        printf("Detected type: %s\n", type.c_str());
-
-        if (type == "string") {
-            if (!cJSON_IsString(value)) {
-                printf("Validation failed: value is not a string\n");
-                return false;
-            }
-
-            printf("Validating string value: %s\n", value->valuestring);
-
-            cJSON* enumNode = cJSON_GetObjectItem(schema, "enum");
-            if (enumNode) {
-                printf("Enum values:\n");
-                cJSON* item = nullptr;
-                cJSON_ArrayForEach(item, enumNode) {
-                    if (cJSON_IsString(item)) {
-                        printf("- %s\n", item->valuestring);
-                        if (strcasecmp(value->valuestring, item->valuestring) == 0) {
-                            return true;
-                        }
-                    }
-                }
-                printf("String '%s' not found in enum (case-insensitive)\n", value->valuestring);
-                return false;
-            }
-
-            return true; // No enum to restrict, string is valid
-        }
-
-        if (type == "number" || type == "integer") {
-            if (!cJSON_IsNumber(value)) {
-                printf("Validation failed: value is not a number\n");
-                return false;
-            }
-
-            cJSON* minNode = cJSON_GetObjectItem(schema, "minimum");
-            cJSON* maxNode = cJSON_GetObjectItem(schema, "maximum");
-
-            if (minNode && value->valuedouble < minNode->valuedouble) {
-                printf("Number %f is less than minimum %f\n", value->valuedouble, minNode->valuedouble);
-                return false;
-            }
-            if (maxNode && value->valuedouble > maxNode->valuedouble) {
-                printf("Number %f is greater than maximum %f\n", value->valuedouble, maxNode->valuedouble);
-                return false;
-            }
-
-            return true;
-        }
-
-        if (type == "array") {
-            if (!cJSON_IsArray(value)) {
-                printf("Validation failed: value is not an array\n");
-                return false;
-            }
-
-            cJSON* itemsNode = cJSON_GetObjectItem(schema, "items");
-            if (!itemsNode) {
-                printf("Schema missing 'items' definition for array\n");
-                return false;
-            }
-
-            if (cJSON_IsArray(itemsNode)) {
-                int arrSize = cJSON_GetArraySize(itemsNode);
-                for (int i = 0; i < cJSON_GetArraySize(value); ++i) {
-                    cJSON* v = cJSON_GetArrayItem(value, i);
-                    cJSON* s = cJSON_GetArrayItem(itemsNode, i % arrSize);
-                    if (!validateValue(v, s)) {
-                        printf("Validation failed for array item %d\n", i);
-                        return false;
-                    }
-                }
-                return true;
-            } else {
-                int index = 0;
-                cJSON* arrItem = nullptr;
-                cJSON_ArrayForEach(arrItem, value) {
-                    if (!validateValue(arrItem, itemsNode)) {
-                        printf("Validation failed for array element %d\n", index);
-                        return false;
-                    }
-                    index++;
-                }
-                return true;
-            }
-        }
-
-        if (type == "object") {
-            printf("Skipping object validation for now (type == object)\n");
-            return true;
-        }
-
-        printf("Unknown type in schema: %s\n", type.c_str());
-        return false;
-    }
-
-    // Root-level enum fallback (if no type specified)
-    cJSON* enumNode = cJSON_GetObjectItem(schema, "enum");
-    if (enumNode && cJSON_IsString(value)) {
         cJSON* item = nullptr;
         cJSON_ArrayForEach(item, enumNode) {
             if (cJSON_IsString(item)) {
-                if (strcasecmp(value->valuestring, item->valuestring) == 0) {
+                printf("Comparing with enum value: '%s'\n", item->valuestring);
+                if (strcasecmp(value.c_str(), item->valuestring) == 0) {
+                    printf("Match found for '%s'\n", value.c_str());
                     return true;
                 }
             }
         }
-        printf("Root enum match failed for value: %s\n", value->valuestring);
+
+        printf("No match found for '%s' in enum\n", value.c_str());
         return false;
     }
 
-    // No constraints, default to true
-    printf("No type or enum found in schema — returning true\n");
-    return true;
-}
+    // Validate a value against a schema node
+    bool MigrationRestorer::validateValue(cJSON* value, cJSON* schema) 
+    {
+        printf("Entered validateValue function\n");
+
+        if (!schema) {
+            printf("The schema cJSON object is NULL, returning false\n");
+            return false;
+        }
+
+        // Handle $ref
+        cJSON* refNode = cJSON_GetObjectItem(schema, "$ref");
+        if (refNode && cJSON_IsString(refNode)) {
+            printf("Entered $ref block for ref: %s\n", refNode->valuestring);
+            cJSON* resolved = resolveRef(refNode->valuestring);
+            if (!resolved) {
+                printf("Failed to resolve $ref: %s\n", refNode->valuestring);
+                return false;
+            }
+            return validateValue(value, resolved);
+        }
+
+        // Handle "type"
+        cJSON* typeNode = cJSON_GetObjectItem(schema, "type");
+        if (typeNode && cJSON_IsString(typeNode)) {
+            std::string type = typeNode->valuestring;
+            printf("Detected type: %s\n", type.c_str());
+
+            if (type == "string") {
+                if (!cJSON_IsString(value)) {
+                    printf("Validation failed: value is not a string\n");
+                    return false;
+                }
+
+                printf("Validating string value: %s\n", value->valuestring);
+
+                cJSON* enumNode = cJSON_GetObjectItem(schema, "enum");
+                if (enumNode) {
+                    printf("Enum values:\n");
+                    cJSON* item = nullptr;
+                    cJSON_ArrayForEach(item, enumNode) {
+                        if (cJSON_IsString(item)) {
+                            printf("- %s\n", item->valuestring);
+                            if (strcasecmp(value->valuestring, item->valuestring) == 0) {
+                                return true;
+                            }
+                        }
+                    }
+                    printf("String '%s' not found in enum (case-insensitive)\n", value->valuestring);
+                    return false;
+                }
+
+                return true; // No enum to restrict, string is valid
+            }
+
+            if (type == "number" || type == "integer") {
+                if (!cJSON_IsNumber(value)) {
+                    printf("Validation failed: value is not a number\n");
+                    return false;
+                }
+
+                cJSON* minNode = cJSON_GetObjectItem(schema, "minimum");
+                cJSON* maxNode = cJSON_GetObjectItem(schema, "maximum");
+
+                if (minNode && value->valuedouble < minNode->valuedouble) {
+                    printf("Number %f is less than minimum %f\n", value->valuedouble, minNode->valuedouble);
+                    return false;
+                }
+                if (maxNode && value->valuedouble > maxNode->valuedouble) {
+                    printf("Number %f is greater than maximum %f\n", value->valuedouble, maxNode->valuedouble);
+                    return false;
+                }
+
+                return true;
+            }
+
+            if (type == "array") {
+                if (!cJSON_IsArray(value)) {
+                    printf("Validation failed: value is not an array\n");
+                    return false;
+                }
+
+                cJSON* itemsNode = cJSON_GetObjectItem(schema, "items");
+                if (!itemsNode) {
+                    printf("Schema missing 'items' definition for array\n");
+                    return false;
+                }
+
+                if (cJSON_IsArray(itemsNode)) {
+                    int arrSize = cJSON_GetArraySize(itemsNode);
+                    for (int i = 0; i < cJSON_GetArraySize(value); ++i) {
+                        cJSON* v = cJSON_GetArrayItem(value, i);
+                        cJSON* s = cJSON_GetArrayItem(itemsNode, i % arrSize);
+                        if (!validateValue(v, s)) {
+                            printf("Validation failed for array item %d\n", i);
+                            return false;
+                        }
+                    }
+                    return true;
+                } else {
+                    int index = 0;
+                    cJSON* arrItem = nullptr;
+                    cJSON_ArrayForEach(arrItem, value) {
+                        if (!validateValue(arrItem, itemsNode)) {
+                            printf("Validation failed for array element %d\n", index);
+                            return false;
+                        }
+                        index++;
+                    }
+                    return true;
+                }
+            }
+
+            if (type == "object") {
+                printf("Skipping object validation for now (type == object)\n");
+                return true;
+            }
+
+            printf("Unknown type in schema: %s\n", type.c_str());
+            return false;
+        }
+
+        // Root-level enum fallback (if no type specified)
+        cJSON* enumNode = cJSON_GetObjectItem(schema, "enum");
+        if (enumNode && cJSON_IsString(value)) {
+            cJSON* item = nullptr;
+            cJSON_ArrayForEach(item, enumNode) {
+                if (cJSON_IsString(item)) {
+                    if (strcasecmp(value->valuestring, item->valuestring) == 0) {
+                        return true;
+                    }
+                }
+            }
+            printf("Root enum match failed for value: %s\n", value->valuestring);
+            return false;
+        }
+
+        // No constraints, default to true
+        printf("No type or enum found in schema — returning true\n");
+        return true;
+    }
 
 
     
     uint32_t MigrationRestorer :: ApplyDisplaySettings(const JsonObject& parameters, JsonObject& response)
     {
         printf("MigrationRestorer'S ApplyDisplaySettings Method called\n");
-        string key;
-        for(const auto& pair : inputMap)
+        for(const string& key : validatedkeys)
         {
-            key = pair.first;
             auto itInput = inputMap.find(key);
-            auto itSchema = schemaMap.find(key);
-
-            if (itSchema == schemaMap.end()) 
-            {
-                std::cout << key << " : NOT FOUND" << std::endl;
-                printf("The key is not found inside schema json file\n");
-                return false;
-            }
 
             cJSON* inputVal = itInput->second;
-            cJSON* schemaVal = itSchema->second;
-
-            if (!inputVal || !schemaVal) {
-                printf("Null JSON pointers for key: %s\n", key.c_str());
-                continue;
-            }
             
             if( key=="picture/resolution")
             {
                 printf("Entered inside picture/resolution block\n" );
-                bool valid = validateValue(inputVal, schemaVal);
-                printf("The value of bool valid or return value of validateValue: %d\n", valid);
-                printf("validateValue for key '%s' returned: %s\n", key.c_str(), valid ? "true" : "false");
-                if(valid)
-                {
-                    printf("picture/resolution validation success\n" );
-                    // cJSON* values = itInput->second;
                     string resolution;
                     if (cJSON_IsString(inputVal))
                     {
@@ -504,7 +520,6 @@ namespace WPEFramework
 
                     }
                     std::cout << "The value of resolution is :  " << resolution << std::endl ;
-                    //string videoDisplay = "HDMI1";
                     string videoDisplay = "Internal0";
                     bool persist = true;
                     bool isIgnoreEdid = true;
@@ -521,19 +536,12 @@ namespace WPEFramework
                         LOG_DEVICE_EXCEPTION2(videoDisplay, resolution);
              //           success = false;
                     }
-                }
-
             }
 
 
 	        else if( key=="sound/dolbyvolume")
             {
                 printf("Entered inside sound/dolbyvolume block\n" );
-                bool valid = validateValue(inputVal, schemaVal);
-                printf("The value of bool valid or return value of validateValue: %d\n", valid);
-                if(valid)
-                {
-                    printf("sound/dolbyvolume validation success\n" );
 
                     string audioPort = "SPEAKER0";
                     bool dolbyVolumeMode;
@@ -541,7 +549,7 @@ namespace WPEFramework
                     if (cJSON_IsString(inputVal))
                     {
                       sDolbyVolumeMode = inputVal->valuestring;
-                      dolbyVolumeMode = (sDolbyVolumeMode == "true") ? true : false;
+                      dolbyVolumeMode = (sDolbyVolumeMode == "on") ? true : false;
                     }
 		            std::cout << "The value of dolbyVolumeMode is :  " << dolbyVolumeMode << std::endl ;
                     try
@@ -556,32 +564,31 @@ namespace WPEFramework
                         LOG_DEVICE_EXCEPTION2(audioPort, sDolbyVolumeMode);
                      //   success = false;
                     }                    
-                    
-                }
             }
+            
             else if(key == "accessibility/voiceguidance")
             {
                 printf("Entered inside accessibility/voiceguidance block\n" );
-                bool valid = validateValue(inputVal, schemaVal);
-                printf("The value of bool valid or return value of validateValue: %d\n", valid);
-                if(valid)
-                {
-                    printf("accessibility/voiceguidance validation success\n" );
+                
+                //apply settings
+		Core::hresult status = Core::ERROR_GENERAL;
+	       bool voiceguidancevalue = false;
+                    Exchange::IUserSettings* userSettings = nullptr;
+                    userSettings = _service->QueryInterface<Exchange::IUserSettings>();
+                    if (cJSON_IsString(inputVal))
+                    { 
+		      printf("Entered inside voice guidance if-block\n" );
+                      string set = inputVal->valuestring;
+                      voiceguidancevalue = (set == "on") ? true : false;
+                    }
 
-
-
-                    //apply settings
-                }
+                   status = userSettings->SetVoiceGuidance(voiceguidancevalue);
+		   std::cout << "Executed setvoiceguidance: " << status << std::endl;                
             }
 
             else if(key == "picture/zoomsetting")
             {
                 printf("Entered inside picture/zoomsetting block\n" );
-                bool valid = validateValue(inputVal, schemaVal);
-                printf("The value of bool valid or return value of validateValue: %d\n", valid);
-                if(valid)
-                {
-                    printf("picture/zoomsetting validation success\n" );
                     string zoomSetting;
                     if (cJSON_IsString(inputVal))
                     {
@@ -607,91 +614,9 @@ namespace WPEFramework
                         LOG_DEVICE_EXCEPTION1(zoomSetting);
                         //success = false;
                     }
-                }
-            }
-
-            else if(key == "sound/enhancespeech")
-            {
-                printf("Entered inside sound/enhancespeech block\n" );
-                bool valid = validateValue(inputVal, schemaVal);
-                printf("The value of bool valid or return value of validateValue: %d\n", valid);
-                if(valid)
-                {
-                    printf("sound/enhancespeech validation success\n" );
-                    //apply settings
-                }
-            }
-            else if (key == "sound/opticalformat")
-            {
-                printf("Entered inside sound/opticalformat block\n" );
-                bool valid = validateValue(inputVal, schemaVal);
-                printf("The value of bool valid or return value of validateValue: %d\n", valid);
-                if(valid)
-                {
-                    printf("sound/opticalformat validation success\n" );
-                    //apply settings
-                }
-            }
-            else if (key == "sound/hdmi/earc/audioformat")
-            {
-                bool valid = validateValue(inputVal, schemaVal);
-                printf("The value of bool valid or return value of validateValue: %d\n", valid);
-                if(valid)
-                {
-                    printf("sound/hdmi/earc/audioformat validation success\n" );
-                    //apply settings
-                }
-            }
-            else if (key == "system/timezone")
-            {
-                printf("Entered inside system/timezone block\n" );
-                bool valid = validateValue(inputVal, schemaVal);
-                printf("The value of bool valid or return value of validateValue: %d\n", valid);
-                if(valid)
-                {
-                    printf("system/timezone validation success\n" );
-                    //apply settings
-                }
-            }
-            
-            else if (key == "sound/bassboost")
-            {
-                printf("Entered inside sound/bassboost block\n" );
-                bool valid = validateValue(inputVal, schemaVal);
-                printf("The value of bool valid or return value of validateValue: %d\n", valid);
-                if(valid)
-                {
-                    printf("sound/bassboost validation success\n" );
-                    //apply settings
-                }
-            }
-            
-            else if (key == "sound/dynamicsound")
-            {
-                printf("Entered inside sound/dynamicsound block\n" );
-                bool valid = validateValue(inputVal, schemaVal);
-                printf("The value of bool valid or return value of validateValue: %d\n", valid);
-                if(valid)
-                {
-                    printf("sound/dynamicsound validation success\n" );
-                    //apply settings
-                }
-            }
-            
-            else if (key == "picture/picturemode")
-            {
-                printf("Entered inside picture/picturemode block\n" );
-                bool valid = validateValue(inputVal, schemaVal);
-                printf("The value of bool valid or return value of validateValue: %d\n", valid);
-                if(valid)
-                {
-                    printf("picture/picturemode validation success\n" );
-                    //apply settings
-                }
-            }
-            
+            }  
         }
-	return 0;
+	    return 0;
     }
 
  } // namespace Plugin

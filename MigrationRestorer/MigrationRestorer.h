@@ -54,6 +54,7 @@ namespace Plugin {
             void UnregisterAll();
             void PopulateMigrationDataStore();
             void PopulateMigrationDataStoreSchema();
+	    void ValidateMigrationDataStore();
             cJSON* resolveRef( const std::string& ref);
             bool isInEnum(cJSON* enumNode, const std::string& value);
             bool validateValue(cJSON* value, cJSON* schema);
@@ -68,6 +69,7 @@ namespace Plugin {
             std::map<std::string, cJSON*> inputMap;
             std::map<std::string, cJSON*> schemaMap;
             cJSON* schemaRoot = nullptr;
+	    std::vector<std::string> validatedkeys;
     };
 
 } // namespace Plugin
