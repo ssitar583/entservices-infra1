@@ -25,12 +25,19 @@
 #include <WPEFramework/interfaces/IUserSettings.h>
 #include <WPEFramework/interfaces/Ids.h>
 #include <core/core.h>
+#include "UserSettingsImplementation.h"
+#include "ServiceMock.h"
+#include "Store2Mock.h"
 
-extern WPEFramework::Exchange::IUserSettings *InterfacePointer;
-extern WPEFramework::Exchange::IUserSettingsInspector *IUserSettingsInspectorPointer;
+using ::testing::NiceMock;
+using ::testing::Return;
+using ::testing::_;
+using ::testing::SetArgReferee;
+using ::testing::DoAll;
 
 using namespace WPEFramework::Exchange;
 using namespace WPEFramework;
+using namespace WPEFramework::Plugin;
 
 class TestNotification : public WPEFramework::Exchange::IUserSettings::INotification {
 public:
@@ -38,6 +45,48 @@ public:
     void AddRef() const override {}
     uint32_t Release() const override { return 0; }
     void* QueryInterface(const uint32_t) override { return nullptr; }
+};
+
+class UserSettingsL1Test : public ::testing::Test {
+protected:
+    Core::ProxyType<UserSettingsImplementation> userSettingsImpl;
+    NiceMock<ServiceMock>* serviceMock;
+    NiceMock<Store2Mock>* storeMock;
+    
+    UserSettingsL1Test() {
+        // Create the mocks
+        serviceMock = new NiceMock<ServiceMock>();
+        storeMock = new NiceMock<Store2Mock>();
+        
+        // Create the implementation
+        userSettingsImpl = Core::ProxyType<UserSettingsImplementation>::Create();
+    }
+    
+    void SetUp() override {
+        // Set up default behavior for the service mock
+        ON_CALL(*serviceMock, QueryInterfaceByCallsign(_, _))
+            .WillByDefault(Return(storeMock));
+            
+        // Configure the implementation with our mocked service
+        userSettingsImpl->Configure(serviceMock);
+    }
+    
+    void TearDown() override {
+        // Clean up is handled by ProxyType for userSettingsImpl
+    }
+    
+    virtual ~UserSettingsL1Test() {
+        // Delete the mocks
+        if (serviceMock != nullptr) {
+            delete serviceMock;
+            serviceMock = nullptr;
+        }
+        
+        if (storeMock != nullptr) {
+            delete storeMock;
+            storeMock = nullptr;
+        }
+    }
 };
 
 /**
@@ -58,14 +107,22 @@ public:
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call GetAudioDescription with valid InterfacePointer | enabled = false | result = Core::ERROR_NONE, enabled = true or false | Should Pass |
 */
-TEST(UserSettingsTestAI, GetAudioDescription_ReturnsErrorNone_WithValidValue) {
+TEST_F(UserSettingsL1Test, GetAudioDescription_ReturnsErrorNone_WithValidValue) {
     std::cout << "Entering GetAudioDescription_ReturnsErrorNone_WithValidValue" << std::endl;
     
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, GetValue(_, _, ::testing::StrEq("audioDescription"), _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>("true"),
+            SetArgReferee<4>(0),
+            Return(Core::ERROR_NONE)
+        ));
+    
     bool enabled = false;
-    Core::hresult result = InterfacePointer->GetAudioDescription(enabled);
+    Core::hresult result = userSettingsImpl->GetAudioDescription(enabled);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
-    EXPECT_TRUE(enabled == true || enabled == false);
+    EXPECT_TRUE(enabled);
     
     std::cout << "Exiting GetAudioDescription_ReturnsErrorNone_WithValidValue" << std::endl;
 }
@@ -88,14 +145,22 @@ TEST(UserSettingsTestAI, GetAudioDescription_ReturnsErrorNone_WithValidValue) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call GetBlockNotRatedContent function | blockNotRatedContent = false | result = Core::ERROR_NONE, blockNotRatedContent = true or false | Should Pass |
 */
-TEST(UserSettingsTestAI, GetBlockNotRatedContentReturnsEnabledStateSuccessfully) {
+TEST_F(UserSettingsL1Test, GetBlockNotRatedContentReturnsEnabledStateSuccessfully) {
     std::cout << "Entering GetBlockNotRatedContentReturnsEnabledStateSuccessfully" << std::endl;
     
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, GetValue(_, _, ::testing::StrEq("blockNotRatedContent"), _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>("true"),
+            SetArgReferee<4>(0),
+            Return(Core::ERROR_NONE)
+        ));
+    
     bool blockNotRatedContent = false;
-    Core::hresult result = InterfacePointer->GetBlockNotRatedContent(blockNotRatedContent);
+    Core::hresult result = userSettingsImpl->GetBlockNotRatedContent(blockNotRatedContent);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
-    EXPECT_TRUE(blockNotRatedContent == true || blockNotRatedContent == false);
+    EXPECT_TRUE(blockNotRatedContent);
     
     std::cout << "Exiting GetBlockNotRatedContentReturnsEnabledStateSuccessfully" << std::endl;
 }
@@ -118,11 +183,19 @@ TEST(UserSettingsTestAI, GetBlockNotRatedContentReturnsEnabledStateSuccessfully)
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Call GetCaptions to retrieve the enabled state | enabled = false | result = Core::ERROR_NONE, enabled = true | Should Pass |
 */
-TEST(UserSettingsTestAI, GetCaptionsReturnsEnabledStateSuccessfully) {
+TEST_F(UserSettingsL1Test, GetCaptionsReturnsEnabledStateSuccessfully) {
     std::cout << "Entering GetCaptionsReturnsEnabledStateSuccessfully" << std::endl;
 
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, GetValue(_, _, ::testing::StrEq("captions"), _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>("true"),
+            SetArgReferee<4>(0),
+            Return(Core::ERROR_NONE)
+        ));
+
     bool enabled = false;
-    Core::hresult result = InterfacePointer->GetCaptions(enabled);
+    Core::hresult result = userSettingsImpl->GetCaptions(enabled);
 
     EXPECT_EQ(result, Core::ERROR_NONE);
     EXPECT_TRUE(enabled);
@@ -153,14 +226,22 @@ TEST(UserSettingsTestAI, GetCaptionsReturnsEnabledStateSuccessfully) {
 * | 05| Verify the enabled state | enabled = true or false | enabled = true or false | Should Pass |
 * | 06| Exit the test function | None | None | Should be successful |
 */
-TEST(UserSettingsTestAI, GetHighContrastReturnsEnabledStateSuccessfully) {
+TEST_F(UserSettingsL1Test, GetHighContrastReturnsEnabledStateSuccessfully) {
     std::cout << "Entering GetHighContrastReturnsEnabledStateSuccessfully" << std::endl;
     
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, GetValue(_, _, ::testing::StrEq("highContrast"), _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>("true"),
+            SetArgReferee<4>(0),
+            Return(Core::ERROR_NONE)
+        ));
+    
     bool enabled = false;
-    Core::hresult result = InterfacePointer->GetHighContrast(enabled);
+    Core::hresult result = userSettingsImpl->GetHighContrast(enabled);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
-    EXPECT_TRUE(enabled == true || enabled == false);
+    EXPECT_TRUE(enabled);
     
     std::cout << "Exiting GetHighContrastReturnsEnabledStateSuccessfully" << std::endl;
 }
@@ -185,14 +266,22 @@ TEST(UserSettingsTestAI, GetHighContrastReturnsEnabledStateSuccessfully) {
 * | 02| Check result value | result = Core::ERROR_NONE | result = Core::ERROR_NONE | Should be successful |
 * | 03| Validate liveWatershed value | liveWatershed = true or false | liveWatershed = true or false | Should be successful |
 */
-TEST(UserSettingsTestAI, GetLiveWatershedReturnsLiveWatershedSuccessfully) {
+TEST_F(UserSettingsL1Test, GetLiveWatershedReturnsLiveWatershedSuccessfully) {
     std::cout << "Entering GetLiveWatershedReturnsLiveWatershedSuccessfully" << std::endl;
 
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, GetValue(_, _, ::testing::StrEq("liveWatershed"), _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>("true"),
+            SetArgReferee<4>(0),
+            Return(Core::ERROR_NONE)
+        ));
+
     bool liveWatershed = false;
-    Core::hresult result = InterfacePointer->GetLiveWatershed(liveWatershed);
+    Core::hresult result = userSettingsImpl->GetLiveWatershed(liveWatershed);
 
     EXPECT_EQ(result, Core::ERROR_NONE);
-    EXPECT_TRUE(liveWatershed == true || liveWatershed == false);
+    EXPECT_TRUE(liveWatershed);
 
     std::cout << "Exiting GetLiveWatershedReturnsLiveWatershedSuccessfully" << std::endl;
 }
@@ -215,14 +304,22 @@ TEST(UserSettingsTestAI, GetLiveWatershedReturnsLiveWatershedSuccessfully) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call GetPinControl method | pinControl = false | result = Core::ERROR_NONE, pinControl = true or false | Should Pass |
 */
-TEST(UserSettingsTestAI, GetPinControlReturnsPinControlSuccessfully) {
+TEST_F(UserSettingsL1Test, GetPinControlReturnsPinControlSuccessfully) {
     std::cout << "Entering GetPinControlReturnsPinControlSuccessfully" << std::endl;
 
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, GetValue(_, _, ::testing::StrEq("pinControl"), _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>("true"),
+            SetArgReferee<4>(0),
+            Return(Core::ERROR_NONE)
+        ));
+
     bool pinControl = false;
-    Core::hresult result = InterfacePointer->GetPinControl(pinControl);
+    Core::hresult result = userSettingsImpl->GetPinControl(pinControl);
 
     EXPECT_EQ(result, Core::ERROR_NONE);
-    EXPECT_TRUE(pinControl == true || pinControl == false);
+    EXPECT_TRUE(pinControl);
 
     std::cout << "Exiting GetPinControlReturnsPinControlSuccessfully" << std::endl;
 }
@@ -249,14 +346,22 @@ TEST(UserSettingsTestAI, GetPinControlReturnsPinControlSuccessfully) {
 * | 04| Check the result of GetPinOnPurchase | result = Core::ERROR_NONE, pinOnPurchase = true/false | result == Core::ERROR_NONE, pinOnPurchase == true/false | Should Pass |
 * | 05| Exit the test function | None | None | Should be successful |
 */
-TEST(UserSettingsTestAI, GetPinOnPurchaseReturnsPinOnPurchaseSuccessfully) {
+TEST_F(UserSettingsL1Test, GetPinOnPurchaseReturnsPinOnPurchaseSuccessfully) {
     std::cout << "Entering GetPinOnPurchaseReturnsPinOnPurchaseSuccessfully test";
     
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, GetValue(_, _, ::testing::StrEq("pinOnPurchase"), _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>("true"),
+            SetArgReferee<4>(0),
+            Return(Core::ERROR_NONE)
+        ));
+    
     bool pinOnPurchase = false;
-    Core::hresult result = InterfacePointer->GetPinOnPurchase(pinOnPurchase);
+    Core::hresult result = userSettingsImpl->GetPinOnPurchase(pinOnPurchase);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
-    EXPECT_TRUE(pinOnPurchase == true || pinOnPurchase == false);
+    EXPECT_TRUE(pinOnPurchase);
     
     std::cout << "Exiting GetPinOnPurchaseReturnsPinOnPurchaseSuccessfully test";
 }
@@ -279,14 +384,22 @@ TEST(UserSettingsTestAI, GetPinOnPurchaseReturnsPinOnPurchaseSuccessfully) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call GetPlaybackWatershed function | playbackWatershed = false | result = Core::ERROR_NONE, playbackWatershed = true or false | Should Pass |
 */
-TEST(UserSettingsTestAI, GetPlaybackWatershed_ReturnsErrorNone_WithValidPlaybackWatershed) {
+TEST_F(UserSettingsL1Test, GetPlaybackWatershed_ReturnsErrorNone_WithValidPlaybackWatershed) {
     std::cout << "Entering GetPlaybackWatershed_ReturnsErrorNone_WithValidPlaybackWatershed test";
     
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, GetValue(_, _, ::testing::StrEq("playbackWatershed"), _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>("true"),
+            SetArgReferee<4>(0),
+            Return(Core::ERROR_NONE)
+        ));
+    
     bool playbackWatershed = false;
-    Core::hresult result = InterfacePointer->GetPlaybackWatershed(playbackWatershed);
+    Core::hresult result = userSettingsImpl->GetPlaybackWatershed(playbackWatershed);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
-    EXPECT_TRUE(playbackWatershed == true || playbackWatershed == false);
+    EXPECT_TRUE(playbackWatershed);
     
     std::cout << "Exiting GetPlaybackWatershed_ReturnsErrorNone_WithValidPlaybackWatershed test";
 }
@@ -309,11 +422,20 @@ TEST(UserSettingsTestAI, GetPlaybackWatershed_ReturnsErrorNone_WithValidPlayback
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Initialize preferredLanguages string and call GetPreferredAudioLanguages | preferredLanguages = "" | result = Core::ERROR_NONE, preferredLanguages = "eng" | Should Pass |
 */
-TEST(UserSettingsTestAI, ValidPreferredLanguagesString) {
+TEST_F(UserSettingsL1Test, ValidPreferredLanguagesString) {
     std::cout << "Entering ValidPreferredLanguagesString test" << std::endl;
+    
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, GetValue(_, _, ::testing::StrEq("preferredAudioLanguages"), _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>("eng"),
+            SetArgReferee<4>(0),
+            Return(Core::ERROR_NONE)
+        ));
+    
     string preferredLanguages = "";
     
-    Core::hresult result = InterfacePointer->GetPreferredAudioLanguages(preferredLanguages);
+    Core::hresult result = userSettingsImpl->GetPreferredAudioLanguages(preferredLanguages);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
     EXPECT_EQ(preferredLanguages, "eng");
@@ -339,11 +461,20 @@ TEST(UserSettingsTestAI, ValidPreferredLanguagesString) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call GetPreferredCaptionsLanguages API | preferredLanguages = "" | result = Core::ERROR_NONE, preferredLanguages = "eng,fra" | Should Pass |
 */
-TEST(UserSettingsTestAI, ValidPreferredLanguages) {
+TEST_F(UserSettingsL1Test, ValidPreferredLanguages) {
     std::cout << "Entering ValidPreferredLanguages test";
+    
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, GetValue(_, _, ::testing::StrEq("preferredCaptionsLanguages"), _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>("eng,fra"),
+            SetArgReferee<4>(0),
+            Return(Core::ERROR_NONE)
+        ));
+    
     string preferredLanguages = "";
     
-    Core::hresult result = InterfacePointer->GetPreferredCaptionsLanguages(preferredLanguages);
+    Core::hresult result = userSettingsImpl->GetPreferredCaptionsLanguages(preferredLanguages);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
     EXPECT_EQ(preferredLanguages, "eng,fra");
@@ -372,11 +503,19 @@ TEST(UserSettingsTestAI, ValidPreferredLanguages) {
 * | 01| Call GetPreferredClosedCaptionService method | service = "" | result should be Core::ERROR_NONE, service should be one of the valid names | Should Pass |
 * | 02| Check if the service name is valid | service = returned value | service should be "CC1", "CC2", "CC3", "CC4", "TEXT1", "TEXT2", "TEXT3", "TEXT4", or "SERVICE" followed by a number between 1 and 64 | Should Pass |
 */
-TEST(UserSettingsTestAI, ValidServiceNameReturned) {
+TEST_F(UserSettingsL1Test, ValidServiceNameReturned) {
     std::cout << "Entering ValidServiceNameReturned" << std::endl;
     
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, GetValue(_, _, ::testing::StrEq("preferredClosedCaptionService"), _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>("CC1"),
+            SetArgReferee<4>(0),
+            Return(Core::ERROR_NONE)
+        ));
+    
     string service = "";
-    Core::hresult result = InterfacePointer->GetPreferredClosedCaptionService(service);
+    Core::hresult result = userSettingsImpl->GetPreferredClosedCaptionService(service);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
     EXPECT_TRUE(service == "CC1" || service == "CC2" || service == "CC3" || service == "CC4" ||
@@ -404,11 +543,19 @@ TEST(UserSettingsTestAI, ValidServiceNameReturned) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call GetPresentationLanguage method | presentationLanguage = "" | result = Core::ERROR_NONE, presentationLanguage = "en-US" or "es-US" or "en-CA" or "fr-CA" | Should Pass |
 */
-TEST(UserSettingsTestAI, ValidPresentationLanguage) {
+TEST_F(UserSettingsL1Test, ValidPresentationLanguage) {
     std::cout << "Entering ValidPresentationLanguage test" << std::endl;
     
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, GetValue(_, _, ::testing::StrEq("presentationLanguage"), _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>("en-US"),
+            SetArgReferee<4>(0),
+            Return(Core::ERROR_NONE)
+        ));
+    
     string presentationLanguage = "";
-    Core::hresult result = InterfacePointer->GetPresentationLanguage(presentationLanguage);
+    Core::hresult result = userSettingsImpl->GetPresentationLanguage(presentationLanguage);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
     EXPECT_TRUE(presentationLanguage == "en-US" || presentationLanguage == "es-US" || presentationLanguage == "en-CA" || presentationLanguage == "fr-CA");
@@ -436,11 +583,20 @@ TEST(UserSettingsTestAI, ValidPresentationLanguage) {
 * | 02 | Call GetViewingRestrictions method | viewingRestrictions = "" | result = Core::ERROR_NONE, viewingRestrictions is not empty | Should Pass |
 * | 03 | Exiting ValidViewingRestrictions test | - | - | Should be successful |
 */
-TEST(UserSettingsTestAI, ValidViewingRestrictions) {
+TEST_F(UserSettingsL1Test, ValidViewingRestrictions) {
     std::cout << "Entering ValidViewingRestrictions test";
+    
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, GetValue(_, _, ::testing::StrEq("viewingRestrictions"), _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>("TVPG"),
+            SetArgReferee<4>(0),
+            Return(Core::ERROR_NONE)
+        ));
+    
     string viewingRestrictions = "";
     
-    Core::hresult result = InterfacePointer->GetViewingRestrictions(viewingRestrictions);
+    Core::hresult result = userSettingsImpl->GetViewingRestrictions(viewingRestrictions);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
     EXPECT_FALSE(viewingRestrictions.empty());
@@ -470,11 +626,19 @@ TEST(UserSettingsTestAI, ValidViewingRestrictions) {
 * | 04| Verify the viewingRestrictionsWindow value | viewingRestrictionsWindow = "ALWAYS" | viewingRestrictionsWindow = "ALWAYS" | Should Pass |
 * | 05| Exiting the test function | None | None | Should be successful |
 */
-TEST(UserSettingsTestAI, ValidGetViewingRestrictionsWindow) {
+TEST_F(UserSettingsL1Test, ValidGetViewingRestrictionsWindow) {
     std::cout << "Entering ValidGetViewingRestrictionsWindow" << std::endl;
     
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, GetValue(_, _, ::testing::StrEq("viewingRestrictionsWindow"), _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>("ALWAYS"),
+            SetArgReferee<4>(0),
+            Return(Core::ERROR_NONE)
+        ));
+    
     string viewingRestrictionsWindow = "";
-    Core::hresult result = InterfacePointer->GetViewingRestrictionsWindow(viewingRestrictionsWindow);
+    Core::hresult result = userSettingsImpl->GetViewingRestrictionsWindow(viewingRestrictionsWindow);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
     EXPECT_EQ(viewingRestrictionsWindow, "ALWAYS");
@@ -500,14 +664,22 @@ TEST(UserSettingsTestAI, ValidGetViewingRestrictionsWindow) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call GetVoiceGuidance with a valid enabled variable | enabled = false | result = Core::ERROR_NONE, enabled = true or false | Should Pass |
 */
-TEST(UserSettingsTestAI, GetVoiceGuidance_ReturnsErrorNoneWithValidEnabledValue) {
+TEST_F(UserSettingsL1Test, GetVoiceGuidance_ReturnsErrorNoneWithValidEnabledValue) {
     std::cout << "Entering GetVoiceGuidance_ReturnsErrorNoneWithValidEnabledValue" << std::endl;
     
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, GetValue(_, _, ::testing::StrEq("voiceGuidance"), _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>("true"),
+            SetArgReferee<4>(0),
+            Return(Core::ERROR_NONE)
+        ));
+    
     bool enabled = false;
-    Core::hresult result = InterfacePointer->GetVoiceGuidance(enabled);
+    Core::hresult result = userSettingsImpl->GetVoiceGuidance(enabled);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
-    EXPECT_TRUE(enabled == true || enabled == false);
+    EXPECT_TRUE(enabled);
     
     std::cout << "Exiting GetVoiceGuidance_ReturnsErrorNoneWithValidEnabledValue" << std::endl;
 }
@@ -530,14 +702,22 @@ TEST(UserSettingsTestAI, GetVoiceGuidance_ReturnsErrorNoneWithValidEnabledValue)
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call GetVoiceGuidanceHints with a valid hints value | hints = false | result = Core::ERROR_NONE, hints = true or false | Should Pass |
 */
-TEST(UserSettingsTestAI, GetVoiceGuidanceHints_ReturnsErrorNone_WithValidHintsValue) {
+TEST_F(UserSettingsL1Test, GetVoiceGuidanceHints_ReturnsErrorNone_WithValidHintsValue) {
     std::cout << "Entering GetVoiceGuidanceHints_ReturnsErrorNone_WithValidHintsValue" << std::endl;
     
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, GetValue(_, _, ::testing::StrEq("voiceGuidanceHints"), _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>("true"),
+            SetArgReferee<4>(0),
+            Return(Core::ERROR_NONE)
+        ));
+    
     bool hints = false;
-    Core::hresult result = InterfacePointer->GetVoiceGuidanceHints(hints);
+    Core::hresult result = userSettingsImpl->GetVoiceGuidanceHints(hints);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
-    EXPECT_TRUE(hints == true || hints == false);
+    EXPECT_TRUE(hints);
     
     std::cout << "Exiting GetVoiceGuidanceHints_ReturnsErrorNone_WithValidHintsValue" << std::endl;
 }
@@ -560,13 +740,23 @@ TEST(UserSettingsTestAI, GetVoiceGuidanceHints_ReturnsErrorNone_WithValidHintsVa
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Call GetVoiceGuidanceRate with a valid rate variable | rate = 0.0 | result = Core::ERROR_NONE, Rate should fall within the inclusive range of 0.1 to 10 | Should Pass |
 */
-TEST(UserSettingsTestAI, ValidRateRetrieval) {
+TEST_F(UserSettingsL1Test, ValidRateRetrieval) {
     std::cout << "Entering ValidRateRetrieval" << std::endl;
+    
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, GetValue(_, _, ::testing::StrEq("voiceGuidanceRate"), _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>("1.5"),
+            SetArgReferee<4>(0),
+            Return(Core::ERROR_NONE)
+        ));
+    
     double rate = 0.0;
     
-    Core::hresult result = InterfacePointer->GetVoiceGuidanceRate(rate);
+    Core::hresult result = userSettingsImpl->GetVoiceGuidanceRate(rate);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
+    EXPECT_DOUBLE_EQ(rate, 1.5);
     EXPECT_GE(rate, 0.1);
     EXPECT_LE(rate, 10.0);
     
@@ -594,11 +784,11 @@ TEST(UserSettingsTestAI, ValidRateRetrieval) {
 * | 02| Register the notification object | InterfacePointer->Register(notification) | result = Core::ERROR_NONE | Should Pass |
 * | 03| Verify the result | EXPECT_EQ(result, Core::ERROR_NONE) | result = Core::ERROR_NONE | Should Pass |
 */
-TEST(UserSettingsTestAI, RegisterWithValidNotificationObject) {
+TEST_F(UserSettingsL1Test, RegisterWithValidNotificationObject) {
     std::cout << "Entering RegisterWithValidNotificationObject" << std::endl;
     Exchange::IUserSettings::INotification* notification = new TestNotification();
     
-    Core::hresult result = InterfacePointer->Register(notification);
+    Core::hresult result = userSettingsImpl->Register(notification);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
     
@@ -624,11 +814,11 @@ TEST(UserSettingsTestAI, RegisterWithValidNotificationObject) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call Register with null notification object | notification = nullptr | result = Core::ERROR_INVALID_PARAMETER, EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER) | Should Fail |
 */
-TEST(UserSettingsTestAI, RegisterWithNullNotificationObject) {
+TEST_F(UserSettingsL1Test, RegisterWithNullNotificationObject) {
     std::cout << "Entering RegisterWithNullNotificationObject" << std::endl;
     Exchange::IUserSettings::INotification* notification = nullptr;
     
-    Core::hresult result = InterfacePointer->Register(notification);
+    Core::hresult result = userSettingsImpl->Register(notification);
     
     EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER);
     
@@ -654,11 +844,16 @@ TEST(UserSettingsTestAI, RegisterWithNullNotificationObject) {
 * | 01| Get the interface pointer | None | Interface pointer should be valid | Should be successful |
 * | 02| Enable audio description | input = true | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTestAI, EnableAudioDescription) {
+TEST_F(UserSettingsL1Test, EnableAudioDescription) {
     std::cout << "Entering EnableAudioDescription" << std::endl;
+    
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, SetValue(_, _, ::testing::StrEq("audioDescription"), ::testing::StrEq("true")))
+        .WillOnce(Return(Core::ERROR_NONE));
+    
     bool enabled = true;
     
-    Core::hresult result = InterfacePointer->SetAudioDescription(enabled);
+    Core::hresult result = userSettingsImpl->SetAudioDescription(enabled);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
     std::cout << "Exiting EnableAudioDescription" << std::endl;
@@ -683,11 +878,16 @@ TEST(UserSettingsTestAI, EnableAudioDescription) {
 * | 01| Get the interface pointer | None | Interface pointer should be obtained | Should be successful |
 * | 02| Disable audio description | input: false | result should be Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTestAI, DisableAudioDescription) {
+TEST_F(UserSettingsL1Test, DisableAudioDescription) {
     std::cout << "Entering DisableAudioDescription" << std::endl;
+    
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, SetValue(_, _, ::testing::StrEq("audioDescription"), ::testing::StrEq("false")))
+        .WillOnce(Return(Core::ERROR_NONE));
+    
     bool enabled = false;
     
-    Core::hresult result = InterfacePointer->SetAudioDescription(enabled);
+    Core::hresult result = userSettingsImpl->SetAudioDescription(enabled);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
     std::cout << "Exiting DisableAudioDescription" << std::endl;
@@ -711,11 +911,16 @@ TEST(UserSettingsTestAI, DisableAudioDescription) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetBlockNotRatedContent with true | input = true | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTestAI, SetBlockNotRatedContent_True) {
+TEST_F(UserSettingsL1Test, SetBlockNotRatedContent_True) {
     std::cout << "Entering SetBlockNotRatedContent_True" << std::endl;
+    
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, SetValue(_, _, ::testing::StrEq("blockNotRatedContent"), ::testing::StrEq("true")))
+        .WillOnce(Return(Core::ERROR_NONE));
+    
     bool blockNotRatedContent = true;
     
-    Core::hresult result = InterfacePointer->SetBlockNotRatedContent(blockNotRatedContent);
+    Core::hresult result = userSettingsImpl->SetBlockNotRatedContent(blockNotRatedContent);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
     std::cout << "Exiting SetBlockNotRatedContent_True" << std::endl;
@@ -739,11 +944,16 @@ TEST(UserSettingsTestAI, SetBlockNotRatedContent_True) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetBlockNotRatedContent with false | input = false | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTestAI, SetBlockNotRatedContent_False) {
+TEST_F(UserSettingsL1Test, SetBlockNotRatedContent_False) {
     std::cout << "Entering SetBlockNotRatedContent_False" << std::endl;
+    
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, SetValue(_, _, ::testing::StrEq("blockNotRatedContent"), ::testing::StrEq("false")))
+        .WillOnce(Return(Core::ERROR_NONE));
+    
     bool blockNotRatedContent = false;
 
-    Core::hresult result = InterfacePointer->SetBlockNotRatedContent(blockNotRatedContent);
+    Core::hresult result = userSettingsImpl->SetBlockNotRatedContent(blockNotRatedContent);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
     std::cout << "Exiting SetBlockNotRatedContent_False" << std::endl;
@@ -769,11 +979,16 @@ TEST(UserSettingsTestAI, SetBlockNotRatedContent_False) {
 * | 02| Enable captions using SetCaptions method | input: true | result should be Core::ERROR_NONE | Should Pass |
 * | 03| Verify the result using EXPECT_EQ | result: Core::ERROR_NONE | EXPECT_EQ should pass | Should be successful |
 */
-TEST(UserSettingsTestAI, EnableCaptionsSuccessfully) {
+TEST_F(UserSettingsL1Test, EnableCaptionsSuccessfully) {
     std::cout << "Entering EnableCaptionsSuccessfully" << std::endl;
+    
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, SetValue(_, _, ::testing::StrEq("captions"), ::testing::StrEq("true")))
+        .WillOnce(Return(Core::ERROR_NONE));
+    
     bool enabled = true;
     
-    Core::hresult result = InterfacePointer->SetCaptions(enabled);
+    Core::hresult result = userSettingsImpl->SetCaptions(enabled);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
     std::cout << "Exiting EnableCaptionsSuccessfully" << std::endl;
@@ -799,11 +1014,16 @@ TEST(UserSettingsTestAI, EnableCaptionsSuccessfully) {
 * | 02| Call SetCaptions with false to disable captions | input: false | result should be Core::ERROR_NONE | Should Pass |
 * | 03| Verify the result | result from SetCaptions | result should be Core::ERROR_NONE | Should Pass |
 */
-TEST(UserSettingsTestAI, DisableCaptionsSuccessfully) {
+TEST_F(UserSettingsL1Test, DisableCaptionsSuccessfully) {
     std::cout << "Entering DisableCaptionsSuccessfully" << std::endl;
+    
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, SetValue(_, _, ::testing::StrEq("captions"), ::testing::StrEq("false")))
+        .WillOnce(Return(Core::ERROR_NONE));
+    
     bool enabled = false;
 
-    Core::hresult result = InterfacePointer->SetCaptions(enabled);
+    Core::hresult result = userSettingsImpl->SetCaptions(enabled);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
     std::cout << "Exiting DisableCaptionsSuccessfully" << std::endl;
@@ -827,11 +1047,16 @@ TEST(UserSettingsTestAI, DisableCaptionsSuccessfully) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Enable high contrast mode | enabled = true | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTestAI, EnableHighContrastMode) {
+TEST_F(UserSettingsL1Test, EnableHighContrastMode) {
     std::cout << "Entering EnableHighContrastMode" << std::endl;
+    
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, SetValue(_, _, ::testing::StrEq("highContrast"), ::testing::StrEq("true")))
+        .WillOnce(Return(Core::ERROR_NONE));
+    
     bool enabled = true;
     
-    Core::hresult result = InterfacePointer->SetHighContrast(enabled);
+    Core::hresult result = userSettingsImpl->SetHighContrast(enabled);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
     std::cout << "Exiting EnableHighContrastMode" << std::endl;
@@ -855,11 +1080,16 @@ TEST(UserSettingsTestAI, EnableHighContrastMode) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetHighContrast with enabled set to false | enabled = false | result should be Core::ERROR_NONE | Should Pass |
 */
-TEST(UserSettingsTestAI, DisableHighContrastMode) {
+TEST_F(UserSettingsL1Test, DisableHighContrastMode) {
     std::cout << "Entering DisableHighContrastMode" << std::endl;
+    
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, SetValue(_, _, ::testing::StrEq("highContrast"), ::testing::StrEq("false")))
+        .WillOnce(Return(Core::ERROR_NONE));
+    
     bool enabled = false;
     
-    Core::hresult result = InterfacePointer->SetHighContrast(enabled);
+    Core::hresult result = userSettingsImpl->SetHighContrast(enabled);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
     std::cout << "Exiting DisableHighContrastMode" << std::endl;
@@ -883,11 +1113,16 @@ TEST(UserSettingsTestAI, DisableHighContrastMode) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetLiveWatershed with true | input = true | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTestAI, SetLiveWatershed_True) {
+TEST_F(UserSettingsL1Test, SetLiveWatershed_True) {
     std::cout << "Entering SetLiveWatershed_True" << std::endl;
+    
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, SetValue(_, _, ::testing::StrEq("liveWatershed"), ::testing::StrEq("true")))
+        .WillOnce(Return(Core::ERROR_NONE));
+    
     bool liveWatershed = true;
 
-    Core::hresult result = InterfacePointer->SetLiveWatershed(liveWatershed);
+    Core::hresult result = userSettingsImpl->SetLiveWatershed(liveWatershed);
 
     EXPECT_EQ(result, Core::ERROR_NONE);
     std::cout << "Exiting SetLiveWatershed_True" << std::endl;
@@ -911,11 +1146,16 @@ TEST(UserSettingsTestAI, SetLiveWatershed_True) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetLiveWatershed with false | input = false | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTestAI, SetLiveWatershed_False) {
+TEST_F(UserSettingsL1Test, SetLiveWatershed_False) {
     std::cout << "Entering SetLiveWatershed_False" << std::endl;
+    
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, SetValue(_, _, ::testing::StrEq("liveWatershed"), ::testing::StrEq("false")))
+        .WillOnce(Return(Core::ERROR_NONE));
+    
     bool liveWatershed = false;
 
-    Core::hresult result = InterfacePointer->SetLiveWatershed(liveWatershed);
+    Core::hresult result = userSettingsImpl->SetLiveWatershed(liveWatershed);
 
     EXPECT_EQ(result, Core::ERROR_NONE);
     std::cout << "Exiting SetLiveWatershed_False" << std::endl;
@@ -940,11 +1180,16 @@ TEST(UserSettingsTestAI, SetLiveWatershed_False) {
 * | 01 | Get the interface pointer | None | InterfacePointer should not be null | Should be successful |
 * | 02 | Call SetPinControl with true | input = true | result should be Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTestAI, SetPinControlTrue) {
+TEST_F(UserSettingsL1Test, SetPinControlTrue) {
     std::cout << "Entering SetPinControlTrue test" << std::endl;
+    
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, SetValue(_, _, ::testing::StrEq("pinControl"), ::testing::StrEq("true")))
+        .WillOnce(Return(Core::ERROR_NONE));
+    
     bool pinControl = true;
 
-    Core::hresult result = InterfacePointer->SetPinControl(pinControl);
+    Core::hresult result = userSettingsImpl->SetPinControl(pinControl);
 
     EXPECT_EQ(result, Core::ERROR_NONE);
     std::cout << "Exiting SetPinControlTrue test" << std::endl;
@@ -969,11 +1214,16 @@ TEST(UserSettingsTestAI, SetPinControlTrue) {
 * | 01| Get the interface pointer | None | InterfacePointer should not be null | Should be successful |
 * | 02| Call SetPinControl with false | input = false | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTestAI, SetPinControlFalse) {
+TEST_F(UserSettingsL1Test, SetPinControlFalse) {
     std::cout << "Entering SetPinControlFalse test" << std::endl;
-    bool pinControl = true;
+    
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, SetValue(_, _, ::testing::StrEq("pinControl"), ::testing::StrEq("false")))
+        .WillOnce(Return(Core::ERROR_NONE));
+    
+    bool pinControl = false;  // Changed to false to match the test name and intent
 
-    Core::hresult result = InterfacePointer->SetPinControl(pinControl);
+    Core::hresult result = userSettingsImpl->SetPinControl(pinControl);
 
     EXPECT_EQ(result, Core::ERROR_NONE);
     std::cout << "Exiting SetPinControlFalse test" << std::endl;
@@ -997,11 +1247,16 @@ TEST(UserSettingsTestAI, SetPinControlFalse) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Call SetPinOnPurchase with true | input = true | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTestAI, SetPinOnPurchaseTrue) {
+TEST_F(UserSettingsL1Test, SetPinOnPurchaseTrue) {
     std::cout << "Entering SetPinOnPurchaseTrue" << std::endl;
+    
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, SetValue(_, _, ::testing::StrEq("pinOnPurchase"), ::testing::StrEq("true")))
+        .WillOnce(Return(Core::ERROR_NONE));
+    
     bool pinOnPurchase = true;
 
-    Core::hresult result = InterfacePointer->SetPinOnPurchase(pinOnPurchase);
+    Core::hresult result = userSettingsImpl->SetPinOnPurchase(pinOnPurchase);
 
     EXPECT_EQ(result, Core::ERROR_NONE);
     std::cout << "Exiting SetPinOnPurchaseTrue" << std::endl;
@@ -1025,11 +1280,16 @@ TEST(UserSettingsTestAI, SetPinOnPurchaseTrue) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetPinOnPurchase with false | input = false | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTestAI, SetPinOnPurchaseFalse) {
+TEST_F(UserSettingsL1Test, SetPinOnPurchaseFalse) {
     std::cout << "Entering SetPinOnPurchaseFalse" << std::endl;
+    
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, SetValue(_, _, ::testing::StrEq("pinOnPurchase"), ::testing::StrEq("false")))
+        .WillOnce(Return(Core::ERROR_NONE));
+    
     bool pinOnPurchase = false;
 
-    Core::hresult result = InterfacePointer->SetPinOnPurchase(pinOnPurchase);
+    Core::hresult result = userSettingsImpl->SetPinOnPurchase(pinOnPurchase);
 
     EXPECT_EQ(result, Core::ERROR_NONE);
     std::cout << "Exiting SetPinOnPurchaseFalse" << std::endl;
@@ -1053,11 +1313,16 @@ TEST(UserSettingsTestAI, SetPinOnPurchaseFalse) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetPlaybackWatershed with true | input = true | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTestAI, SetPlaybackWatershedTrue) {
+TEST_F(UserSettingsL1Test, SetPlaybackWatershedTrue) {
     std::cout << "Entering SetPlaybackWatershedTrue" << std::endl;
+    
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, SetValue(_, _, ::testing::StrEq("playbackWatershed"), ::testing::StrEq("true")))
+        .WillOnce(Return(Core::ERROR_NONE));
+    
     bool playbackWatershed = true;
 
-    Core::hresult result = InterfacePointer->SetPlaybackWatershed(playbackWatershed);
+    Core::hresult result = userSettingsImpl->SetPlaybackWatershed(playbackWatershed);
 
     EXPECT_EQ(result, Core::ERROR_NONE);
     std::cout << "Exiting SetPlaybackWatershedTrue" << std::endl;
@@ -1081,11 +1346,15 @@ TEST(UserSettingsTestAI, SetPlaybackWatershedTrue) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetPlaybackWatershed with false | input = false | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTestAI, SetPlaybackWatershedFalse) {
+TEST_F(UserSettingsL1Test, SetPlaybackWatershedFalse) {
     std::cout << "Entering SetPlaybackWatershedFalse" << std::endl;
+    
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, SetValue(_, _, ::testing::StrEq("playbackWatershed"), ::testing::StrEq("false")))
+        .WillOnce(Return(Core::ERROR_NONE));
     bool playbackWatershed = false;
 
-    Core::hresult result = InterfacePointer->SetPlaybackWatershed(playbackWatershed);
+    Core::hresult result = userSettingsImpl->SetPlaybackWatershed(playbackWatershed);
 
     EXPECT_EQ(result, Core::ERROR_NONE);
     std::cout << "Exiting SetPlaybackWatershedFalse" << std::endl;
@@ -1109,11 +1378,16 @@ TEST(UserSettingsTestAI, SetPlaybackWatershedFalse) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetPreferredAudioLanguages with a valid single language code | input = "eng" | result = Core::ERROR_NONE, EXPECT_EQ(result, Core::ERROR_NONE) | Should Pass |
 */
-TEST(UserSettingsTestAI, SetPreferredAudioLanguages_ValidSingleLanguageCode) {
+TEST_F(UserSettingsL1Test, SetPreferredAudioLanguages_ValidSingleLanguageCode) {
     std::cout << "Entering SetPreferredAudioLanguages_ValidSingleLanguageCode" << std::endl;
+    
+    // Set up expectations for this test
+    EXPECT_CALL(*storeMock, SetValue(_, _, ::testing::StrEq("preferredAudioLanguages"), ::testing::StrEq("eng")))
+        .WillOnce(Return(Core::ERROR_NONE));
+    
     std::string preferred_languages = "eng";
 
-    Core::hresult result = InterfacePointer->SetPreferredAudioLanguages(preferred_languages);
+    Core::hresult result = userSettingsImpl->SetPreferredAudioLanguages(preferred_languages);
 
     EXPECT_EQ(result, Core::ERROR_NONE);
     std::cout << "Exiting SetPreferredAudioLanguages_ValidSingleLanguageCode" << std::endl;
@@ -1137,11 +1411,15 @@ TEST(UserSettingsTestAI, SetPreferredAudioLanguages_ValidSingleLanguageCode) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetPreferredAudioLanguages with an empty string | input = "" | result = Core::ERROR_INVALID_PARAMETER, EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER) | Should Fail |
 */
-TEST(UserSettingsTestAI, SetPreferredAudioLanguages_EmptyString) {
+TEST_F(UserSettingsL1Test, SetPreferredAudioLanguages_EmptyString) {
     std::cout << "Entering SetPreferredAudioLanguages_EmptyString" << std::endl;
+    
+    // No need to set up expectations for storeMock since we expect an invalid parameter error
+    // The implementation should validate the input before trying to use the store
+    
     std::string preferred_languages = "";
 
-    Core::hresult result = InterfacePointer->SetPreferredAudioLanguages(preferred_languages);
+    Core::hresult result = userSettingsImpl->SetPreferredAudioLanguages(preferred_languages);
 
     EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER);
     std::cout << "Exiting SetPreferredAudioLanguages_EmptyString" << std::endl;
@@ -1165,11 +1443,15 @@ TEST(UserSettingsTestAI, SetPreferredAudioLanguages_EmptyString) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01| Call SetPreferredAudioLanguages with invalid language code | input: "xyz" | result: Core::ERROR_INVALID_PARAMETER | Should Fail |
 */
-TEST(UserSettingsTestAI, SetPreferredAudioLanguages_InvalidLanguageCode) {
+TEST_F(UserSettingsL1Test, SetPreferredAudioLanguages_InvalidLanguageCode) {
     std::cout << "Entering SetPreferredAudioLanguages_InvalidLanguageCode" << std::endl;
+    
+    // No need to set up expectations for storeMock since we expect an invalid parameter error
+    // The implementation should validate the input before trying to use the store
+    
     std::string preferred_languages = "xyz";
 
-    Core::hresult result = InterfacePointer->SetPreferredAudioLanguages(preferred_languages);
+    Core::hresult result = userSettingsImpl->SetPreferredAudioLanguages(preferred_languages);
 
     EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER);
     std::cout << "Exiting SetPreferredAudioLanguages_InvalidLanguageCode" << std::endl;
@@ -1193,11 +1475,15 @@ TEST(UserSettingsTestAI, SetPreferredAudioLanguages_InvalidLanguageCode) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Call SetPreferredAudioLanguages with mixed valid and invalid language codes | input = "eng,xyz,spa" | result = Core::ERROR_INVALID_PARAMETER, EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER) | Should Fail |
 */
-TEST(UserSettingsTestAI, SetPreferredAudioLanguages_MixedValidAndInvalidLanguageCodes) {
+TEST_F(UserSettingsL1Test, SetPreferredAudioLanguages_MixedValidAndInvalidLanguageCodes) {
     std::cout << "Entering SetPreferredAudioLanguages_MixedValidAndInvalidLanguageCodes" << std::endl;
+    
+    // No need to set up expectations for storeMock since we expect an invalid parameter error
+    // The implementation should validate the input before trying to use the store
+    
     std::string preferred_languages = "eng,xyz,spa";
 
-    Core::hresult result = InterfacePointer->SetPreferredAudioLanguages(preferred_languages);
+    Core::hresult result = userSettingsImpl->SetPreferredAudioLanguages(preferred_languages);
     
     EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER);
     std::cout << "Exiting SetPreferredAudioLanguages_MixedValidAndInvalidLanguageCodes" << std::endl;
