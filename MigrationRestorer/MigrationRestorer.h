@@ -25,6 +25,8 @@
 #include "UtilsJsonRpc.h"
 #include <mutex>
 
+#include <interfaces/IUserSettings.h>
+
 
 
 namespace WPEFramework {
@@ -70,6 +72,8 @@ namespace Plugin {
             std::map<std::string, cJSON*> schemaMap;
             cJSON* schemaRoot = nullptr;
 	    std::vector<std::string> validatedkeys;
+
+        Exchange::IUserSettings* _userSettingsPlugin;
     };
 
 } // namespace Plugin

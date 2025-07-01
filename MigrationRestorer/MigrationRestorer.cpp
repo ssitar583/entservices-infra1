@@ -49,6 +49,8 @@
 #include "videoResolution.hpp"
 
 #include <interfaces/IUserSettings.h>
+#include "UtilsController.h"
+#define USERSETTINGS_CALLSIGN "org.rdk.UserSettings"
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
@@ -86,7 +88,7 @@ namespace WPEFramework
      **/
     SERVICE_REGISTRATION(MigrationRestorer, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
-    MigrationRestorer::MigrationRestorer() : _service(nullptr)
+    MigrationRestorer::MigrationRestorer() : _service(nullptr) ,_userSettingsPlugin(nullptr)
     {
         SYSLOG(Logging::Startup, (_T("MigrationRestorer Constructor")));
         LOGINFO("MigrationRestorer's Constructor called");
@@ -104,7 +106,10 @@ namespace WPEFramework
         LOGINFO("MigrationRestorer's destructor called");
         printf("MigrationRestorer's destructor called\n");        
 	
-        
+        if (_userSettingsPlugin) {
+                 _userSettingsPlugin->Release();
+                 _userSettingsPlugin = nullptr;
+        }
     }
 
 
@@ -570,20 +575,42 @@ namespace WPEFramework
             {
                 printf("Entered inside accessibility/voiceguidance block\n" );
                 
-                //apply settings
-		Core::hresult status = Core::ERROR_GENERAL;
-	       bool voiceguidancevalue = false;
-                    Exchange::IUserSettings* userSettings = nullptr;
-                    userSettings = _service->QueryInterface<Exchange::IUserSettings>();
-                    if (cJSON_IsString(inputVal))
-                    { 
-		      printf("Entered inside voice guidance if-block\n" );
-                      string set = inputVal->valuestring;
-                      voiceguidancevalue = (set == "on") ? true : false;
-                    }
+	            bool voiceguidancevalue = false;
+                if (cJSON_IsString(inputVal))
+                { 
+                    printf("Entered inside voice guidance if-block\n" );
+                    string set = inputVal->valuestring;
+                    voiceguidancevalue = (set == "on") ? true : false;
+                }
 
-                   status = userSettings->SetVoiceGuidance(voiceguidancevalue);
-		   std::cout << "Executed setvoiceguidance: " << status << std::endl;                
+                PluginHost::IShell::state state;
+
+                if ((Utils::getServiceState(_service, USERSETTINGS_CALLSIGN, state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
+                    Utils::activatePlugin(_service, USERSETTINGS_CALLSIGN);
+                    
+                if ((Utils::getServiceState(_service, USERSETTINGS_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
+                {
+                    printf("the usesettings plugin activated successfullt\n");
+                    ASSERT(_service != nullptr);
+
+                    _userSettingsPlugin = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::IUserSettings>(USERSETTINGS_CALLSIGN);
+                    if (_userSettingsPlugin)
+                    {
+                        printf("Entered inside the _userSettingsPlugin block\n");   
+                        if (_userSettingsPlugin->SetVoiceGuidance(voiceguidancevalue) == Core::ERROR_NONE)
+                        {
+                            printf("The set voiceguidance method executed successfully\n");
+                        }
+                        else
+                        {
+                            LOGERR("Failed to set voice guidance");
+                        }
+                    }
+                }
+                else
+                {
+                    LOGERR("Failed to activate %s", USERSETTINGS_CALLSIGN);
+                }               
             }
 
             else if(key == "picture/zoomsetting")
