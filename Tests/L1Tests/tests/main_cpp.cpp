@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
     Store2Mock* storeMock = new Store2Mock();
     
     // Set up the mock expectations
-    ON_CALL(*serviceMock, QueryInterfaceByCallsign(_))
+    ON_CALL(*serviceMock, QueryInterfaceByCallsign(_, _))
         .WillByDefault(Return(storeMock));
     
     ON_CALL(*storeMock, GetValue(_, _, _, _, _))
