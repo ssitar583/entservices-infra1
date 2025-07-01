@@ -163,6 +163,8 @@ void UserSettingsImplementation::registerEventHandlers()
  */
 Core::hresult UserSettingsImplementation::Register(Exchange::IUserSettings::INotification *notification)
 {
+    std::cout << "UserSettingsImplementation l1 usersettings test Resgister called" << std::endl;
+
     _adminLock.Lock();
 
     if (notification == nullptr) {
@@ -183,6 +185,8 @@ Core::hresult UserSettingsImplementation::Register(Exchange::IUserSettings::INot
     }
 
     _adminLock.Unlock();
+
+    std::cout << "UserSettingsImplementation l1 usersettings test Resgister exiting" << std::endl;
 
     return Core::ERROR_NONE;
 }
@@ -474,6 +478,8 @@ void UserSettingsImplementation::ValueChanged(const Exchange::IStore2::ScopeType
 
 uint32_t UserSettingsImplementation::SetUserSettingsValue(const string& key, const string& value)
 {
+    std::cout << "UserSettingsImplementation l1 usersettings test SetUserSettingsValue called" << std::endl;
+
     uint32_t status = Core::ERROR_GENERAL;
     _adminLock.Lock();
 
@@ -487,6 +493,9 @@ uint32_t UserSettingsImplementation::SetUserSettingsValue(const string& key, con
         LOGERR("_remotStoreObject is null");
     }
     _adminLock.Unlock();
+
+    std::cout << "UserSettingsImplementation l1 usersettings test SetUserSettingsValue exiting" << std::endl;
+
     return status;
 }
 
@@ -556,10 +565,15 @@ Core::hresult UserSettingsImplementation::GetAudioDescription(bool &enabled) con
 
 Core::hresult UserSettingsImplementation::SetPreferredAudioLanguages(const string& preferredLanguages)
 {
+    std::cout << "UserSettingsImplementation l1 usersettings test SetPreferredAudioLanguages called" << std::endl;
+
     uint32_t status = Core::ERROR_GENERAL;
 
     LOGINFO("preferredLanguages: %s", preferredLanguages.c_str());
     status = SetUserSettingsValue(USERSETTINGS_PREFERRED_AUDIO_LANGUAGES_KEY, preferredLanguages);
+
+    std::cout << "UserSettingsImplementation l1 usersettings test SetPreferredAudioLanguages exiting" << std::endl;
+
     return status;
 }
 
