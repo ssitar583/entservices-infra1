@@ -17,24 +17,56 @@ distributed under the License is distributed on an "AS IS" BASIS,
 * limitations under the License.
 */
 
-
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
 #include "UserSettingsImplementation.h"
 #include <WPEFramework/interfaces/IUserSettings.h>
 #include <WPEFramework/interfaces/Ids.h>
-#include <gtest/gtest.h>
+#include "ServiceMock.h"
+#include "Store2Mock.h"
+
+using ::testing::NiceMock;
+using ::testing::Return;
+using ::testing::_;
 
 WPEFramework::Exchange::IUserSettings *InterfacePointer = nullptr;
 WPEFramework::Exchange::IUserSettingsInspector *IUserSettingsInspectorPointer = nullptr;
 
 int main(int argc, char **argv) {
+    using namespace WPEFramework;
     using namespace WPEFramework::Plugin;
-    // Instantiate UserSettingsImplementation and assign to global pointers
-    UserSettingsImplementation* userSettingsImpl = new UserSettingsImplementation();
-    InterfacePointer = userSettingsImpl;
-    IUserSettingsInspectorPointer = userSettingsImpl;
+    
+    // Create the mocks
+    NiceMock<ServiceMock>* serviceMock = new NiceMock<ServiceMock>();
+    Store2Mock* storeMock = new Store2Mock();
+    
+    // Set up the mock expectations
+    ON_CALL(*serviceMock, QueryInterfaceByCallsign(::testing::Matcher<const string&>(_)))
+        .WillByDefault(Return(storeMock));
+    
+    ON_CALL(*storeMock, GetValue(_, _, _, _, _))
+        .WillByDefault(Return(Core::ERROR_NONE));
+    
+    ON_CALL(*storeMock, SetValue(_, _, _, _, _))
+        .WillByDefault(Return(Core::ERROR_NONE));
+    
+    // Create the implementation with mocked dependencies
+    Core::ProxyType<UserSettingsImplementation> userSettingsImpl = Core::ProxyType<UserSettingsImplementation>::Create();
+    userSettingsImpl->Configure(serviceMock);
+
+    // Set the global pointers for the tests
+    InterfacePointer = userSettingsImpl.operator->();
+    IUserSettingsInspectorPointer = userSettingsImpl.operator->();
+    
+    std::cout << "========== STARTING L1 TESTS WITH MOCKED STORE ==========" << std::endl;
 
     ::testing::InitGoogleTest(&argc, argv);
     int result = RUN_ALL_TESTS();
-    delete userSettingsImpl;
+    
+    std::cout << "========== L1 TESTS COMPLETE ==========" << std::endl;
+    
+    // Clean up
+    // ProxyType will handle deletion of userSettingsImpl
+    
     return result;
 }
