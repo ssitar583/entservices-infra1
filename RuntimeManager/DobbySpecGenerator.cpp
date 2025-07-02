@@ -41,7 +41,7 @@ namespace
     #define XDG_RUNTIME_DIR "/tmp"
 }
 
-DobbySpecGenerator::DobbySpecGenerator(): mIonMemoryPluginData(Json::objectValue), mPackageMountPoint("/package"), mRuntimeMountPoint("/runtime"), mGstRegistrySourcePath(""), mGstRegistryDestinationPath("/tmp/gstreamer-cached-registry.bin")
+DobbySpecGenerator::DobbySpecGenerator(): mIonMemoryPluginData(Json::objectValue), mPackageMountPoint("/package"), mRuntimeMountPoint("/runtime"), mGstRegistrySourcePath("/tmp/appsserviced-gstreamer-registry.bin"), mGstRegistryDestinationPath("/tmp/gstreamer-cached-registry.bin")
 {
     LOGINFO("DobbySpecGenerator()");
     mAIConfiguration = new AIConfiguration();
@@ -51,11 +51,11 @@ DobbySpecGenerator::DobbySpecGenerator(): mIonMemoryPluginData(Json::objectValue
 /*
     if (mAIConfiguration->getGstreamerRegistryEnabled())
     {
-	GStreamerRegistry gstRegistry;
+        GStreamerRegistry gstRegistry;
         if (gstRegistry.generate())
         {
             mGstRegistrySourcePath = gstRegistry.path();
-	}
+        }
     }
 */
 }
@@ -136,11 +136,11 @@ bool DobbySpecGenerator::generate(const ApplicationConfiguration& config, const 
     {
         std::string appId = *it;
         if (appId.compare(config.mAppId) == 0)
-	{
+        {
             Json::Value dbusObj(Json::objectValue);
             dbusObj["system"] = "system";
             spec["dbus"] = std::move(dbusObj);
-	}
+        }
     }
     Json::Value cpuObj;
     cpuObj["cores"] = getCpuCores();
@@ -228,7 +228,6 @@ Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& co
 {
     Json::Value env(Json::arrayValue);
     env.append(std::string("APPLICATION_NAME=") + config.mAppId);
-    
      //TODO YET TO ANALYZE SUPPORT APPLICATION_LAUNCH_PARAMETERS
      //TODO YET TO ANALYZE SUPPORT APPLICATION_LAUNCH_METHOD
      //TODO YET TO ANALYZE SUPPORT APPLICATION_TOKEN
@@ -266,7 +265,7 @@ Json::Value DobbySpecGenerator::createEnvVars(const ApplicationConfiguration& co
        {
            env.append("WESTEROS_SINK_USE_ESSRMGR=1");
        }
-   }	     
+   }
 
    if (runtimeConfig.dial)
    {
@@ -329,6 +328,9 @@ Json::Value DobbySpecGenerator::createMounts(const ApplicationConfiguration& con
     mounts.append(createBindMount("/etc/ssl/certs", "/etc/ssl/certs",
                                (MS_BIND | MS_RDONLY | MS_NOSUID | MS_NODEV)));
 
+    mounts.append(createBindMount(config.mWesterosSocketPath, XDG_RUNTIME_DIR "/westeros",
+                               (MS_BIND | MS_NOSUID | MS_NODEV)));
+
     mounts.append(createPrivateDataMount(runtimeConfig));
     
     createFkpsMounts(config, runtimeConfig, mounts);
@@ -344,6 +346,17 @@ Json::Value DobbySpecGenerator::createMounts(const ApplicationConfiguration& con
         }
     }
 
+    // extra mounts that maybe needed, mainly to work around issues with
+    // playback inside a container
+    Json::Value extraMounts = createExtraPlatformMounts(config);
+    if (extraMounts.isArray())
+    {
+        for (Json::Value &mount : extraMounts)
+        {
+            if (!mount.isNull())
+                mounts.append(std::move(mount));
+        }
+    }
     //TODO SUPPORT Handle rialto
     //TODO SUPPORT Netflix specific mounts
     //TODO SUPPORT SVP file mounts
@@ -358,7 +371,7 @@ Json::Value DobbySpecGenerator::createMounts(const ApplicationConfiguration& con
     {
         Json::Value rialtoMount = createRialtoMount(appPackage, rialtoSMClient);
         if (!rialtoMount.isNull())
-            mountsArray.append(std::move(rialtoMount));
+            mounts.append(std::move(rialtoMount));
     }
     */
     if (!mGstRegistrySourcePath.empty())
@@ -382,7 +395,7 @@ Json::Value DobbySpecGenerator::createBindMount(const std::string& source,
     mount["destination"] = destination;
     mount["type"] = "bind";
 
-    Json::Value mountOptions(Json::arrayValue);;
+    Json::Value mountOptions(Json::arrayValue);
 
     static const std::vector<std::pair<unsigned long, std::string>> mountFlagsNames =
     {
@@ -395,8 +408,8 @@ Json::Value DobbySpecGenerator::createBindMount(const std::string& source,
         {   MS_DIRSYNC,         "dirsync"       },
         {   MS_NODIRATIME,      "nodiratime"    },
         {   MS_RELATIME,        "relatime"      },
-        {   MS_NOEXEC,          "noexec"        },
         {   MS_NODEV,           "nodev"         },
+        {   MS_NOEXEC,          "noexec"        },
         {   MS_NOATIME,         "noatime"       },
         {   MS_STRICTATIME,     "strictatime"   },
     };
@@ -413,6 +426,12 @@ Json::Value DobbySpecGenerator::createBindMount(const std::string& source,
             // if the caller supplies a flag we don't support
             mountFlags &= ~mountFlag;
         }
+    }
+
+    // If MS_RDONLY is not set, then the mount is read-write by default.
+    if (!(mountFlags & MS_RDONLY))
+    {
+        mountOptions.append("rw");
     }
 
     // if there was a mount flag we didn't support display a warning
@@ -437,7 +456,7 @@ ssize_t DobbySpecGenerator::getSysMemoryLimit(const ApplicationConfiguration& co
     if (memoryLimit <= 0)
     {
         if (runtimeConfig.appType.compare("INTERACTIVE") == 0)
-	{
+        {
             memoryLimit = mAIConfiguration->getNonHomeAppMemoryLimit();
         }
         //TODO SUPPORT Add other application types
@@ -451,7 +470,7 @@ ssize_t DobbySpecGenerator::getGPUMemoryLimit(const ApplicationConfiguration& co
     if (gpuMemoryLimit <= 0)
     {
         if (runtimeConfig.appType.compare("INTERACTIVE") == 0)
-	{
+        {
             gpuMemoryLimit = mAIConfiguration->getNonHomeAppGpuLimit();
         }
         //TODO SUPPORT Add other application types
@@ -477,10 +496,10 @@ bool DobbySpecGenerator::getVpuEnabled(const ApplicationConfiguration& config, c
     for (auto it = vpuAccessBlackList.begin(); it != vpuAccessBlackList.end(); ++it)
     {
         if ((*it).compare(config.mAppId) == 0)
-	{
+        {
             isBlackListed = true;
-            break;	    
-	}
+            break;
+        }
     }
     return !isBlackListed;
 }
@@ -498,7 +517,7 @@ std::string DobbySpecGenerator::getCpuCores()
 
     // create the json string for the cores to enable
     std::ostringstream coresStream;
-    for (int core = 0; core < nCores; core++)
+    for (int core = 1; core < nCores; core++)
     {
         if (cpuSetBitmask.test(core))
         {
@@ -902,7 +921,7 @@ void DobbySpecGenerator::createFkpsMounts(const ApplicationConfiguration& config
     const std::string fkpsPathPrefix("/opt/drm/");
     for (std::list<std::string>::iterator it=fkpsFiles.begin(); it!=fkpsFiles.end(); ++it)
     {
-	std::string fkpsFile = *it;      
+        std::string fkpsFile = *it;
         const std::string fkpsFilePath = fkpsPathPrefix + fkpsFile;
 
         // check if the file exists
@@ -1032,6 +1051,46 @@ Json::Value DobbySpecGenerator::createResourceManagerMount(const ApplicationConf
     }
 
     return resmgrMount;
+}
+
+Json::Value DobbySpecGenerator::createExtraPlatformMounts(const ApplicationConfiguration& config) const
+{
+    const std::vector<std::pair<std::string, unsigned long>> *mountPoints = nullptr;
+
+    //TODO NEED TO ADD CHECK FOR REALTEK SPECIFIC SOC
+    if ( 1 /* mSysInfo->getPlatformSoC() == AIPlatform::PlatformSoC::Realtek_RTD131x */)
+    {
+        static const std::vector<std::pair<std::string, unsigned long>> realtekMounts =
+            {
+                {"/tmp/redis.sock",  (MS_BIND | MS_NOSUID | MS_NODEV | MS_NOEXEC)},
+                {"/dev/fwsocket",    (MS_BIND | MS_NOSUID | MS_NODEV | MS_NOEXEC)},
+                {"/dev/sysfwsocket", (MS_BIND | MS_RDONLY | MS_NOSUID | MS_NODEV | MS_NOEXEC)},
+                {"/tmp/rtkaudiosvc", (MS_BIND | MS_RDONLY | MS_NOSUID | MS_NODEV | MS_NOEXEC)},
+                {"/tmp/rtkaudiofd",  (MS_BIND | MS_RDONLY | MS_NOSUID | MS_NODEV | MS_NOEXEC)},
+            };
+
+        mountPoints = &realtekMounts;
+    }
+
+    // if no extra platform mounts then return null object
+    if (!mountPoints || mountPoints->empty())
+        return Json::Value();
+
+    // populate array with the extra mounts
+    Json::Value extraMounts(Json::arrayValue);
+
+    for (const auto &mountPoint : *mountPoints)
+    {
+        // check the mount source exists (if it doesn't container won't start)
+        if (access(mountPoint.first.c_str(), F_OK) == 0)
+        {
+            extraMounts.append(createBindMount(mountPoint.first,
+                                               mountPoint.first,
+                                               mountPoint.second));
+        }
+    }
+
+    return extraMounts;
 }
 
 std::string DobbySpecGenerator::encodeURL(std::string url) const

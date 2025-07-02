@@ -89,7 +89,8 @@ bool WindowManagerConnector::createDisplay(const string& appInstanceId , const s
     JsonObject displayParams;
     displayParams["client"] = appInstanceId;
     displayParams["displayName"] = displayName;
-
+    displayParams["displayWidth"] = 1920;
+    displayParams["displayHeight"] = 1080;
     displayParams["ownerId"] = userId;
     displayParams["groupId"] = groupId;
     string displayParamsString;

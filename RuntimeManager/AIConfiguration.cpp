@@ -149,7 +149,7 @@ namespace Plugin
         /* mAppsRequiringDBusList - apps.requireDBus */
         /* mMapiPorts = apps.mapi.ports */
         mResourceManagerClientEnabled = false; // .apps.essosResourceManager.enableClient
-        mGstreamerRegistryEnabled = false; // apps.gstreamer.mapCachedRegistry
+        mGstreamerRegistryEnabled = true; // apps.gstreamer.mapCachedRegistry
         mSvpEnabled = false; // apps.svp.enable
         mEnableUsbMassStorage = false; // apps.usbMassStorage.enable
         mIPv6Enabled = false; // apps.enableIPv6
@@ -160,7 +160,7 @@ namespace Plugin
         //mPreloads
 
         //TODO: SUPPORT Dial
-	/*
+        /*
         if (mDialServerPathPrefix.empty())
         {
             auto dialUuid = AICommon::Uuid::createUuid();
@@ -171,7 +171,7 @@ namespace Plugin
             AICommon::DthMacAddressProvider macAddressProvider;
             mDialUsn = AICommon::getDeviceDialUsn(macAddressProvider.getMac());
         }
-	*/
+        */
         mEnvVariables.push_back("WESTEROS_SINK_AMLOGIC_USE_DMABUF=1");
         mEnvVariables.push_back("WESTEROS_GL_USE_AMLOGIC_AVSYNC=1");
         mEnvVariables.push_back("WESTEROS_SINK_USE_FREERUN=1");
