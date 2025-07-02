@@ -590,7 +590,7 @@ namespace WPEFramework
                     
                 if ((Utils::getServiceState(_service, USERSETTINGS_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
                 {
-                    printf("the usesettings plugin activated successfullt\n");
+                    printf("the usersettings plugin activated successfully\n");
                     ASSERT(_service != nullptr);
 
                     _userSettingsPlugin = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::IUserSettings>(USERSETTINGS_CALLSIGN);
@@ -611,6 +611,46 @@ namespace WPEFramework
                 {
                     LOGERR("Failed to activate %s", USERSETTINGS_CALLSIGN);
                 }               
+            }
+
+            else if(key == "system/presentationlanguage")
+            {
+                printf("Entered inside system/presentationlanguage block\n" );
+	            std::string presentationLanguage ;
+                if (cJSON_IsString(inputVal))
+                {
+                    printf("Entered inside presentationlanguage if-block\n" );
+                    presentationLanguage = inputVal->valuestring;
+                }
+
+                PluginHost::IShell::state state;
+
+                if ((Utils::getServiceState(_service, USERSETTINGS_CALLSIGN, state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
+                    Utils::activatePlugin(_service, USERSETTINGS_CALLSIGN);
+
+                if ((Utils::getServiceState(_service, USERSETTINGS_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
+                {
+                    printf("the usersettings plugin activated successfully\n");
+                    ASSERT(_service != nullptr);
+
+                    _userSettingsPlugin = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::IUserSettings>(USERSETTINGS_CALLSIGN);
+                    if (_userSettingsPlugin)
+                    {
+                        printf("Entered inside the _userSettingsPlugin block\n");
+                        if (_userSettingsPlugin->SetPresentationLanguage(presentationLanguage) == Core::ERROR_NONE)
+                        {
+                            printf("The set voiceguidance method executed successfully\n");
+                        }
+                        else
+                        {
+                            LOGERR("Failed to set voice guidance");
+                        }
+                    }
+                }
+                else
+                {
+                    LOGERR("Failed to activate %s", USERSETTINGS_CALLSIGN);
+                }
             }
 
             else if(key == "picture/zoomsetting")
