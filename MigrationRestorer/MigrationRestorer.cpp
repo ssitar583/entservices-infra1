@@ -639,11 +639,52 @@ namespace WPEFramework
                         printf("Entered inside the _userSettingsPlugin block\n");
                         if (_userSettingsPlugin->SetPresentationLanguage(presentationLanguage) == Core::ERROR_NONE)
                         {
-                            printf("The set voiceguidance method executed successfully\n");
+                            printf("The set presentationlanguage method executed successfully\n");
                         }
                         else
                         {
-                            LOGERR("Failed to set voice guidance");
+                            LOGERR("Failed to set presentationlanguage");
+                        }
+                    }
+                }
+                else
+                {
+                    LOGERR("Failed to activate %s", USERSETTINGS_CALLSIGN);
+                }
+            }
+
+            else if(key == "parental/parentalctrlpin")
+            {
+                printf("Entered inside parental/parentalctrlpin block\n" );
+	            bool pinControl = false;
+                if (cJSON_IsString(inputVal))
+                { 
+                    printf("Entered inside parentalctrlpin if-block\n" );
+                    string set = inputVal->valuestring;
+                    pinControl = (set == "on") ? true : false;
+                }
+
+                PluginHost::IShell::state state;
+
+                if ((Utils::getServiceState(_service, USERSETTINGS_CALLSIGN, state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
+                    Utils::activatePlugin(_service, USERSETTINGS_CALLSIGN);
+
+                if ((Utils::getServiceState(_service, USERSETTINGS_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
+                {
+                    printf("the usersettings plugin activated successfully\n");
+                    ASSERT(_service != nullptr);
+
+                    _userSettingsPlugin = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::IUserSettings>(USERSETTINGS_CALLSIGN);
+                    if (_userSettingsPlugin)
+                    {
+                        printf("Entered inside the _userSettingsPlugin block\n");
+                        if (_userSettingsPlugin->SetPinControl(pinControl) == Core::ERROR_NONE)
+                        {
+                            printf("The set parentalctrlpin method executed successfully\n");
+                        }
+                        else
+                        {
+                            LOGERR("Failed to set parentalctrlpin");
                         }
                     }
                 }
