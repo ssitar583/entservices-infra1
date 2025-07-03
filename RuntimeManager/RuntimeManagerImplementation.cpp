@@ -557,6 +557,9 @@ err_ret:
                 westerosSocket = xdgRuntimeDir + "/" + waylandDisplay;
                 config.mWesterosSocketPath = westerosSocket;
             }
+	    // DAC applications will have dacbundle environment variable set.
+            bool legacyContainer = (runtimeConfigObject.envVariables.find("dacbundle") == std::string::npos);
+            LOGINFO("legacyContainer: %s", legacyContainer ? "true" : "false");
 
             if (xdgRuntimeDir.empty() || waylandDisplay.empty())
             {
@@ -566,7 +569,7 @@ err_ret:
                 status = Core::ERROR_GENERAL;
             }
             /* Generate dobbySpec */
-            else if (false == RuntimeManagerImplementation::generate(config, runtimeConfigObject, dobbySpec))
+            else if (legacyContainer && false == RuntimeManagerImplementation::generate(config, runtimeConfigObject, dobbySpec))
             {
                 LOGERR("Failed to generate dobbySpec");
                 status = Core::ERROR_GENERAL;
@@ -584,7 +587,10 @@ err_ret:
                     string containerId = getContainerId(appInstanceId);
                     if (!containerId.empty())
                     {
-                        status =  mOciContainerObject->StartContainerFromDobbySpec(containerId, dobbySpec, command, westerosSocket, descriptor, success, errorReason);
+                        if(legacyContainer)
+				status =  mOciContainerObject->StartContainerFromDobbySpec(containerId, dobbySpec, command, westerosSocket, descriptor, success, errorReason);
+			else
+				status = mOciContainerObject->StartContainer(containerId, appPath, command, westerosSocket, descriptor, success, errorReason);
                         if ((success == false) || (status != Core::ERROR_NONE))
                         {
                             LOGERR("Failed to Run Container %s",errorReason.c_str());
