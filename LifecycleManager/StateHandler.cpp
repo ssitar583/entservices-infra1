@@ -72,7 +72,6 @@ namespace WPEFramework
             State* state = nullptr;
             switch (lifeCycleState)
             {
-            DEBUG_PRINTF("ERROR: RDKEMW-2806");
 	        case Exchange::ILifecycleManager::LifecycleState::UNLOADED:
                     state = new UnloadedState(context);
                     break;
@@ -303,7 +302,6 @@ namespace WPEFramework
         DEBUG_PRINTF("ERROR: RDKEMW-2806");
         return result;
     }
-    DEBUG_PRINTF("ERROR: RDKEMW-2806");
 
     } /* namespace Plugin */
 } /* namespace WPEFramework */
