@@ -694,6 +694,47 @@ namespace WPEFramework
                 }
             }
 
+            else if(key == "parental/pinonpurchase")
+            {
+                printf("Entered inside parental/pinonpurchase block\n" );
+	            bool pinOnPurchase = false;
+                if (cJSON_IsString(inputVal))
+                { 
+                    printf("Entered inside pinonpurchase if-block\n" );
+                    string set = inputVal->valuestring;
+                    pinOnPurchase = (set == "on") ? true : false;
+                }
+
+                PluginHost::IShell::state state;
+
+                if ((Utils::getServiceState(_service, USERSETTINGS_CALLSIGN, state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
+                    Utils::activatePlugin(_service, USERSETTINGS_CALLSIGN);
+
+                if ((Utils::getServiceState(_service, USERSETTINGS_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
+                {
+                    printf("the usersettings plugin activated successfully\n");
+                    ASSERT(_service != nullptr);
+
+                    _userSettingsPlugin = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::IUserSettings>(USERSETTINGS_CALLSIGN);
+                    if (_userSettingsPlugin)
+                    {
+                        printf("Entered inside the _userSettingsPlugin block\n");
+                        if (_userSettingsPlugin->SetPinOnPurchase(pinOnPurchase) == Core::ERROR_NONE)
+                        {
+                            printf("The set pinonpurchase method executed successfully\n");
+                        }
+                        else
+                        {
+                            LOGERR("Failed to set pinonpurchase");
+                        }
+                    }
+                }
+                else
+                {
+                    LOGERR("Failed to activate %s", USERSETTINGS_CALLSIGN);
+                }
+            }
+
             else if(key == "picture/zoomsetting")
             {
                 printf("Entered inside picture/zoomsetting block\n" );
