@@ -225,7 +225,7 @@ namespace WPEFramework {
                 {
                     std::string jsonstr;
                     parameters.ToString(jsonstr);
-                    std::cout<<"ERROR: appids are required in "<< jsonstr << std::endl;
+                    std::cout<<"ERROR: appIds are required in "<< jsonstr << std::endl;
                 }
             }
 
