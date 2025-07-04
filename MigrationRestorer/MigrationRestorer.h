@@ -26,6 +26,7 @@
 #include <mutex>
 
 #include <interfaces/IUserSettings.h>
+#include <interfaces/IHdmiCecSource.h>
 
 
 
@@ -74,6 +75,7 @@ namespace Plugin {
 	    std::vector<std::string> validatedkeys;
 
         Exchange::IUserSettings* _userSettingsPlugin;
+        Exchange::IHdmiCecSource* _hdmiCecSourcePlugin;
     };
 
 } // namespace Plugin

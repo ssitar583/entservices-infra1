@@ -52,6 +52,9 @@
 #include "UtilsController.h"
 #define USERSETTINGS_CALLSIGN "org.rdk.UserSettings"
 
+#include <interfaces/IHdmiCecSource.h>
+#define HDMICECSOURCE_CALLSIGN "org.rdk.HdmiCecSource"
+
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 0
@@ -732,6 +735,48 @@ namespace WPEFramework
                 else
                 {
                     LOGERR("Failed to activate %s", USERSETTINGS_CALLSIGN);
+                }
+            }
+
+            else if(key == "hdmi/hdmicontrol")
+            {
+                printf("Entered inside hdmi/hdmicontrol block\n" );
+	            bool enabled = false;
+                Exchange::IHdmiCecSource::HdmiCecSourceSuccess success;
+                if (cJSON_IsString(inputVal))
+                { 
+                    printf("Entered inside hdmi/hdmicontrol if-block\n" );
+                    string set = inputVal->valuestring;
+                    enabled = (set == "on") ? true : false;
+                }
+
+                PluginHost::IShell::state state;
+
+                if ((Utils::getServiceState(_service, HDMICECSOURCE_CALLSIGN, state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
+                    Utils::activatePlugin(_service, HDMICECSOURCE_CALLSIGN);
+
+                if ((Utils::getServiceState(_service, HDMICECSOURCE_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
+                {
+                    printf("the usersettings plugin activated successfully\n");
+                    ASSERT(_service != nullptr);
+
+                    _hdmiCecSourcePlugin = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::IHdmiCecSource>(HDMICECSOURCE_CALLSIGN);
+                    if (_hdmiCecSourcePlugin)
+                    {
+                        printf("Entered inside the _hdmiCecSourcePlugin block\n");
+                        if (_hdmiCecSourcePlugin->SetEnabled(enabled,success) == Core::ERROR_NONE)
+                        {
+                            printf("The set hdmi/hdmicontrol method executed successfully\n");
+                        }
+                        else
+                        {
+                            LOGERR("Failed to set hdmi/hdmicontrol");
+                        }
+                    }
+                }
+                else
+                {
+                    LOGERR("Failed to activate %s", HDMICECSOURCE_CALLSIGN);
                 }
             }
 
