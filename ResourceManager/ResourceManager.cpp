@@ -201,13 +201,16 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             bool status = false;
 
-            if ((parameters.HasLabel("appids")) && (false == mDisableReserveTTS))
+            if ((parameters.HasLabel("appIds")) && (false == mDisableReserveTTS))
             {
                 std::vector<std::string> apps;
                 for (const auto& item : parameters["appIds"].Array()) {
                      apps.push_back(item.String());
                 }				
-                for (const auto& s : apps) std::cout << s << " "; std::cout << std::endl;				
+                for (const auto& s : apps) {
+		     std::cout << s << " "; 
+		} 
+		std::cout << std::endl;				
 
                 status = reserveTTSResourceForApps(apps);
             }
