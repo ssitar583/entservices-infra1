@@ -204,8 +204,9 @@ namespace WPEFramework {
             if ((parameters.HasLabel("appIds")) && (false == mDisableReserveTTS))
             {
                 std::vector<std::string> apps;
-                for (const auto& item : parameters["appIds"].Array()) {
-                     apps.push_back(item.String());
+		auto appArray = parameters["appIds"].Array();
+                for (auto it = appArray.begin(); it != appArray.end(); ++it) {
+                     apps.push_back(it.String());
                 }				
                 for (const auto& s : apps) {
 		     std::cout << s << " "; 
