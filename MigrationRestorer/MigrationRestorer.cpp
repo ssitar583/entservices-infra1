@@ -55,6 +55,9 @@
 #include <interfaces/IHdmiCecSource.h>
 #define HDMICECSOURCE_CALLSIGN "org.rdk.HdmiCecSource"
 
+#define TR181_SYSTEM_FRIENDLY_NAME "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.SystemServices.FriendlyName"
+#include "rfcapi.h"
+
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 0
@@ -777,6 +780,30 @@ namespace WPEFramework
                 else
                 {
                     LOGERR("Failed to activate %s", HDMICECSOURCE_CALLSIGN);
+                }
+            }
+
+            else if(key == "system/devicelocation")
+            {
+                std::string friendlyName;
+
+                if (cJSON_IsString(inputVal))
+                {
+                    printf("Entered inside devicelocation if-block\n" );
+                    friendlyName  = inputVal->valuestring;
+                }
+
+                JsonObject params;
+                params["friendlyName"] = friendlyName;
+                sendNotify("onFriendlyNameChanged", params);
+                //write to persistence storage
+                WDMP_STATUS status = setRFCParameter((char*)"thunderapi",
+                       TR181_SYSTEM_FRIENDLY_NAME,friendlyName.c_str(),WDMP_STRING);
+                if (WDMP_SUCCESS == status){
+                    LOGINFO("Success Setting the friendly name value\n");
+                }
+                else {
+                    LOGINFO("Failed Setting the friendly name value %s\n",getRFCErrorString(status));
                 }
             }
 
