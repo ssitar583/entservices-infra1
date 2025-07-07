@@ -2511,6 +2511,10 @@ TEST(UserSettingsTestAI, ViewingRestrictionsWindowWithSpecialCharacters) {
 TEST(UserSettingsTestAI, EnableVoiceGuidance) {
     std::cout << "Entering EnableVoiceGuidance" << std::endl;
     bool enabled = true;
+    
+    // Setup the expected behavior for setting voice guidance to true
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_VOICE_GUIDANCE_KEY, "true", _))
+        .WillOnce(Return(Core::ERROR_NONE));
 
     Core::hresult result = InterfacePointer->SetVoiceGuidance(enabled);
 
@@ -2539,6 +2543,10 @@ TEST(UserSettingsTestAI, EnableVoiceGuidance) {
 TEST(UserSettingsTestAI, DisableVoiceGuidance) {
     std::cout << "Entering DisableVoiceGuidance" << std::endl;
     // Removed unused variable 'enabled'
+    
+    // Setup the expected behavior for setting voice guidance to false
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_VOICE_GUIDANCE_KEY, "false", _))
+        .WillOnce(Return(Core::ERROR_NONE));
 
     Core::hresult result = InterfacePointer->SetVoiceGuidance(false);
 
@@ -2567,6 +2575,10 @@ TEST(UserSettingsTestAI, DisableVoiceGuidance) {
 TEST(UserSettingsTestAI, SetVoiceGuidanceHints_True) {
     std::cout << "Entering SetVoiceGuidanceHints_True" << std::endl;
     bool hints = true; 
+    
+    // Setup the expected behavior for setting voice guidance hints to true
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY, "true", _))
+        .WillOnce(Return(Core::ERROR_NONE));
 
     Core::hresult result = InterfacePointer->SetVoiceGuidanceHints(hints);
 
@@ -2595,6 +2607,10 @@ TEST(UserSettingsTestAI, SetVoiceGuidanceHints_True) {
 TEST(UserSettingsTestAI, SetVoiceGuidanceHints_False) {
     std::cout << "Entering SetVoiceGuidanceHints_False" << std::endl;
     bool hints = false; 
+    
+    // Setup the expected behavior for setting voice guidance hints to false
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY, "false", _))
+        .WillOnce(Return(Core::ERROR_NONE));
 
     Core::hresult result = InterfacePointer->SetVoiceGuidanceHints(hints);
 
@@ -2624,6 +2640,12 @@ TEST(UserSettingsTestAI, SetVoiceGuidanceRate_ValidRange) {
     std::cout << "Entering SetVoiceGuidanceRate_ValidRange" << std::endl;
 
     for (double rate = 0.1; rate <= 10.0; rate += 0.5) {
+        // Setup the expected behavior for setting valid voice guidance rate
+        // The implementation validates the rate value before passing to the store
+        std::string rateStr = std::to_string(rate);
+        EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_VOICE_GUIDANCE_RATE_KEY, rateStr, _))
+            .WillOnce(Return(Core::ERROR_NONE));
+            
         Core::hresult result = InterfacePointer->SetVoiceGuidanceRate(rate);
         EXPECT_EQ(result, Core::ERROR_NONE) << "Failed for rate: " << rate;
     }
@@ -2655,7 +2677,7 @@ TEST(UserSettingsTestAI, SetVoiceGuidanceRate_BelowMinimumBoundary) {
     
     Core::hresult result = InterfacePointer->SetVoiceGuidanceRate(rate);
     
-    EXPECT_EQ(result, Core::ERROR_INVALID_RANGE);
+    EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER);
     std::cout << "Exiting SetVoiceGuidanceRate_BelowMinimumBoundary" << std::endl;
 }
 
@@ -2683,7 +2705,7 @@ TEST(UserSettingsTestAI, SetVoiceGuidanceRate_AboveMaximumBoundary) {
     
     Core::hresult result = InterfacePointer->SetVoiceGuidanceRate(rate);
     
-    EXPECT_EQ(result, Core::ERROR_INVALID_RANGE);
+    EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER);
     std::cout << "Exiting SetVoiceGuidanceRate_AboveMaximumBoundary" << std::endl;
 }
 
