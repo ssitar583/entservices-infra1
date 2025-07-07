@@ -150,7 +150,7 @@ TEST_F(ResourceManagerInitializedTest, ReserveTTSResourceForAppsTest_1)
 {
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("reserveTTSResourceForApps"),
-        _T("{\"appids\":\"testApp1\",\"testApp2\"}"), response));
+        _T("{\"appids\":[\"testApp1\",\"testApp2\"]}"), response));
 }
 
 TEST_F(ResourceManagerInitializedTest, ReserveTTSResourceTest_3)
@@ -175,7 +175,7 @@ TEST_F(ResourceManagerInitializedTest, ReserveTTSResourceForAppsTest_3)
 
     std::cout << "[TEST] tiwarisetDisableReserveTTS(true) called\n";
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("reserveTTSResourceForApps"),
-        _T("{ \"appids\": \"testApp1\",\"testApp2\" }"), response));
+        _T("{ \"appids\": [\"testApp1\",\"testApp2\"]}"), response));
 
 }
 
