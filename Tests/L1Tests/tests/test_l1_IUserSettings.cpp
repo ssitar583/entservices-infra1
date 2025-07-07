@@ -1432,6 +1432,10 @@ TEST(UserSettingsTestAI, SetValidPreferredLanguages) {
     std::cout << "Entering SetValidPreferredLanguages" << std::endl;
     std::string preferredLanguages = "eng,fra";
     
+    // Setup the expected behavior for valid input
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PREFERRED_CAPTIONS_LANGUAGES_KEY, preferredLanguages, _))
+        .WillOnce(Return(Core::ERROR_NONE));
+    
     Core::hresult result = InterfacePointer->SetPreferredCaptionsLanguages(preferredLanguages);
    
     EXPECT_EQ(result, Core::ERROR_NONE);
@@ -1459,6 +1463,10 @@ TEST(UserSettingsTestAI, SetValidPreferredLanguages) {
 TEST(UserSettingsTestAI, SetSingleValidPreferredLanguage) {
     std::cout << "Entering SetSingleValidPreferredLanguage" << std::endl;
     std::string preferredLanguages = "eng";
+    
+    // Setup the expected behavior for valid input
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PREFERRED_CAPTIONS_LANGUAGES_KEY, preferredLanguages, _))
+        .WillOnce(Return(Core::ERROR_NONE));
    
     Core::hresult result = InterfacePointer->SetPreferredCaptionsLanguages(preferredLanguages);
     
@@ -1685,6 +1693,11 @@ TEST(UserSettingsTestAI, SetValidClosedCaptionService_CC1ToCC4) {
     
     for (int i = 1; i <= 4; ++i) {
         std::string service = "CC" + std::to_string(i);
+        
+        // Setup the expected behavior for valid CC service
+        EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PREFERRED_CLOSED_CAPTIONS_SERVICE_KEY, service, _))
+            .WillOnce(Return(Core::ERROR_NONE));
+            
         EXPECT_EQ(Core::ERROR_NONE, InterfacePointer->SetPreferredClosedCaptionService(service));
     }
     
@@ -1717,6 +1730,11 @@ TEST(UserSettingsTestAI, SetValidClosedCaptionService_TEXT1ToTEXT4) {
     
     for (int i = 1; i <= 4; ++i) {
         std::string service = "TEXT" + std::to_string(i);
+        
+        // Setup the expected behavior for valid TEXT service
+        EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PREFERRED_CLOSED_CAPTIONS_SERVICE_KEY, service, _))
+            .WillOnce(Return(Core::ERROR_NONE));
+            
         EXPECT_EQ(Core::ERROR_NONE, InterfacePointer->SetPreferredClosedCaptionService(service));
     }
     
@@ -1810,6 +1828,11 @@ TEST(UserSettingsTestAI, SetValidClosedCaptionService_SERVICE1ToSERVICE64) {
     
     for (int i = 1; i <= 64; ++i) {
         std::string service = "SERVICE" + std::to_string(i);
+        
+        // Setup the expected behavior for valid SERVICE# service
+        EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PREFERRED_CLOSED_CAPTIONS_SERVICE_KEY, service, _))
+            .WillOnce(Return(Core::ERROR_NONE));
+            
         EXPECT_EQ(Core::ERROR_NONE, InterfacePointer->SetPreferredClosedCaptionService(service));
     }
     
@@ -1992,7 +2015,13 @@ TEST(UserSettingsTestAI, SetEmptyClosedCaptionService) {
 TEST(UserSettingsTestAI, SetValidPresentationLanguage_enUS) {
     std::cout << "Entering SetValidPresentationLanguage_enUS" << std::endl;
     
-    Core::hresult result = InterfacePointer->SetPresentationLanguage("en-US");
+    std::string language = "en-US";
+    
+    // Setup the expected behavior for valid presentation language
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PRESENTATION_LANGUAGE_KEY, language, _))
+        .WillOnce(Return(Core::ERROR_NONE));
+    
+    Core::hresult result = InterfacePointer->SetPresentationLanguage(language);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
     std::cout << "Exiting SetValidPresentationLanguage_enUS" << std::endl;
@@ -2019,7 +2048,13 @@ TEST(UserSettingsTestAI, SetValidPresentationLanguage_enUS) {
 TEST(UserSettingsTestAI, SetValidPresentationLanguage_esUS) {
     std::cout << "Entering SetValidPresentationLanguage_esUS" << std::endl;
     
-    Core::hresult result = InterfacePointer->SetPresentationLanguage("es-US");
+    std::string language = "es-US";
+    
+    // Setup the expected behavior for valid presentation language
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PRESENTATION_LANGUAGE_KEY, language, _))
+        .WillOnce(Return(Core::ERROR_NONE));
+    
+    Core::hresult result = InterfacePointer->SetPresentationLanguage(language);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
     std::cout << "Exiting SetValidPresentationLanguage_esUS" << std::endl;
@@ -2046,7 +2081,13 @@ TEST(UserSettingsTestAI, SetValidPresentationLanguage_esUS) {
 TEST(UserSettingsTestAI, SetValidPresentationLanguage_enCA) {
     std::cout << "Entering SetValidPresentationLanguage_enCA" << std::endl;
     
-    Core::hresult result = InterfacePointer->SetPresentationLanguage("en-CA");
+    std::string language = "en-CA";
+    
+    // Setup the expected behavior for valid presentation language
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PRESENTATION_LANGUAGE_KEY, language, _))
+        .WillOnce(Return(Core::ERROR_NONE));
+    
+    Core::hresult result = InterfacePointer->SetPresentationLanguage(language);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
     std::cout << "Exiting SetValidPresentationLanguage_enCA" << std::endl;
@@ -2073,7 +2114,13 @@ TEST(UserSettingsTestAI, SetValidPresentationLanguage_enCA) {
 TEST(UserSettingsTestAI, SetValidPresentationLanguage_frCA) {
     std::cout << "Entering SetValidPresentationLanguage_frCA" << std::endl;
     
-    Core::hresult result = InterfacePointer->SetPresentationLanguage("fr-CA");
+    std::string language = "fr-CA";
+    
+    // Setup the expected behavior for valid presentation language
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PRESENTATION_LANGUAGE_KEY, language, _))
+        .WillOnce(Return(Core::ERROR_NONE));
+    
+    Core::hresult result = InterfacePointer->SetPresentationLanguage(language);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
     std::cout << "Exiting SetValidPresentationLanguage_frCA" << std::endl;
@@ -2131,7 +2178,13 @@ TEST(UserSettingsTestAI, SetInvalidPresentationLanguage_xxXX) {
 TEST(UserSettingsTestAI, SetEmptyPresentationLanguage) {
     std::cout << "Entering SetEmptyPresentationLanguage" << std::endl;
     
-    Core::hresult result = InterfacePointer->SetPresentationLanguage("");
+    std::string language = "";
+    
+    // Setup the expected behavior for empty presentation language
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PRESENTATION_LANGUAGE_KEY, language, _))
+        .WillOnce(Return(Core::ERROR_INVALID_PARAMETER));
+    
+    Core::hresult result = InterfacePointer->SetPresentationLanguage(language);
     
     EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER);
     std::cout << "Exiting SetEmptyPresentationLanguage" << std::endl;
@@ -2161,7 +2214,13 @@ TEST(UserSettingsTestAI, SetEmptyPresentationLanguage) {
 TEST(UserSettingsTestAI, SetPresentationLanguageInvalidFormat) {
     std::cout << "Entering SetPresentationLanguageInvalidFormat" << std::endl;
     
-    Core::hresult result = InterfacePointer->SetPresentationLanguage("english-US");
+    std::string language = "english-US";
+    
+    // Setup the expected behavior for invalid format
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PRESENTATION_LANGUAGE_KEY, language, _))
+        .WillOnce(Return(Core::ERROR_INVALID_PARAMETER));
+    
+    Core::hresult result = InterfacePointer->SetPresentationLanguage(language);
     
     EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER);
     std::cout << "Exiting SetPresentationLanguageInvalidFormat" << std::endl;
@@ -2188,7 +2247,13 @@ TEST(UserSettingsTestAI, SetPresentationLanguageInvalidFormat) {
 TEST(UserSettingsTestAI, SetPresentationLanguageSpecialCharacters) {
     std::cout << "Entering SetPresentationLanguageSpecialCharacters" << std::endl;
     
-    Core::hresult result = InterfacePointer->SetPresentationLanguage("!@#$");
+    std::string language = "!@#$";
+    
+    // Setup the expected behavior for special characters
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PRESENTATION_LANGUAGE_KEY, language, _))
+        .WillOnce(Return(Core::ERROR_INVALID_PARAMETER));
+    
+    Core::hresult result = InterfacePointer->SetPresentationLanguage(language);
     
     EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER);
     std::cout << "Exiting SetPresentationLanguageSpecialCharacters" << std::endl;
@@ -2215,6 +2280,10 @@ TEST(UserSettingsTestAI, SetPresentationLanguageSpecialCharacters) {
 TEST(UserSettingsTestAI, ValidJSONInput) {
     std::cout << "Entering ValidJSONInput test" << std::endl;
     std::string input = "{\"restrictions\": [{\"scheme\": \"US_TV\", \"restrict\": [\"TV-Y7/FV\"]}, {\"scheme\": \"MPAA\", \"restrict\": []}]}";
+    
+    // Setup the expected behavior for valid JSON input
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_VIEWING_RESTRICTIONS_KEY, input, _))
+        .WillOnce(Return(Core::ERROR_NONE));
     
     Core::hresult result = InterfacePointer->SetViewingRestrictions(input);
     
@@ -2244,6 +2313,10 @@ TEST(UserSettingsTestAI, ValidJSONInput) {
 TEST(UserSettingsTestAI, NullInput) {
     std::cout << "Entering NullInput test" << std::endl;
     std::string input = "";
+    
+    // Setup the expected behavior for null/empty input
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_VIEWING_RESTRICTIONS_KEY, input, _))
+        .WillOnce(Return(Core::ERROR_INVALID_PARAMETER));
     
     Core::hresult result = InterfacePointer->SetViewingRestrictions(input);
     
@@ -2275,6 +2348,10 @@ TEST(UserSettingsTestAI, JSONWithUnsupportedValue) {
     std::cout << "Entering JSONWithUnsupportedValue test" << std::endl;
     std::string input = "{\"XYZ:123\"}";
     
+    // Setup the expected behavior for invalid/unsupported JSON
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_VIEWING_RESTRICTIONS_KEY, input, _))
+        .WillOnce(Return(Core::ERROR_INVALID_PARAMETER));
+    
     Core::hresult result = InterfacePointer->SetViewingRestrictions(input);
     
     EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER);
@@ -2301,8 +2378,14 @@ TEST(UserSettingsTestAI, JSONWithUnsupportedValue) {
 */
 TEST(UserSettingsTestAI, ValidSetViewingRestrictionsWindow) {
     std::cout << "Entering ValidSetViewingRestrictionsWindow" << std::endl;
+    
+    std::string value = "ALWAYS";
+    
+    // Setup the expected behavior for valid window value
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_VIEWING_RESTRICTIONS_WINDOW_KEY, value, _))
+        .WillOnce(Return(Core::ERROR_NONE));
 
-    Core::hresult result = InterfacePointer->SetViewingRestrictionsWindow("ALWAYS");
+    Core::hresult result = InterfacePointer->SetViewingRestrictionsWindow(value);
 
     EXPECT_EQ(result, Core::ERROR_NONE);
     std::cout << "Exiting ValidSetViewingRestrictionsWindow" << std::endl;
@@ -2328,8 +2411,14 @@ TEST(UserSettingsTestAI, ValidSetViewingRestrictionsWindow) {
 */
 TEST(UserSettingsTestAI, EmptyViewingRestrictionsWindow) {
     std::cout << "Entering EmptyViewingRestrictionsWindow" << std::endl;
+    
+    std::string value = "";
+    
+    // Setup the expected behavior for empty window value
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_VIEWING_RESTRICTIONS_WINDOW_KEY, value, _))
+        .WillOnce(Return(Core::ERROR_INVALID_PARAMETER));
 
-    Core::hresult result = InterfacePointer->SetViewingRestrictionsWindow("");
+    Core::hresult result = InterfacePointer->SetViewingRestrictionsWindow(value);
 
     EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER);
     std::cout << "Exiting EmptyViewingRestrictionsWindow" << std::endl;
@@ -2355,8 +2444,14 @@ TEST(UserSettingsTestAI, EmptyViewingRestrictionsWindow) {
 */
 TEST(UserSettingsTestAI, InvalidViewingRestrictionsWindow) {
     std::cout << "Entering InvalidViewingRestrictionsWindow" << std::endl;
+    
+    std::string value = "INVALID_VALUE";
+    
+    // Setup the expected behavior for invalid window value
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_VIEWING_RESTRICTIONS_WINDOW_KEY, value, _))
+        .WillOnce(Return(Core::ERROR_INVALID_PARAMETER));
 
-    Core::hresult result = InterfacePointer->SetViewingRestrictionsWindow("INVALID_VALUE");
+    Core::hresult result = InterfacePointer->SetViewingRestrictionsWindow(value);
 
     EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER);
     std::cout << "Exiting InvalidViewingRestrictionsWindow" << std::endl;
@@ -2382,8 +2477,14 @@ TEST(UserSettingsTestAI, InvalidViewingRestrictionsWindow) {
 */
 TEST(UserSettingsTestAI, ViewingRestrictionsWindowWithSpecialCharacters) {
     std::cout << "Entering ViewingRestrictionsWindowWithSpecialCharacters" << std::endl;
+    
+    std::string value = "@!#%&*";
+    
+    // Setup the expected behavior for window value with special characters
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_VIEWING_RESTRICTIONS_WINDOW_KEY, value, _))
+        .WillOnce(Return(Core::ERROR_INVALID_PARAMETER));
 
-    Core::hresult result = InterfacePointer->SetViewingRestrictionsWindow("@!#%&*");
+    Core::hresult result = InterfacePointer->SetViewingRestrictionsWindow(value);
 
     EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER);
     std::cout << "Exiting ViewingRestrictionsWindowWithSpecialCharacters" << std::endl;
