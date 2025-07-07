@@ -28,9 +28,16 @@
 
 extern WPEFramework::Exchange::IUserSettings *InterfacePointer;
 extern WPEFramework::Exchange::IUserSettingsInspector *IUserSettingsInspectorPointer;
+// Access to the global mocks for setting test-specific expectations
+extern NiceMock<ServiceMock>* g_serviceMock;
+extern Store2Mock* g_storeMock;
 
 using namespace WPEFramework::Exchange;
 using namespace WPEFramework;
+using ::testing::Return;
+using ::testing::_;
+using ::testing::DoAll;
+using ::testing::SetArgReferee;
 
 class TestNotification : public WPEFramework::Exchange::IUserSettings::INotification {
 public:
@@ -120,6 +127,13 @@ TEST(UserSettingsTestAI, GetBlockNotRatedContentReturnsEnabledStateSuccessfully)
 */
 TEST(UserSettingsTestAI, GetCaptionsReturnsEnabledStateSuccessfully) {
     std::cout << "Entering GetCaptionsReturnsEnabledStateSuccessfully" << std::endl;
+
+    // Set up specific mock behavior for this test to return enabled=true
+    EXPECT_CALL(*g_storeMock, GetValue(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>("true"),  // Set the value parameter to "true"
+            Return(Core::ERROR_NONE)
+        ));
 
     bool enabled = false;
     Core::hresult result = InterfacePointer->GetCaptions(enabled);
@@ -311,8 +325,15 @@ TEST(UserSettingsTestAI, GetPlaybackWatershed_ReturnsErrorNone_WithValidPlayback
 */
 TEST(UserSettingsTestAI, ValidPreferredLanguagesString) {
     std::cout << "Entering ValidPreferredLanguagesString test" << std::endl;
-    string preferredLanguages = "";
     
+    // Set up specific mock behavior for this test
+    EXPECT_CALL(*g_storeMock, GetValue(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>("eng"),  // Set the value parameter to "eng"
+            Return(Core::ERROR_NONE)
+        ));
+    
+    string preferredLanguages = "";
     Core::hresult result = InterfacePointer->GetPreferredAudioLanguages(preferredLanguages);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
@@ -341,8 +362,15 @@ TEST(UserSettingsTestAI, ValidPreferredLanguagesString) {
 */
 TEST(UserSettingsTestAI, ValidPreferredLanguages) {
     std::cout << "Entering ValidPreferredLanguages test";
-    string preferredLanguages = "";
     
+    // Set up specific mock behavior for this test
+    EXPECT_CALL(*g_storeMock, GetValue(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>("eng,fra"),  // Set the value parameter to "eng,fra"
+            Return(Core::ERROR_NONE)
+        ));
+    
+    string preferredLanguages = "";
     Core::hresult result = InterfacePointer->GetPreferredCaptionsLanguages(preferredLanguages);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
