@@ -2964,7 +2964,7 @@ TEST(UserSettingsInspectorTest, ValidStatesArray)
 
     while (states->Next(state)) {
         ASSERT_TRUE(state.key >= WPEFramework::Exchange::IUserSettingsInspector::PREFERRED_AUDIO_LANGUAGES &&
-                    state.key <= WPEFramework::Exchange::IUserSettingsInspector::VOICE_GUIDANCE_HINTS);
+                    state.key <= WPEFramework::Exchange::IUserSettingsInspector::CONTENT_PIN);
     }
 
     states->Release();
