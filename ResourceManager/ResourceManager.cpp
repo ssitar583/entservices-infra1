@@ -201,10 +201,10 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             bool status = false;
 
-            if ((parameters.HasLabel("appIds")) && (false == mDisableReserveTTS))
+            if ((parameters.HasLabel("appids")) && (false == mDisableReserveTTS))
             {
                 std::vector<std::string> apps;
-		auto appArray = parameters["appIds"].Array();
+		auto appArray = parameters["appids"].Array();
                 for (uint32_t i = 0; i < appArray.Length(); ++i) {
                      apps.push_back(appArray[i].String());
                 }				
