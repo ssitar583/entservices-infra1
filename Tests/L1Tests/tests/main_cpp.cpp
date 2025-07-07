@@ -81,8 +81,8 @@ void GlobalTeardown() {
     delete g_serviceMock;
     g_serviceMock = nullptr;
     
-    // ProxyType will handle deletion of g_userSettingsImpl
-    g_userSettingsImpl = nullptr;
+    // ProxyType will clean up automatically when the program exits
+    // No need to explicitly reset g_userSettingsImpl
 }
 
 // Main function that sets up the environment and runs the tests

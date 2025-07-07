@@ -406,6 +406,13 @@ TEST(UserSettingsTestAI, ValidPreferredLanguages) {
 TEST(UserSettingsTestAI, ValidServiceNameReturned) {
     std::cout << "Entering ValidServiceNameReturned" << std::endl;
     
+    // Set up the mock to return a valid service name
+    EXPECT_CALL(*g_storeMock, GetValue(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>("CC1"),  // Return "CC1" as the closed caption service
+            Return(Core::ERROR_NONE)
+        ));
+    
     string service = "";
     Core::hresult result = InterfacePointer->GetPreferredClosedCaptionService(service);
     
@@ -437,6 +444,13 @@ TEST(UserSettingsTestAI, ValidServiceNameReturned) {
 */
 TEST(UserSettingsTestAI, ValidPresentationLanguage) {
     std::cout << "Entering ValidPresentationLanguage test" << std::endl;
+    
+    // Set up the mock to return a valid presentation language
+    EXPECT_CALL(*g_storeMock, GetValue(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>("en-US"),  // Return "en-US" as the presentation language
+            Return(Core::ERROR_NONE)
+        ));
     
     string presentationLanguage = "";
     Core::hresult result = InterfacePointer->GetPresentationLanguage(presentationLanguage);
@@ -1910,6 +1924,10 @@ TEST(UserSettingsTestAI, SetValidPresentationLanguage_frCA) {
 TEST(UserSettingsTestAI, SetInvalidPresentationLanguage_xxXX) {
     std::cout << "Entering SetInvalidPresentationLanguage_xxXX" << std::endl;
     
+    // Set up the mock to return an error for invalid language code
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, _, _, _))
+        .WillOnce(Return(Core::ERROR_INVALID_PARAMETER));
+    
     Core::hresult result = InterfacePointer->SetPresentationLanguage("xx-XX");
     
     EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER);
@@ -2243,7 +2261,7 @@ TEST(UserSettingsTestAI, EnableVoiceGuidance) {
 */
 TEST(UserSettingsTestAI, DisableVoiceGuidance) {
     std::cout << "Entering DisableVoiceGuidance" << std::endl;
-    bool enabled = false;
+    // Removed unused variable 'enabled'
 
     Core::hresult result = InterfacePointer->SetVoiceGuidance(false);
 
