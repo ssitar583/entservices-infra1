@@ -26,7 +26,7 @@
 #include <mutex>
 
 #include <interfaces/IUserSettings.h>
-#include <interfaces/IHdmiCecSource.h>
+#include <interfaces/IHdmiCecSink.h>
 
 
 
