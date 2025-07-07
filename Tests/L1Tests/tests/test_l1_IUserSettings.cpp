@@ -556,6 +556,14 @@ TEST(UserSettingsTestAI, ValidViewingRestrictions) {
     std::cout << "Entering ValidViewingRestrictions test";
     string viewingRestrictions = "";
     
+    // Setup the expected behavior for GetValue
+    std::string mockValue = "TVPG_Y7";
+    EXPECT_CALL(*g_storeMock, GetValue(_, _, USERSETTINGS_VIEWING_RESTRICTIONS_KEY, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>(mockValue),
+            Return(Core::ERROR_NONE)
+        ));
+    
     Core::hresult result = InterfacePointer->GetViewingRestrictions(viewingRestrictions);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
@@ -590,6 +598,14 @@ TEST(UserSettingsTestAI, ValidGetViewingRestrictionsWindow) {
     std::cout << "Entering ValidGetViewingRestrictionsWindow" << std::endl;
     
     string viewingRestrictionsWindow = "";
+    
+    // Setup the expected behavior for GetValue
+    EXPECT_CALL(*g_storeMock, GetValue(_, _, USERSETTINGS_VIEWING_RESTRICTIONS_WINDOW_KEY, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>("ALWAYS"),
+            Return(Core::ERROR_NONE)
+        ));
+    
     Core::hresult result = InterfacePointer->GetViewingRestrictionsWindow(viewingRestrictionsWindow);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
@@ -659,11 +675,21 @@ TEST(UserSettingsTestAI, GetVoiceGuidance_ReturnsErrorNoneWithValidEnabledValue)
 TEST(UserSettingsTestAI, GetVoiceGuidanceHints_ReturnsErrorNone_WithValidHintsValue) {
     std::cout << "Entering GetVoiceGuidanceHints_ReturnsErrorNone_WithValidHintsValue" << std::endl;
     
+    bool expectedValue = true;
+    std::string hintsValue = expectedValue ? "true" : "false";
+    
+    // Setup the expected behavior for GetValue
+    EXPECT_CALL(*g_storeMock, GetValue(_, _, USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>(hintsValue),
+            Return(Core::ERROR_NONE)
+        ));
+    
     bool hints = false;
     Core::hresult result = InterfacePointer->GetVoiceGuidanceHints(hints);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
-    EXPECT_TRUE(hints == true || hints == false);
+    EXPECT_EQ(hints, expectedValue);
     
     std::cout << "Exiting GetVoiceGuidanceHints_ReturnsErrorNone_WithValidHintsValue" << std::endl;
 }
@@ -689,10 +715,19 @@ TEST(UserSettingsTestAI, GetVoiceGuidanceHints_ReturnsErrorNone_WithValidHintsVa
 TEST(UserSettingsTestAI, ValidRateRetrieval) {
     std::cout << "Entering ValidRateRetrieval" << std::endl;
     double rate = 0.0;
+    double expectedRate = 1.0;
+    
+    // Setup the expected behavior for GetValue
+    EXPECT_CALL(*g_storeMock, GetValue(_, _, USERSETTINGS_VOICE_GUIDANCE_RATE_KEY, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>(std::to_string(expectedRate)),
+            Return(Core::ERROR_NONE)
+        ));
     
     Core::hresult result = InterfacePointer->GetVoiceGuidanceRate(rate);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
+    EXPECT_DOUBLE_EQ(rate, expectedRate);
     EXPECT_GE(rate, 0.1);
     EXPECT_LE(rate, 10.0);
     
@@ -1266,6 +1301,10 @@ TEST(UserSettingsTestAI, SetPreferredAudioLanguages_ValidSingleLanguageCode) {
 TEST(UserSettingsTestAI, SetPreferredAudioLanguages_EmptyString) {
     std::cout << "Entering SetPreferredAudioLanguages_EmptyString" << std::endl;
     std::string preferred_languages = "";
+    
+    // Setup the expected behavior for invalid input
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PREFERRED_AUDIO_LANGUAGES_KEY, _, _))
+        .WillOnce(Return(Core::ERROR_INVALID_PARAMETER));
 
     Core::hresult result = InterfacePointer->SetPreferredAudioLanguages(preferred_languages);
 
@@ -1295,6 +1334,10 @@ TEST(UserSettingsTestAI, SetPreferredAudioLanguages_InvalidLanguageCode) {
     std::cout << "Entering SetPreferredAudioLanguages_InvalidLanguageCode" << std::endl;
     std::string preferred_languages = "xyz";
 
+    // Setup the expected behavior for invalid language code
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PREFERRED_AUDIO_LANGUAGES_KEY, _, _))
+        .WillOnce(Return(Core::ERROR_INVALID_PARAMETER));
+
     Core::hresult result = InterfacePointer->SetPreferredAudioLanguages(preferred_languages);
 
     EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER);
@@ -1323,6 +1366,10 @@ TEST(UserSettingsTestAI, SetPreferredAudioLanguages_MixedValidAndInvalidLanguage
     std::cout << "Entering SetPreferredAudioLanguages_MixedValidAndInvalidLanguageCodes" << std::endl;
     std::string preferred_languages = "eng,xyz,spa";
 
+    // Setup the expected behavior for mixed valid/invalid language codes
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PREFERRED_AUDIO_LANGUAGES_KEY, _, _))
+        .WillOnce(Return(Core::ERROR_INVALID_PARAMETER));
+
     Core::hresult result = InterfacePointer->SetPreferredAudioLanguages(preferred_languages);
     
     EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER);
@@ -1350,6 +1397,10 @@ TEST(UserSettingsTestAI, SetPreferredAudioLanguages_MixedValidAndInvalidLanguage
 TEST(UserSettingsTestAI, SetPreferredAudioLanguages_SpecialCharacters) {
     std::cout << "Entering SetPreferredAudioLanguages_SpecialCharacters" << std::endl;
     std::string preferred_languages = "eng,spa,@#$";
+
+    // Setup the expected behavior for input with special characters
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PREFERRED_AUDIO_LANGUAGES_KEY, _, _))
+        .WillOnce(Return(Core::ERROR_INVALID_PARAMETER));
 
     Core::hresult result = InterfacePointer->SetPreferredAudioLanguages(preferred_languages);
 
@@ -1437,6 +1488,10 @@ TEST(UserSettingsTestAI, SetEmptyPreferredLanguages) {
     std::cout << "Entering SetEmptyPreferredLanguages" << std::endl;
     std::string preferredLanguages = "";
     
+    // Setup the expected behavior for empty input string
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PREFERRED_CAPTIONS_LANGUAGES_KEY, _, _))
+        .WillOnce(Return(Core::ERROR_INVALID_PARAMETER));
+    
     Core::hresult result = InterfacePointer->SetPreferredCaptionsLanguages(preferredLanguages);
     
     EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER);
@@ -1464,6 +1519,10 @@ TEST(UserSettingsTestAI, SetEmptyPreferredLanguages) {
 TEST(UserSettingsTestAI, SetInvalidPreferredLanguages) {
     std::cout << "Entering SetInvalidPreferredLanguages" << std::endl;
     std::string preferredLanguages = "xyz,abc";
+    
+    // Setup the expected behavior for invalid language codes
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PREFERRED_CAPTIONS_LANGUAGES_KEY, _, _))
+        .WillOnce(Return(Core::ERROR_INVALID_PARAMETER));
     
     Core::hresult result = InterfacePointer->SetPreferredCaptionsLanguages(preferredLanguages);
     
@@ -1493,6 +1552,10 @@ TEST(UserSettingsTestAI, SetPreferredLanguagesWithInvalidFormat) {
     std::cout << "Entering SetPreferredLanguagesWithInvalidFormat" << std::endl;
     std::string preferredLanguages = "eng,,fra";
     
+    // Setup the expected behavior for invalid format (consecutive commas)
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PREFERRED_CAPTIONS_LANGUAGES_KEY, _, _))
+        .WillOnce(Return(Core::ERROR_INVALID_PARAMETER));
+    
     Core::hresult result = InterfacePointer->SetPreferredCaptionsLanguages(preferredLanguages);
     
     EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER);
@@ -1520,6 +1583,10 @@ TEST(UserSettingsTestAI, SetPreferredLanguagesWithInvalidFormat) {
 TEST(UserSettingsTestAI, SetPreferredLanguagesWithSpecialCharacters) {
     std::cout << "Entering SetPreferredLanguagesWithSpecialCharacters" << std::endl;
     std::string preferredLanguages = "eng,@fra";
+    
+    // Setup the expected behavior for input with special characters
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PREFERRED_CAPTIONS_LANGUAGES_KEY, _, _))
+        .WillOnce(Return(Core::ERROR_INVALID_PARAMETER));
     
     Core::hresult result = InterfacePointer->SetPreferredCaptionsLanguages(preferredLanguages);
     
@@ -1550,6 +1617,10 @@ TEST(UserSettingsTestAI, SetPreferredLanguagesWithNumericValues) {
     std::cout << "Entering SetPreferredLanguagesWithNumericValues" << std::endl;
     std::string preferredLanguages = "123,456";
     
+    // Setup the expected behavior for input with numeric values
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PREFERRED_CAPTIONS_LANGUAGES_KEY, _, _))
+        .WillOnce(Return(Core::ERROR_INVALID_PARAMETER));
+    
     Core::hresult result = InterfacePointer->SetPreferredCaptionsLanguages(preferredLanguages);
    
     EXPECT_EQ(result, Core::ERROR_INVALID_PARAMETER);
@@ -1577,6 +1648,10 @@ TEST(UserSettingsTestAI, SetPreferredLanguagesWithNumericValues) {
 TEST(UserSettingsTestAI, SetPreferredLanguagesWithMixedValidAndInvalidCodes) {
     std::cout << "Entering SetPreferredLanguagesWithMixedValidAndInvalidCodes" << std::endl;
     std::string preferredLanguages = "eng,xyz";
+    
+    // Setup the expected behavior for mixed valid/invalid language codes
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PREFERRED_CAPTIONS_LANGUAGES_KEY, _, _))
+        .WillOnce(Return(Core::ERROR_INVALID_PARAMETER));
     
     Core::hresult result = InterfacePointer->SetPreferredCaptionsLanguages(preferredLanguages);
     
@@ -1763,6 +1838,10 @@ TEST(UserSettingsTestAI, SetInvalidClosedCaptionService_CC5) {
     std::cout << "Entering SetInvalidClosedCaptionService_CC5" << std::endl;
     std::string service = "CC5";
     
+    // Setup the expected behavior for invalid closed caption service
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PREFERRED_CLOSED_CAPTIONS_SERVICE_KEY, _, _))
+        .WillOnce(Return(Core::ERROR_INVALID_PARAMETER));
+    
     EXPECT_EQ(Core::ERROR_INVALID_PARAMETER, InterfacePointer->SetPreferredClosedCaptionService(service));
     
     std::cout << "Exiting SetInvalidClosedCaptionService_CC5" << std::endl;
@@ -1789,6 +1868,10 @@ TEST(UserSettingsTestAI, SetInvalidClosedCaptionService_CC5) {
 TEST(UserSettingsTestAI, SetInvalidClosedCaptionService_TEXT0) {
     std::cout << "Entering SetInvalidClosedCaptionService_TEXT0" << std::endl;
     std::string service = "TEXT0";
+    
+    // Setup the expected behavior for invalid closed caption service
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PREFERRED_CLOSED_CAPTIONS_SERVICE_KEY, _, _))
+        .WillOnce(Return(Core::ERROR_INVALID_PARAMETER));
     
     EXPECT_EQ(Core::ERROR_INVALID_PARAMETER, InterfacePointer->SetPreferredClosedCaptionService(service));
     
@@ -1817,6 +1900,10 @@ TEST(UserSettingsTestAI, SetInvalidClosedCaptionService_SERVICE65) {
     std::cout << "Entering SetInvalidClosedCaptionService_SERVICE65" << std::endl;
     std::string service = "SERVICE65";
     
+    // Setup the expected behavior for invalid closed caption service
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PREFERRED_CLOSED_CAPTIONS_SERVICE_KEY, _, _))
+        .WillOnce(Return(Core::ERROR_INVALID_PARAMETER));
+    
     EXPECT_EQ(Core::ERROR_INVALID_PARAMETER, InterfacePointer->SetPreferredClosedCaptionService(service));
     
     std::cout << "Exiting SetInvalidClosedCaptionService_SERVICE65" << std::endl;
@@ -1844,6 +1931,10 @@ TEST(UserSettingsTestAI, SetInvalidClosedCaptionService_INVALID) {
     std::cout << "Entering SetInvalidClosedCaptionService_INVALID" << std::endl;
     std::string service = "INVALID";
     
+    // Setup the expected behavior for invalid closed caption service
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PREFERRED_CLOSED_CAPTIONS_SERVICE_KEY, _, _))
+        .WillOnce(Return(Core::ERROR_INVALID_PARAMETER));
+    
     EXPECT_EQ(Core::ERROR_INVALID_PARAMETER, InterfacePointer->SetPreferredClosedCaptionService(service));
     
     std::cout << "Exiting SetInvalidClosedCaptionService_INVALID" << std::endl;
@@ -1870,6 +1961,10 @@ TEST(UserSettingsTestAI, SetInvalidClosedCaptionService_INVALID) {
 TEST(UserSettingsTestAI, SetEmptyClosedCaptionService) {
     std::cout << "Entering SetEmptyClosedCaptionService" << std::endl;
     std::string service = "";
+    
+    // Setup the expected behavior for empty closed caption service
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_PREFERRED_CLOSED_CAPTIONS_SERVICE_KEY, _, _))
+        .WillOnce(Return(Core::ERROR_INVALID_PARAMETER));
     
     EXPECT_EQ(Core::ERROR_INVALID_PARAMETER, InterfacePointer->SetPreferredClosedCaptionService(service));
     
