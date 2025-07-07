@@ -71,11 +71,21 @@ public:
 TEST(UserSettingsTestAI, GetAudioDescription_ReturnsErrorNone_WithValidValue) {
     std::cout << "Entering GetAudioDescription_ReturnsErrorNone_WithValidValue" << std::endl;
     
+    // Setup the expected behavior for GetValue
+    bool audioDescription = true;
+    std::string audioDescriptionValue = audioDescription ? "true" : "false";
+    
+    EXPECT_CALL(*g_storeMock, GetValue(_, _, USERSETTINGS_AUDIO_DESCRIPTION_KEY, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>(audioDescriptionValue),
+            Return(Core::ERROR_NONE)
+        ));
+    
     bool enabled = false;
     Core::hresult result = InterfacePointer->GetAudioDescription(enabled);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
-    EXPECT_TRUE(enabled == true || enabled == false);
+    EXPECT_TRUE(enabled == audioDescription);
     
     std::cout << "Exiting GetAudioDescription_ReturnsErrorNone_WithValidValue" << std::endl;
 }
@@ -101,11 +111,21 @@ TEST(UserSettingsTestAI, GetAudioDescription_ReturnsErrorNone_WithValidValue) {
 TEST(UserSettingsTestAI, GetBlockNotRatedContentReturnsEnabledStateSuccessfully) {
     std::cout << "Entering GetBlockNotRatedContentReturnsEnabledStateSuccessfully" << std::endl;
     
+    // Setup the expected behavior for GetValue
+    bool expectedValue = false;
+    std::string blockNotRatedContentValue = expectedValue ? "true" : "false";
+    
+    EXPECT_CALL(*g_storeMock, GetValue(_, _, USERSETTINGS_BLOCK_NOT_RATED_CONTENT_KEY, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>(blockNotRatedContentValue),
+            Return(Core::ERROR_NONE)
+        ));
+    
     bool blockNotRatedContent = false;
     Core::hresult result = InterfacePointer->GetBlockNotRatedContent(blockNotRatedContent);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
-    EXPECT_TRUE(blockNotRatedContent == true || blockNotRatedContent == false);
+    EXPECT_EQ(blockNotRatedContent, expectedValue);
     
     std::cout << "Exiting GetBlockNotRatedContentReturnsEnabledStateSuccessfully" << std::endl;
 }
@@ -173,11 +193,21 @@ TEST(UserSettingsTestAI, GetCaptionsReturnsEnabledStateSuccessfully) {
 TEST(UserSettingsTestAI, GetHighContrastReturnsEnabledStateSuccessfully) {
     std::cout << "Entering GetHighContrastReturnsEnabledStateSuccessfully" << std::endl;
     
+    // Set up the mock to return a specific boolean value for high contrast
+    bool expectedValue = true;
+    std::string highContrastValue = expectedValue ? "true" : "false";
+    
+    EXPECT_CALL(*g_storeMock, GetValue(_, _, USERSETTINGS_HIGH_CONTRAST_KEY, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>(highContrastValue),  // Return the expected high contrast setting
+            Return(Core::ERROR_NONE)
+        ));
+    
     bool enabled = false;
     Core::hresult result = InterfacePointer->GetHighContrast(enabled);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
-    EXPECT_TRUE(enabled == true || enabled == false);
+    EXPECT_EQ(enabled, expectedValue);
     
     std::cout << "Exiting GetHighContrastReturnsEnabledStateSuccessfully" << std::endl;
 }
@@ -205,11 +235,21 @@ TEST(UserSettingsTestAI, GetHighContrastReturnsEnabledStateSuccessfully) {
 TEST(UserSettingsTestAI, GetLiveWatershedReturnsLiveWatershedSuccessfully) {
     std::cout << "Entering GetLiveWatershedReturnsLiveWatershedSuccessfully" << std::endl;
 
+    // Set up the mock to return a specific boolean value for live watershed
+    bool expectedValue = true;
+    std::string liveWatershedValue = expectedValue ? "true" : "false";
+    
+    EXPECT_CALL(*g_storeMock, GetValue(_, _, USERSETTINGS_LIVE_WATERSHED_KEY, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>(liveWatershedValue),
+            Return(Core::ERROR_NONE)
+        ));
+
     bool liveWatershed = false;
     Core::hresult result = InterfacePointer->GetLiveWatershed(liveWatershed);
 
     EXPECT_EQ(result, Core::ERROR_NONE);
-    EXPECT_TRUE(liveWatershed == true || liveWatershed == false);
+    EXPECT_EQ(liveWatershed, expectedValue);
 
     std::cout << "Exiting GetLiveWatershedReturnsLiveWatershedSuccessfully" << std::endl;
 }
@@ -235,11 +275,21 @@ TEST(UserSettingsTestAI, GetLiveWatershedReturnsLiveWatershedSuccessfully) {
 TEST(UserSettingsTestAI, GetPinControlReturnsPinControlSuccessfully) {
     std::cout << "Entering GetPinControlReturnsPinControlSuccessfully" << std::endl;
 
+    // Set up the mock to return a specific boolean value for pin control
+    bool expectedValue = true;
+    std::string pinControlValue = expectedValue ? "true" : "false";
+    
+    EXPECT_CALL(*g_storeMock, GetValue(_, _, USERSETTINGS_PIN_CONTROL_KEY, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>(pinControlValue),
+            Return(Core::ERROR_NONE)
+        ));
+
     bool pinControl = false;
     Core::hresult result = InterfacePointer->GetPinControl(pinControl);
 
     EXPECT_EQ(result, Core::ERROR_NONE);
-    EXPECT_TRUE(pinControl == true || pinControl == false);
+    EXPECT_EQ(pinControl, expectedValue);
 
     std::cout << "Exiting GetPinControlReturnsPinControlSuccessfully" << std::endl;
 }
@@ -269,11 +319,21 @@ TEST(UserSettingsTestAI, GetPinControlReturnsPinControlSuccessfully) {
 TEST(UserSettingsTestAI, GetPinOnPurchaseReturnsPinOnPurchaseSuccessfully) {
     std::cout << "Entering GetPinOnPurchaseReturnsPinOnPurchaseSuccessfully test";
     
+    // Set up the mock to return a specific boolean value for pin on purchase
+    bool expectedValue = false;
+    std::string pinOnPurchaseValue = expectedValue ? "true" : "false";
+    
+    EXPECT_CALL(*g_storeMock, GetValue(_, _, USERSETTINGS_PIN_ON_PURCHASE_KEY, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>(pinOnPurchaseValue),
+            Return(Core::ERROR_NONE)
+        ));
+    
     bool pinOnPurchase = false;
     Core::hresult result = InterfacePointer->GetPinOnPurchase(pinOnPurchase);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
-    EXPECT_TRUE(pinOnPurchase == true || pinOnPurchase == false);
+    EXPECT_EQ(pinOnPurchase, expectedValue);
     
     std::cout << "Exiting GetPinOnPurchaseReturnsPinOnPurchaseSuccessfully test";
 }
@@ -299,11 +359,21 @@ TEST(UserSettingsTestAI, GetPinOnPurchaseReturnsPinOnPurchaseSuccessfully) {
 TEST(UserSettingsTestAI, GetPlaybackWatershed_ReturnsErrorNone_WithValidPlaybackWatershed) {
     std::cout << "Entering GetPlaybackWatershed_ReturnsErrorNone_WithValidPlaybackWatershed test";
     
+    // Set up the mock to return a specific boolean value for playback watershed
+    bool expectedValue = false;
+    std::string playbackWatershedValue = expectedValue ? "true" : "false";
+    
+    EXPECT_CALL(*g_storeMock, GetValue(_, _, USERSETTINGS_PLAYBACK_WATERSHED_KEY, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>(playbackWatershedValue),
+            Return(Core::ERROR_NONE)
+        ));
+    
     bool playbackWatershed = false;
     Core::hresult result = InterfacePointer->GetPlaybackWatershed(playbackWatershed);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
-    EXPECT_TRUE(playbackWatershed == true || playbackWatershed == false);
+    EXPECT_EQ(playbackWatershed, expectedValue);
     
     std::cout << "Exiting GetPlaybackWatershed_ReturnsErrorNone_WithValidPlaybackWatershed test";
 }
@@ -548,11 +618,21 @@ TEST(UserSettingsTestAI, ValidGetViewingRestrictionsWindow) {
 TEST(UserSettingsTestAI, GetVoiceGuidance_ReturnsErrorNoneWithValidEnabledValue) {
     std::cout << "Entering GetVoiceGuidance_ReturnsErrorNoneWithValidEnabledValue" << std::endl;
     
+    // Set up the mock to return a specific boolean value for voice guidance
+    bool expectedValue = true;
+    std::string voiceGuidanceValue = expectedValue ? "true" : "false";
+    
+    EXPECT_CALL(*g_storeMock, GetValue(_, _, USERSETTINGS_VOICE_GUIDANCE_KEY, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>(voiceGuidanceValue),
+            Return(Core::ERROR_NONE)
+        ));
+    
     bool enabled = false;
     Core::hresult result = InterfacePointer->GetVoiceGuidance(enabled);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
-    EXPECT_TRUE(enabled == true || enabled == false);
+    EXPECT_EQ(enabled, expectedValue);
     
     std::cout << "Exiting GetVoiceGuidance_ReturnsErrorNoneWithValidEnabledValue" << std::endl;
 }
