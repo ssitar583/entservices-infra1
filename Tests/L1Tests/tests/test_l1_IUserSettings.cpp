@@ -25,15 +25,18 @@
 #include <WPEFramework/interfaces/IUserSettings.h>
 #include <WPEFramework/interfaces/Ids.h>
 #include <core/core.h>
+#include "ServiceMock.h"
+#include "Store2Mock.h"
 
 extern WPEFramework::Exchange::IUserSettings *InterfacePointer;
 extern WPEFramework::Exchange::IUserSettingsInspector *IUserSettingsInspectorPointer;
 // Access to the global mocks for setting test-specific expectations
-extern NiceMock<ServiceMock>* g_serviceMock;
+extern ::testing::NiceMock<ServiceMock>* g_serviceMock;
 extern Store2Mock* g_storeMock;
 
 using namespace WPEFramework::Exchange;
 using namespace WPEFramework;
+using ::testing::NiceMock;
 using ::testing::Return;
 using ::testing::_;
 using ::testing::DoAll;

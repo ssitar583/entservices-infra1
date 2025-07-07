@@ -31,67 +31,76 @@ using ::testing::_;
 using ::testing::DoAll;
 using ::testing::SetArgReferee;
 
-// These global pointers will be set in the fixture setup
-// to allow access from test_l1_IUserSettings.cpp
+// Global pointers that will be used by the tests
 WPEFramework::Exchange::IUserSettings *InterfacePointer = nullptr;
 WPEFramework::Exchange::IUserSettingsInspector *IUserSettingsInspectorPointer = nullptr;
 
-// Global instances of our mocks that can be accessed from test_l1_IUserSettings.cpp
+// Global mocks
 NiceMock<ServiceMock>* g_serviceMock = nullptr;
 Store2Mock* g_storeMock = nullptr;
+WPEFramework::Core::ProxyType<WPEFramework::Plugin::UserSettingsImplementation> g_userSettingsImpl;
 
-class UserSettingsL1Test : public ::testing::Test {
-protected:
-    void SetUp() override {
-        using namespace WPEFramework;
-        using namespace WPEFramework::Plugin;
-        
-        // Create the mocks
-        g_serviceMock = new NiceMock<ServiceMock>();
-        g_storeMock = new Store2Mock();
-        
-        // Set up the default mock expectations
-        ON_CALL(*g_serviceMock, QueryInterfaceByCallsign(_, _))
-            .WillByDefault(Return(g_storeMock));
-        
-        ON_CALL(*g_storeMock, GetValue(_, _, _, _, _))
-            .WillByDefault(Return(Core::ERROR_NONE));
-        
-        ON_CALL(*g_storeMock, SetValue(_, _, _, _, _))
-            .WillByDefault(Return(Core::ERROR_NONE));
-        
-        // Create the implementation with mocked dependencies
-        m_userSettingsImpl = Core::ProxyType<UserSettingsImplementation>::Create();
-        m_userSettingsImpl->Configure(g_serviceMock);
+// Global setup that runs once before all tests
+void GlobalSetup() {
+    using namespace WPEFramework;
+    using namespace WPEFramework::Plugin;
+    
+    // Create the mocks
+    g_serviceMock = new NiceMock<ServiceMock>();
+    g_storeMock = new Store2Mock();
+    
+    // Set up the default mock expectations
+    ON_CALL(*g_serviceMock, QueryInterfaceByCallsign(_, _))
+        .WillByDefault(Return(g_storeMock));
+    
+    ON_CALL(*g_storeMock, GetValue(_, _, _, _, _))
+        .WillByDefault(Return(Core::ERROR_NONE));
+    
+    ON_CALL(*g_storeMock, SetValue(_, _, _, _, _))
+        .WillByDefault(Return(Core::ERROR_NONE));
+    
+    // Create the implementation with mocked dependencies
+    g_userSettingsImpl = Core::ProxyType<UserSettingsImplementation>::Create();
+    g_userSettingsImpl->Configure(g_serviceMock);
 
-        // Set the global pointers for the tests
-        InterfacePointer = m_userSettingsImpl.operator->();
-        IUserSettingsInspectorPointer = m_userSettingsImpl.operator->();
-    }
+    // Set the global pointers for the tests
+    InterfacePointer = g_userSettingsImpl.operator->();
+    IUserSettingsInspectorPointer = g_userSettingsImpl.operator->();
+}
 
-    void TearDown() override {
-        // Clean up
-        InterfacePointer = nullptr;
-        IUserSettingsInspectorPointer = nullptr;
-        
-        delete g_storeMock;
-        g_storeMock = nullptr;
-        
-        delete g_serviceMock;
-        g_serviceMock = nullptr;
-        
-        // ProxyType will handle deletion of m_userSettingsImpl
-    }
+// Global teardown that runs once after all tests
+void GlobalTeardown() {
+    // Clean up global pointers
+    InterfacePointer = nullptr;
+    IUserSettingsInspectorPointer = nullptr;
+    
+    // Clean up mocks
+    delete g_storeMock;
+    g_storeMock = nullptr;
+    
+    delete g_serviceMock;
+    g_serviceMock = nullptr;
+    
+    // ProxyType will handle deletion of g_userSettingsImpl
+    g_userSettingsImpl = nullptr;
+}
 
-protected:
-    WPEFramework::Core::ProxyType<WPEFramework::Plugin::UserSettingsImplementation> m_userSettingsImpl;
-};
-
-// This fixture is registered in our main function
+// Main function that sets up the environment and runs the tests
 int main(int argc, char **argv) {
     std::cout << "========== STARTING L1 TESTS WITH MOCKED STORE ==========" << std::endl;
+    
+    // Initialize Google Test
     ::testing::InitGoogleTest(&argc, argv);
+    
+    // Set up our global test environment
+    GlobalSetup();
+    
+    // Run the tests
     int result = RUN_ALL_TESTS();
+    
+    // Clean up
+    GlobalTeardown();
+    
     std::cout << "========== L1 TESTS COMPLETE ==========" << std::endl;
     return result;
 }
