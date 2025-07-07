@@ -502,11 +502,11 @@ namespace WPEFramework {
             JsonObject params;
             JsonObject result;
             JsonArray accessList;
-	    JsonObject clientParam;
-	    JsonArray clientList;
+            JsonObject clientParam;
+            JsonArray clientList;
             for (const auto& client : clients) {
                  clientList.Add(client);
-	    }
+            }
             clientParam.Set("method", "speak");
             clientParam["apps"] = clientList;
             accessList.Add(clientParam);
