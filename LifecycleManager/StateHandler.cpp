@@ -239,8 +239,8 @@ namespace WPEFramework
 		{
             DEBUG_PRINTF("ERROR: RDKEMW-2806");
                     result = updateState(context, statePath[stateIndex], errorReason);
-	    DEBUG_PRINTF("oldLifecycleState=%zu, stateIndex=%zu, statePath[stateIndex]=%zu, mStateStrings.size()=%zu", 
-             (size_t)oldLifecycleState, stateIndex, (size_t)statePath[stateIndex], mStateStrings.size());
+	    DEBUG_PRINTF("oldLifecycleState=%zu, stateIndex=%zu, statePath[stateIndex]=%zu, statePath.size()=%zu", 
+             (size_t)oldLifecycleState, stateIndex, (size_t)statePath[stateIndex], statePath.size());
                 printf("StateHandler::changeState: %s -> %s\n", mStateStrings[oldLifecycleState].c_str(), mStateStrings[statePath[stateIndex]].c_str());
                 if (!result)
                 {
