@@ -27,6 +27,7 @@
 #include <core/core.h>
 #include "ServiceMock.h"
 #include "Store2Mock.h"
+#include "UserSettingsImplementation.h"
 
 extern WPEFramework::Exchange::IUserSettings *InterfacePointer;
 extern WPEFramework::Exchange::IUserSettingsInspector *IUserSettingsInspectorPointer;
