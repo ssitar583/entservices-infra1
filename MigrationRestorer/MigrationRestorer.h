@@ -75,7 +75,7 @@ namespace Plugin {
 	    std::vector<std::string> validatedkeys;
 
         Exchange::IUserSettings* _userSettingsPlugin;
-        Exchange::IHdmiCecSource* _hdmiCecSourcePlugin;
+        Exchange::IHdmiCecSink* _hdmiCecSinkPlugin;
     };
 
 } // namespace Plugin

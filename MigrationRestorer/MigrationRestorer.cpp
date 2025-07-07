@@ -52,8 +52,9 @@
 #include "UtilsController.h"
 #define USERSETTINGS_CALLSIGN "org.rdk.UserSettings"
 
-#include <interfaces/IHdmiCecSource.h>
-#define HDMICECSOURCE_CALLSIGN "org.rdk.HdmiCecSource"
+// #include <interfaces/IHdmiCecSource.h>
+#include <interfaces/IHdmiCecSink.h>
+#define HDMICECSINK_CALLSIGN "org.rdk.HdmiCecSink"
 
 #define TR181_SYSTEM_FRIENDLY_NAME "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.SystemServices.FriendlyName"
 #include "rfcapi.h"
@@ -745,7 +746,7 @@ namespace WPEFramework
             {
                 printf("Entered inside hdmi/hdmicontrol block\n" );
 	            bool enabled = false;
-                Exchange::IHdmiCecSource::HdmiCecSourceSuccess success;
+                Exchange::IHdmiCecSink::HdmiCecSinkSuccess success;
                 if (cJSON_IsString(inputVal))
                 { 
                     printf("Entered inside hdmi/hdmicontrol if-block\n" );
@@ -755,19 +756,19 @@ namespace WPEFramework
 
                 PluginHost::IShell::state state;
 
-                if ((Utils::getServiceState(_service, HDMICECSOURCE_CALLSIGN, state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
-                    Utils::activatePlugin(_service, HDMICECSOURCE_CALLSIGN);
+                if ((Utils::getServiceState(_service, HDMICECSINK_CALLSIGN, state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
+                    Utils::activatePlugin(_service, HDMICECSINK_CALLSIGN);
 
-                if ((Utils::getServiceState(_service, HDMICECSOURCE_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
+                if ((Utils::getServiceState(_service, HDMICECSINK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
                 {
                     printf("the usersettings plugin activated successfully\n");
                     ASSERT(_service != nullptr);
 
-                    _hdmiCecSourcePlugin = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::IHdmiCecSource>(HDMICECSOURCE_CALLSIGN);
-                    if (_hdmiCecSourcePlugin)
+                    _hdmiCecSinkPlugin = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::IHdmiCecSink>(HDMICECSINK_CALLSIGN);
+                    if (_hdmiCecSinkPlugin)
                     {
-                        printf("Entered inside the _hdmiCecSourcePlugin block\n");
-                        if (_hdmiCecSourcePlugin->SetEnabled(enabled,success) == Core::ERROR_NONE)
+                        printf("Entered inside the _hdmiCecSink Plugin block\n");
+                        if (_hdmiCecSinkPlugin->SetEnabled(enabled,success) == Core::ERROR_NONE)
                         {
                             printf("The set hdmi/hdmicontrol method executed successfully\n");
                         }
@@ -779,7 +780,7 @@ namespace WPEFramework
                 }
                 else
                 {
-                    LOGERR("Failed to activate %s", HDMICECSOURCE_CALLSIGN);
+                    LOGERR("Failed to activate %s", HDMICECSINK_CALLSIGN);
                 }
             }
 
