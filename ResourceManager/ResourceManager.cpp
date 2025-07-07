@@ -502,18 +502,14 @@ namespace WPEFramework {
             JsonObject params;
             JsonObject result;
             JsonArray accessList;
-
+	    JsonObject clientParam;
+	    JsonArray clientList;
             for (const auto& client : clients) {
-                 JsonObject clientParam;
-                 JsonArray clientList;
-
                  clientList.Add(client);
-                 clientParam.Set("method", "speak");
-                 clientParam["apps"] = clientList;
-
-                 accessList.Add(clientParam);
-            }
-
+	    }
+            clientParam.Set("method", "speak");
+            clientParam["apps"] = clientList;
+            accessList.Add(clientParam);
             params["accesslist"] = accessList;
 
             std::string jsonstr;
