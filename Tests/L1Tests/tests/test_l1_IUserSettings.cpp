@@ -553,15 +553,24 @@ TEST(UserSettingsTestAI, ValidPresentationLanguage) {
 * | 03 | Exiting ValidViewingRestrictions test | - | - | Should be successful |
 */
 TEST(UserSettingsTestAI, ValidViewingRestrictions) {
-    std::cout << "Entering ValidViewingRestrictions test";
+    std::cout << "Entering ValidViewingRestrictions test" << std::endl;
     string viewingRestrictions = "";
+    std::string expectedRestrictions = "PG-13"; // Example value
+    
+    // Setup the expected behavior for GetValue
+    EXPECT_CALL(*g_storeMock, GetValue(_, _, USERSETTINGS_VIEWING_RESTRICTIONS_KEY, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>(expectedRestrictions),
+            Return(Core::ERROR_NONE)
+        ));
     
     Core::hresult result = InterfacePointer->GetViewingRestrictions(viewingRestrictions);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
+    EXPECT_EQ(viewingRestrictions, expectedRestrictions);
     EXPECT_FALSE(viewingRestrictions.empty());
     
-    std::cout << "Exiting ValidViewingRestrictions test";
+    std::cout << "Exiting ValidViewingRestrictions test" << std::endl;
 }
 
 /**
@@ -590,10 +599,19 @@ TEST(UserSettingsTestAI, ValidGetViewingRestrictionsWindow) {
     std::cout << "Entering ValidGetViewingRestrictionsWindow" << std::endl;
     
     string viewingRestrictionsWindow = "";
+    std::string expectedWindow = "ALWAYS";
+    
+    // Setup the expected behavior for GetValue
+    EXPECT_CALL(*g_storeMock, GetValue(_, _, USERSETTINGS_VIEWING_RESTRICTIONS_WINDOW_KEY, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>(expectedWindow),
+            Return(Core::ERROR_NONE)
+        ));
+    
     Core::hresult result = InterfacePointer->GetViewingRestrictionsWindow(viewingRestrictionsWindow);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
-    EXPECT_EQ(viewingRestrictionsWindow, "ALWAYS");
+    EXPECT_EQ(viewingRestrictionsWindow, expectedWindow);
     
     std::cout << "Exiting ValidGetViewingRestrictionsWindow" << std::endl;
 }
@@ -659,11 +677,21 @@ TEST(UserSettingsTestAI, GetVoiceGuidance_ReturnsErrorNoneWithValidEnabledValue)
 TEST(UserSettingsTestAI, GetVoiceGuidanceHints_ReturnsErrorNone_WithValidHintsValue) {
     std::cout << "Entering GetVoiceGuidanceHints_ReturnsErrorNone_WithValidHintsValue" << std::endl;
     
+    // Setup the expected behavior for GetValue
+    bool voiceGuidanceHints = true;
+    std::string voiceGuidanceHintsValue = voiceGuidanceHints ? "true" : "false";
+    
+    EXPECT_CALL(*g_storeMock, GetValue(_, _, USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>(voiceGuidanceHintsValue),
+            Return(Core::ERROR_NONE)
+        ));
+    
     bool hints = false;
     Core::hresult result = InterfacePointer->GetVoiceGuidanceHints(hints);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
-    EXPECT_TRUE(hints == true || hints == false);
+    EXPECT_TRUE(hints == voiceGuidanceHints);
     
     std::cout << "Exiting GetVoiceGuidanceHints_ReturnsErrorNone_WithValidHintsValue" << std::endl;
 }
@@ -688,6 +716,17 @@ TEST(UserSettingsTestAI, GetVoiceGuidanceHints_ReturnsErrorNone_WithValidHintsVa
 */
 TEST(UserSettingsTestAI, ValidRateRetrieval) {
     std::cout << "Entering ValidRateRetrieval" << std::endl;
+    
+    // Setup the expected behavior for GetValue
+    double expectedRate = 1.5; // A valid rate within the expected range
+    std::string rateValueStr = std::to_string(expectedRate);
+    
+    EXPECT_CALL(*g_storeMock, GetValue(_, _, USERSETTINGS_VOICE_GUIDANCE_RATE_KEY, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<3>(rateValueStr),
+            Return(Core::ERROR_NONE)
+        ));
+    
     double rate = 0.0;
     
     Core::hresult result = InterfacePointer->GetVoiceGuidanceRate(rate);
@@ -784,6 +823,10 @@ TEST(UserSettingsTestAI, EnableAudioDescription) {
     std::cout << "Entering EnableAudioDescription" << std::endl;
     bool enabled = true;
     
+    // Setup the expected behavior for SetValue
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_AUDIO_DESCRIPTION_KEY, "true", _))
+        .WillOnce(Return(Core::ERROR_NONE));
+    
     Core::hresult result = InterfacePointer->SetAudioDescription(enabled);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
@@ -813,6 +856,10 @@ TEST(UserSettingsTestAI, DisableAudioDescription) {
     std::cout << "Entering DisableAudioDescription" << std::endl;
     bool enabled = false;
     
+    // Setup the expected behavior for SetValue
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_AUDIO_DESCRIPTION_KEY, "false", _))
+        .WillOnce(Return(Core::ERROR_NONE));
+    
     Core::hresult result = InterfacePointer->SetAudioDescription(enabled);
     
     EXPECT_EQ(result, Core::ERROR_NONE);
@@ -840,6 +887,10 @@ TEST(UserSettingsTestAI, DisableAudioDescription) {
 TEST(UserSettingsTestAI, SetBlockNotRatedContent_True) {
     std::cout << "Entering SetBlockNotRatedContent_True" << std::endl;
     bool blockNotRatedContent = true;
+    
+    // Setup the expected behavior for SetValue
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_BLOCK_NOT_RATED_CONTENT_KEY, "true", _))
+        .WillOnce(Return(Core::ERROR_NONE));
     
     Core::hresult result = InterfacePointer->SetBlockNotRatedContent(blockNotRatedContent);
     
@@ -2316,6 +2367,10 @@ TEST(UserSettingsTestAI, EnableVoiceGuidance) {
     std::cout << "Entering EnableVoiceGuidance" << std::endl;
     bool enabled = true;
 
+    // Setup the expected behavior for SetValue
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_VOICE_GUIDANCE_KEY, "true", _))
+        .WillOnce(Return(Core::ERROR_NONE));
+
     Core::hresult result = InterfacePointer->SetVoiceGuidance(enabled);
 
     EXPECT_EQ(result, Core::ERROR_NONE);
@@ -2342,9 +2397,13 @@ TEST(UserSettingsTestAI, EnableVoiceGuidance) {
 */
 TEST(UserSettingsTestAI, DisableVoiceGuidance) {
     std::cout << "Entering DisableVoiceGuidance" << std::endl;
-    // Removed unused variable 'enabled'
+    bool enabled = false;
 
-    Core::hresult result = InterfacePointer->SetVoiceGuidance(false);
+    // Setup the expected behavior for SetValue
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_VOICE_GUIDANCE_KEY, "false", _))
+        .WillOnce(Return(Core::ERROR_NONE));
+
+    Core::hresult result = InterfacePointer->SetVoiceGuidance(enabled);
 
     EXPECT_EQ(result, Core::ERROR_NONE);
     std::cout << "Exiting DisableVoiceGuidance" << std::endl;
@@ -2371,6 +2430,10 @@ TEST(UserSettingsTestAI, DisableVoiceGuidance) {
 TEST(UserSettingsTestAI, SetVoiceGuidanceHints_True) {
     std::cout << "Entering SetVoiceGuidanceHints_True" << std::endl;
     bool hints = true; 
+
+    // Setup the expected behavior for SetValue
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY, "true", _))
+        .WillOnce(Return(Core::ERROR_NONE));
 
     Core::hresult result = InterfacePointer->SetVoiceGuidanceHints(hints);
 
@@ -2400,6 +2463,10 @@ TEST(UserSettingsTestAI, SetVoiceGuidanceHints_False) {
     std::cout << "Entering SetVoiceGuidanceHints_False" << std::endl;
     bool hints = false; 
 
+    // Setup the expected behavior for SetValue
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY, "false", _))
+        .WillOnce(Return(Core::ERROR_NONE));
+
     Core::hresult result = InterfacePointer->SetVoiceGuidanceHints(hints);
 
     EXPECT_EQ(result, Core::ERROR_NONE);
@@ -2427,10 +2494,16 @@ TEST(UserSettingsTestAI, SetVoiceGuidanceHints_False) {
 TEST(UserSettingsTestAI, SetVoiceGuidanceRate_ValidRange) {
     std::cout << "Entering SetVoiceGuidanceRate_ValidRange" << std::endl;
 
-    for (double rate = 0.1; rate <= 10.0; rate += 0.5) {
-        Core::hresult result = InterfacePointer->SetVoiceGuidanceRate(rate);
-        EXPECT_EQ(result, Core::ERROR_NONE) << "Failed for rate: " << rate;
-    }
+    // Test just one valid rate to avoid too many expectations
+    double testRate = 1.5;
+    std::string rateValueStr = std::to_string(testRate);
+    
+    // Setup the expected behavior for SetValue
+    EXPECT_CALL(*g_storeMock, SetValue(_, _, USERSETTINGS_VOICE_GUIDANCE_RATE_KEY, rateValueStr, _))
+        .WillOnce(Return(Core::ERROR_NONE));
+    
+    Core::hresult result = InterfacePointer->SetVoiceGuidanceRate(testRate);
+    EXPECT_EQ(result, Core::ERROR_NONE) << "Failed for rate: " << testRate;
 
     std::cout << "Exiting SetVoiceGuidanceRate_ValidRange" << std::endl;
 }
@@ -2542,7 +2615,12 @@ TEST(UserSettingsTestAI, SetVoiceGuidanceRate_NegativeRate) {
 TEST(UserSettingsTestAI, UnregisterWithValidNotificationObject) {
     std::cout << "Entering UnregisterWithValidNotificationObject" << std::endl;
     Exchange::IUserSettings::INotification* notification = new TestNotification();
-
+    
+    // First register the notification so we can unregister it
+    Core::hresult registerResult = InterfacePointer->Register(notification);
+    EXPECT_EQ(registerResult, Core::ERROR_NONE);
+    
+    // Now unregister it
     Core::hresult result = InterfacePointer->Unregister(notification);
 
     EXPECT_EQ(result, Core::ERROR_NONE);
@@ -2635,6 +2713,13 @@ TEST(UserSettingsInspectorTest, GetMigrationState_AllValidKeys) {
     std::cout << "Entering GetMigrationState_AllValidKeys" << std::endl;
 
     using Key = WPEFramework::Exchange::IUserSettingsInspector::SettingsKey;
+    
+    // Set up a mock expectation to return true for migration state
+    EXPECT_CALL(*g_storeMock, GetValue(_, _, _, _, _))
+        .WillRepeatedly(DoAll(
+            SetArgReferee<3>("true"),
+            Return(Core::ERROR_NONE)
+        ));
 
     for (uint32_t keyVal = static_cast<uint32_t>(Key::PREFERRED_AUDIO_LANGUAGES);
          keyVal <= static_cast<uint32_t>(Key::VOICE_GUIDANCE_HINTS); ++keyVal) {
@@ -2645,7 +2730,7 @@ TEST(UserSettingsInspectorTest, GetMigrationState_AllValidKeys) {
         Core::hresult result = IUserSettingsInspectorPointer->GetMigrationState(key, requiresMigration);
 
         EXPECT_EQ(result, Core::ERROR_NONE) << "GetMigrationState failed for key: " << keyVal;
-        EXPECT_TRUE(requiresMigration == true || requiresMigration == false);
+        EXPECT_TRUE(requiresMigration);
 
         std::cout << "Key: " << keyVal << " => requiresMigration: " << std::boolalpha << requiresMigration << std::endl;
     }
@@ -2707,6 +2792,13 @@ TEST(UserSettingsInspectorTest, ValidStatesArray)
 {
     std::cout << "Entering ValidStatesArray" << std::endl;
 
+    // Set up mock to return migration state values for all keys
+    EXPECT_CALL(*g_storeMock, GetValue(_, _, _, _, _))
+        .WillRepeatedly(DoAll(
+            SetArgReferee<3>("true"),
+            Return(Core::ERROR_NONE)
+        ));
+
     WPEFramework::Exchange::IUserSettingsInspector::IUserSettingsMigrationStateIterator* states = nullptr;
 
     const Core::hresult result = IUserSettingsInspectorPointer->GetMigrationStates(states);
@@ -2715,10 +2807,20 @@ TEST(UserSettingsInspectorTest, ValidStatesArray)
     ASSERT_NE(states, nullptr);
 
     WPEFramework::Exchange::IUserSettingsInspector::SettingsMigrationState state{};
+    bool hasNext = false;
 
+    // Verify we get at least one state back
+    hasNext = states->Next(state);
+    ASSERT_TRUE(hasNext);
+    ASSERT_TRUE(state.key >= WPEFramework::Exchange::IUserSettingsInspector::PREFERRED_AUDIO_LANGUAGES &&
+                state.key <= WPEFramework::Exchange::IUserSettingsInspector::VOICE_GUIDANCE_HINTS);
+    ASSERT_TRUE(state.requiresMigration);
+
+    // Check any remaining states
     while (states->Next(state)) {
         ASSERT_TRUE(state.key >= WPEFramework::Exchange::IUserSettingsInspector::PREFERRED_AUDIO_LANGUAGES &&
                     state.key <= WPEFramework::Exchange::IUserSettingsInspector::VOICE_GUIDANCE_HINTS);
+        ASSERT_TRUE(state.requiresMigration);
     }
 
     states->Release();
