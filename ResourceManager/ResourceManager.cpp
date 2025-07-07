@@ -31,6 +31,7 @@ const string WPEFramework::Plugin::ResourceManager::RESOURCE_MANAGER_METHOD_GET_
 const string WPEFramework::Plugin::ResourceManager::RESOURCE_MANAGER_METHOD_RESERVE_TTS_RESOURCE = "reserveTTSResource";
 const string WPEFramework::Plugin::ResourceManager::RESOURCE_MANAGER_METHOD_RESERVE_TTS_RESOURCE_FOR_APPS = "reserveTTSResourceForApps";
 
+
 namespace WPEFramework {
     namespace {
 
