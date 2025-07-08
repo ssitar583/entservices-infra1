@@ -102,7 +102,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: entservices-deviceanddisplay
-          ref: feature/cmake
+          ref: develop
 
       - name: Checkout entservices-infra
         uses: actions/checkout@v3
