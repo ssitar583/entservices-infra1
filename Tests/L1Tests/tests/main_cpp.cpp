@@ -74,15 +74,15 @@ void GlobalTeardown() {
     InterfacePointer = nullptr;
     IUserSettingsInspectorPointer = nullptr;
     
+    // Release the ProxyType implementation first before deleting mocks
+    g_userSettingsImpl.Release();
+    
     // Clean up mocks
     delete g_storeMock;
     g_storeMock = nullptr;
     
     delete g_serviceMock;
     g_serviceMock = nullptr;
-    
-    // ProxyType will clean up automatically when the program exits
-    // No need to explicitly reset g_userSettingsImpl
 }
 
 // Main function that sets up the environment and runs the tests
