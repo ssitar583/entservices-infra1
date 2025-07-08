@@ -43,7 +43,7 @@ namespace WPEFramework
             mNativeJSRenderer = nullptr;
         }
 
-        Core::hresult NativeJSImplementation::Initialize(string waylandDisplay)
+        uint32_t NativeJSImplementation::Initialize(string waylandDisplay)
         {   
             std::cout << "initialize called on nativejs implementation " << std::endl;
             mRenderThread = std::thread([=](std::string waylandDisplay) {
@@ -60,13 +60,13 @@ namespace WPEFramework
 		mNativeJSRenderer->run();
 		
 		printf("After launch application execution ... \n"); fflush(stdout);
-		mNativeJSRenderer.reset();
+		mNativeJSRenderer.reset()
 
             }, waylandDisplay);
             return (Core::ERROR_NONE);
         }
 
-        Core::hresult NativeJSImplementation::Deinitialize()
+        uint32_t NativeJSImplementation::Deinitialize()
         {
            LOGINFO("deinitializing NativeJS process");
            if (mNativeJSRenderer)
@@ -80,80 +80,32 @@ namespace WPEFramework
 	   return (Core::ERROR_NONE);
         }
 
-	Core::hresult NativeJSImplementation::CreateApplication(const std::string options, uint32_t& id)
-	{
-		LOGINFO("createApplication invoked");
-		if(mNativeJSRenderer)
-		{
-			std::string optionsVal(options);
-			ModuleSettings moduleSettings;
-			moduleSettings.fromString(optionsVal);
-			id = mNativeJSRenderer->createApplication(moduleSettings);
-		}
-		else 
-		{
-			gPendingIdOptionsRequest = options;
-		}
-		return (Core::ERROR_NONE);
-	}
+        uint32_t NativeJSImplementation::LaunchApplication(const std::string url, const std::string options)
+        {
+            LOGINFO("LaunchApplication invoked");
+            if (mNativeJSRenderer)
+            {		    
+		std::string optionsVal(options);
+		ModuleSettings moduleSettings;
+                moduleSettings.fromString(optionsVal);
+                mNativeJSRenderer->launchApplication(url, moduleSettings);
+            }
+	    else
+            {
+                gPendingUrlRequest = url;
+                gPendingUrlOptionsRequest = options;
+            }
 
-	Core::hresult NativeJSImplementation::RunApplication(uint32_t id, const std::string url)
-	{
-		LOGINFO("runApplication invoked");
-		if(mNativeJSRenderer)
-		{
-			std::string Url(url);
-			mNativeJSRenderer->runApplication(id, Url);
-		}
-		else
-		{
-			gPendingUrl = url;
-			LOGINFO("runApplication Couldn't execute");
-		}
-		return (Core::ERROR_NONE);
-	}
-
-	Core::hresult NativeJSImplementation::RunJavaScript(uint32_t id, const std::string code)
-	{
-		LOGINFO("runJavaScript invoked");
-		if(mNativeJSRenderer)
-		{
-			std::string Code(code);
-			mNativeJSRenderer->runJavaScript(id, Code);
-		}
-		else
-		{
-			LOGINFO("runJavaScript couldn't execute");
-		}
-		return (Core::ERROR_NONE);
-	}
-
-	Core::hresult NativeJSImplementation::GetApplications()
-	{
-		LOGINFO("getApplication invoked");
-		if(mNativeJSRenderer)
-		{
-			mNativeJSRenderer->getApplications();
-		}
-		else
-		{
-			LOGINFO("getApplication couldn't execute");
-		}
-		return (Core::ERROR_NONE);
-	}
-
-	Core::hresult NativeJSImplementation::TerminateApplication(uint32_t id)
-	{
-		LOGINFO("terminateApplication invoked");
-		if(mNativeJSRenderer)
-		{
-			mNativeJSRenderer->terminateApplication(id);
-		}
-		else
-		{
-			LOGINFO("Application couldn't be terminated");
-		}
-		return (Core::ERROR_NONE);
-	}
+	    return (Core::ERROR_NONE);	    
+        }
+        uint32_t NativeJSImplementation::DestroyApplication(const std::string url)
+        {
+            LOGINFO("DestroyApplication invoked");
+            if (mNativeJSRenderer)
+            {		    
+                mNativeJSRenderer->terminateApplication(url);
+            }
+            return (Core::ERROR_NONE);
+        }
 } // namespace Plugin
 } // namespace WPEFramework
