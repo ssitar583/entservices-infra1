@@ -26,9 +26,8 @@ namespace WPEFramework
     namespace Plugin
     {
 
-        std::string gPendingIdRequest("");
-        std::string gPendingIdOptionsRequest("");
-	std::string gPendingUrl("");
+	std::string gPendingUrlRequest("");
+        std::string gPendingUrlOptionsRequest("");
 	SERVICE_REGISTRATION(NativeJSImplementation, 1, 0);
 
         NativeJSImplementation::NativeJSImplementation()
@@ -60,7 +59,7 @@ namespace WPEFramework
 		mNativeJSRenderer->run();
 		
 		printf("After launch application execution ... \n"); fflush(stdout);
-		mNativeJSRenderer.reset()
+		mNativeJSRenderer.reset();
 
             }, waylandDisplay);
             return (Core::ERROR_NONE);
