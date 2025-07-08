@@ -29,7 +29,7 @@ static std::string sThunderSecurityToken;
 const string WPEFramework::Plugin::ResourceManager::RESOURCE_MANAGER_METHOD_SET_AV_BLOCKED = "setAVBlocked";
 const string WPEFramework::Plugin::ResourceManager::RESOURCE_MANAGER_METHOD_GET_BLOCKED_AV_APPLICATIONS = "getBlockedAVApplications";
 const string WPEFramework::Plugin::ResourceManager::RESOURCE_MANAGER_METHOD_RESERVE_TTS_RESOURCE = "reserveTTSResource";
-const string WPEFramework::Plugin::ResourceManager::RESOURCE_MANAGER_METHOD_RESERVE_TTS_RESOURCE = "reserveTTSResourceForApps";
+const string WPEFramework::Plugin::ResourceManager::RESOURCE_MANAGER_METHOD_RESERVE_TTS_RESOURCE_FOR_APPS = "reserveTTSResourceForApps";
 
 namespace WPEFramework {
     namespace {
