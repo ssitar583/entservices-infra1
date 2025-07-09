@@ -18,7 +18,8 @@
 **/
 
 #include <chrono>
-#include <inttypes.h> // Required for PRIu64
+#include <fstream>
+//#include <interfaces/IStore2.h>
 
 #include "PackageManagerImplementation.h"
 
@@ -30,9 +31,10 @@ namespace Plugin {
 
     SERVICE_REGISTRATION(PackageManagerImplementation, 1, 0);
 
-    #define CHECK_CACHE() { if ((packageImpl.get() == nullptr) || (!cacheInitialized)) { \
-        return Core::ERROR_UNAVAILABLE; \
-    }}
+    #define CHECK_CACHE()
+    //#define CHECK_CACHE() { if ((packageImpl.get() == nullptr) || (!cacheInitialized)) { \
+    //    return Core::ERROR_UNAVAILABLE; \
+    //}}
 
     PackageManagerImplementation::PackageManagerImplementation()
         : mDownloaderNotifications()
@@ -110,6 +112,67 @@ namespace Plugin {
         return result;
     }
 
+    void PackageManagerImplementation::LoadCache() {
+        std::string jsonstr;
+        std::ifstream file(cache_file);
+        if (file.is_open()) {
+            file >> jsonstr;
+            JsonArray list;
+            if (list.FromString(jsonstr)) {
+                LOGDBG("Loading Cache from file, count: %u", list.Length());
+                mState.clear();
+                for (size_t i = 0; i < list.Length(); ++i) {
+                    JsonObject obj = list[i].Object();
+
+                    Core::JSON::String strId = obj["packageId"];
+                    Core::JSON::String strVer = obj["version"];
+                    Core::JSON::String strState = obj["state"];
+
+                    State state;
+                    auto id = strId.Value();
+                    auto ver = strVer.Value();
+                    StateKey key {id, ver};
+                    state.installState = InstallState::INSTALLED;
+                    mState.insert( { key, state } );
+
+                    LOGDBG("Loading Cache, id: %s ver: %s", key.first.c_str(), key.second.c_str());
+                }
+            }
+        } else {
+            LOGERR("Failed to open %s", cache_file.c_str());
+        }
+    }
+
+    void PackageManagerImplementation::SaveCache() {
+        //Exchange::IStore2* mPersistentStore =
+        //mCurrentservice->QueryInterfaceByCallsign<WPEFramework::Exchange::IStore2>("org.rdk.PersistentStore");
+        std::string jsonstr;
+        JsonArray list = JsonArray();
+        JsonObject obj;
+
+        for (auto const& [key, state] : mState) {
+            if (state.installState == InstallState::INSTALLED) {
+                obj["packageId"] = key.first;
+                obj["version"] = key.second;
+                obj["state"] = getInstallState(state.installState);
+                list.Add(obj);
+            }
+        }
+
+        if (list.ToString(jsonstr)) {
+            LOGDBG("Saving Cache, size: %zu", jsonstr.size());
+            //string cache_file("/opt/persistent/storageManager/package-cache.txt");
+            std::ofstream file(cache_file);
+            if (file.is_open()) {
+                file << jsonstr;
+            } else {
+                LOGERR("Failed to open %s", cache_file.c_str());
+            }
+        } else {
+            LOGERR("Failed to  stringify JsonArray");
+        }
+    }
+
     Core::hresult PackageManagerImplementation::Initialize(PluginHost::IShell* service)
     {
         Core::hresult result = Core::ERROR_GENERAL;
@@ -142,6 +205,7 @@ namespace Plugin {
                 LOGDBG("created dir '%s'", downloadDir.c_str());
             }
 
+            LoadCache();
             mDownloadThreadPtr = std::unique_ptr<std::thread>(new std::thread(&PackageManagerImplementation::downloader, this, 1));
         } else {
             LOGERR("service is null \n");
@@ -396,6 +460,9 @@ namespace Plugin {
             LOGERR("Package: %s Version: %s Not found", packageId.c_str(), version.c_str());
         }
 
+        if (result == Core::ERROR_NONE) {
+            SaveCache();
+        }
         return result;
     }
 
@@ -440,6 +507,9 @@ namespace Plugin {
             LOGERR("Package: %s Version: %s Not found", packageId.c_str(), version.c_str());
         }
 
+        if (result == Core::ERROR_NONE) {
+            SaveCache();
+        }
         return result;
     }
 
@@ -709,6 +779,7 @@ namespace Plugin {
     void PackageManagerImplementation::InitializeState()
     {
         LOGDBG("entry");
+        #if 1
         PluginHost::ISubSystem* subSystem = mCurrentservice->SubSystems();
         if (subSystem != nullptr) {
             subSystem->Set(PluginHost::ISubSystem::NOT_INSTALLATION, nullptr);
@@ -732,6 +803,9 @@ namespace Plugin {
             subSystem->Set(PluginHost::ISubSystem::INSTALLATION, nullptr);
         }
         cacheInitialized = true;
+        #else
+        packageImpl = packagemanager::IPackageImpl::instance();
+        #endif
         LOGDBG("exit");
     }
 

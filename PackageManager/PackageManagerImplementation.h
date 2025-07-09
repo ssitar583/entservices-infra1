@@ -66,6 +66,29 @@ namespace Plugin {
             std::list<Exchange::IPackageHandler::AdditionalLock> additionalLocks;
         };
 
+        class JsonState : public Core::JSON::Container {
+            public:
+                JsonState()
+                    : Core::JSON::Container()
+                    , packageId()
+                {
+                    Add(_T("packageId"), &packageId);
+                    Add(_T("version"), &version);
+                    Add(_T("state"), &state);
+                }
+                ~JsonState() = default;
+
+                JsonState(JsonState&&) = delete;
+                JsonState(const JsonState&) = delete;
+                JsonState& operator=(JsonState&&) = delete;
+                JsonState& operator=(const JsonState&) = delete;
+
+            public:
+                Core::JSON::String packageId;
+                Core::JSON::String version;
+                Core::JSON::String state;
+        };
+
         typedef std::pair<std::string, std::string> StateKey;
 
         class Configuration : public Core::JSON::Container {
@@ -174,14 +197,17 @@ namespace Plugin {
 
     private:
         string GetVersion(const string &id) {
-            for (auto const& [key, state] : mState) {
-                if ((id.compare(key.first) == 0) && (state.installState == InstallState::INSTALLED)) {
+            for (auto const& [key, val] : mState) {
+                if (id.compare(key.first) == 0) {
                     return key.second;
                 }
             }
             return "";
         }
         void InitializeState();
+        void LoadCache();
+        void SaveCache();
+
         void downloader(int n);
         void NotifyDownloadStatus(const string& id, const string& locator, const DownloadReason status);
         void NotifyInstallStatus(const string& id, const string& version, const State &state);
@@ -241,6 +267,7 @@ namespace Plugin {
         DownloadQueue  mDownloadQueue;
         std::map<StateKey, State>  mState;
         bool cacheInitialized = false;
+        string cache_file = "/opt/persistent/storageManager/package-cache.txt";
 
         std::string downloadDir = "/opt/CDL/";
         string configStr;
