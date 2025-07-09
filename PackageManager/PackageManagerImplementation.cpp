@@ -31,10 +31,9 @@ namespace Plugin {
 
     SERVICE_REGISTRATION(PackageManagerImplementation, 1, 0);
 
-    #define CHECK_CACHE()
-    //#define CHECK_CACHE() { if ((packageImpl.get() == nullptr) || (!cacheInitialized)) { \
-    //    return Core::ERROR_UNAVAILABLE; \
-    //}}
+    #define CHECK_CACHE() { if ((packageImpl.get() == nullptr) || (!cacheInitialized)) { \
+        return Core::ERROR_UNAVAILABLE; \
+    }}
 
     PackageManagerImplementation::PackageManagerImplementation()
         : mDownloaderNotifications()
@@ -137,8 +136,10 @@ namespace Plugin {
 
                     LOGDBG("Loading Cache, id: %s ver: %s", key.first.c_str(), key.second.c_str());
                 }
+                cacheInitialized = true;
             }
         } else {
+            cacheInitialized = false;
             LOGERR("Failed to open %s", cache_file.c_str());
         }
     }
@@ -515,7 +516,10 @@ namespace Plugin {
 
     Core::hresult PackageManagerImplementation::ListPackages(Exchange::IPackageInstaller::IPackageIterator*& packages)
     {
-        CHECK_CACHE()
+        //CHECK_CACHE()
+        if (!cacheInitialized) {
+            return Core::ERROR_UNAVAILABLE;
+        }
         LOGTRACE("entry");
         Core::hresult result = Core::ERROR_NONE;
         std::list<Exchange::IPackageInstaller::Package> packageList;
@@ -557,7 +561,7 @@ namespace Plugin {
     Core::hresult PackageManagerImplementation::PackageState(const string &packageId, const string &version,
         Exchange::IPackageInstaller::InstallState &installState)
     {
-        CHECK_CACHE()
+        //CHECK_CACHE()
         LOGDBG();
         Core::hresult result = Core::ERROR_NONE;
 
