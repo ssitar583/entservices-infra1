@@ -57,6 +57,7 @@ namespace WPEFramework
                 //    gPendingUrlOptionsRequest = "";
                 //}
 		
+		setenv("JSRUNTIME_MODULES_PATH","/home/root/",1);
 		mNativeJSRenderer->run();
 		
 		printf("After launch application execution ... \n"); fflush(stdout);
