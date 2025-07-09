@@ -532,7 +532,7 @@ namespace Plugin {
             package.sizeKb = state.runtimeConfig.dataImageSize;
             packageList.emplace_back(package);
         }
-
+        LOGDBG("package count=%zu", packageList.size());
         packages = (Core::Service<RPC::IteratorType<Exchange::IPackageInstaller::IPackageIterator>>::Create<Exchange::IPackageInstaller::IPackageIterator>(packageList));
 
         LOGTRACE("exit");
