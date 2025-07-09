@@ -91,7 +91,7 @@ namespace WPEFramework
     {
 
     /*
-     *Register MigrationPreparer module as wpeframework plugin
+     *Register MigrationRestorer module as wpeframework plugin
      **/
     SERVICE_REGISTRATION(MigrationRestorer, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
@@ -319,7 +319,6 @@ namespace WPEFramework
 
     // Helper to resolve $ref in schema, including /items/N
     cJSON* MigrationRestorer :: resolveRef( const std::string& ref) {
-        printf("Entering the resolveRef function\n");
         if (ref.rfind("#/definitions/", 0) == 0) {
             printf("Entered resolveRef function if block\n");
             std::string path = ref.substr(strlen("#/definitions/"));
@@ -343,36 +342,9 @@ namespace WPEFramework
         return nullptr;
     }
 
-
-    // Helper to check if a value is in an enum array
-    bool MigrationRestorer::isInEnum(cJSON* enumNode, const std::string& value) 
-    {
-        printf("Entered isInEnum: checking if '%s' is in enum array\n", value.c_str());
-
-        if (!enumNode || !cJSON_IsArray(enumNode)) {
-            printf("Invalid enum array\n");
-            return false;
-        }
-
-        cJSON* item = nullptr;
-        cJSON_ArrayForEach(item, enumNode) {
-            if (cJSON_IsString(item)) {
-                printf("Comparing with enum value: '%s'\n", item->valuestring);
-                if (strcasecmp(value.c_str(), item->valuestring) == 0) {
-                    printf("Match found for '%s'\n", value.c_str());
-                    return true;
-                }
-            }
-        }
-
-        printf("No match found for '%s' in enum\n", value.c_str());
-        return false;
-    }
-
     // Validate a value against a schema node
     bool MigrationRestorer::validateValue(cJSON* value, cJSON* schema) 
     {
-        printf("Entered validateValue function\n");
 
         if (!schema) {
             printf("The schema cJSON object is NULL, returning false\n");
@@ -407,11 +379,9 @@ namespace WPEFramework
 
                 cJSON* enumNode = cJSON_GetObjectItem(schema, "enum");
                 if (enumNode) {
-                    printf("Enum values:\n");
                     cJSON* item = nullptr;
                     cJSON_ArrayForEach(item, enumNode) {
                         if (cJSON_IsString(item)) {
-                            printf("- %s\n", item->valuestring);
                             if (strcasecmp(value->valuestring, item->valuestring) == 0) {
                                 return true;
                             }

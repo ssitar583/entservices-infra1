@@ -28,6 +28,7 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
 find_package(DS)
 find_package(IARMBus)
+find_package(RFC)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
@@ -46,11 +47,13 @@ target_link_libraries(${MODULE_NAME}
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions
 	${DS_LIBRARIES}
-        ${IARMBUS_LIBRARIES})
+        ${IARMBUS_LIBRARIES}
+        ${RFC_LIBRARIES} "-ltr181api")
 
 target_include_directories(${MODULE_NAME} PRIVATE
         ${DS_INCLUDE_DIRS}
         ${IARMBUS_INCLUDE_DIRS}
+        ${RFC_INCLUDE_DIRS}
         ../helpers)
 
 
