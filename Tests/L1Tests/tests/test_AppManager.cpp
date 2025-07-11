@@ -74,6 +74,8 @@ protected:
 
     Core::ProxyType<Plugin::AppManager> mAppManagerPlugin;
     Plugin::AppManagerImplementation *mAppManagerImpl;
+    Exchange::IPackageInstaller::INotification* mPackageManagerNotification_cb = nullptr;
+    Exchange::IAppManager::INotification* mAppManagerNotification = nullptr;
 
     Core::ProxyType<WorkerPoolImplementation> workerPool;
 
@@ -136,6 +138,13 @@ protected:
                 }
             return nullptr;
         }));
+
+        EXPECT_CALL(*mPackageInstallerMock, Register(::testing::_))
+            .WillOnce(::testing::Invoke(
+                [&](Exchange::IPackageInstaller::INotification* notification) {
+                    mPackageManagerNotification_cb = notification;
+                    return Core::ERROR_NONE;
+                }));
 
         EXPECT_EQ(string(""), mAppManagerPlugin->Initialize(mServiceMock));
         mAppManagerImpl = Plugin::AppManagerImplementation::getInstance();
@@ -2484,6 +2493,7 @@ TEST_F(AppManagerTest, handleOnAppLifecycleStateChangedUsingComRpcSuccess)
     }
 }
 
+
 // Test for fetchPackageInfoByAppId
 // TEST_F(AppManagerTest, fetchPackageInfoByAppId)
 // {
@@ -2615,3 +2625,24 @@ TEST_F(AppManagerTest, GetLoadedAppsJsonRpc)
 //         releaseResources();
 //     }
 // }
+
+
+// Add callback and notiification tests
+TEST_F(AppManagerTest, OnAppInstallationStatusChangedSuccess)
+{
+    Core::hresult status;
+
+    status = createResources();
+    EXPECT_EQ(Core::ERROR_NONE, status);
+    std::string Jsonstr = R"([{"packageId":"YouTube","version":"100.1.30+rialto","state":"INSTALLED"}])";
+    // Simulate the callback
+    ASSERT_NE(mPackageManagerNotification_cb, nullptr) << "PackageManager notification callback is not registered";
+    mPackageManagerNotification_cb->OnAppInstallationStatus(Jsonstr);
+    //mAppManagerImpl->OnAppInstallationStatus(Jsonstr);
+    // Verify that the callback was handled correctly
+
+    if(status == Core::ERROR_NONE)
+    {
+        releaseResources();
+    }
+}
