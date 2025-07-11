@@ -62,6 +62,7 @@ AppManagerImplementation::~AppManagerImplementation()
     }
     releasePersistentStoreRemoteStoreObject();
     releasePackageManagerObject();
+    releaseStorageManagerRemoteObject();
     if (nullptr != mCurrentservice)
     {
        mCurrentservice->Release();
@@ -512,25 +513,28 @@ Core::hresult AppManagerImplementation::packageLock(const string& appId, Package
     bool installed = false;
     bool loaded = false;
     std::vector<WPEFramework::Exchange::IPackageInstaller::Package> packageList;
-
+    LOGINFO("VEEKSHA packageLock enter with appId %s", appId.c_str());
     if (nullptr != mLifecycleInterfaceConnector)
     {
+        LOGINFO("VEEKSHA packageLock isAppLoaded call");
         status = mLifecycleInterfaceConnector->isAppLoaded(appId, loaded);
     }
-
+    LOGINFO("VEEKSHA packageLock isAppLoaded status: %d, loaded: %s", status, loaded ? "true" : "false");
     /* Check if appId exists in the mAppInfo map */
     auto it = mAppInfo.find(appId);
-
+    LOGINFO("VEEKSHA packageLock mAppInfo find appId %s status: %d, it != mAppInfo.end(): %s", appId.c_str(), status, (it != mAppInfo.end()) ? "true" : "false");
     if ((status == Core::ERROR_NONE) &&
         (!loaded ||
          it == mAppInfo.end() ||
          (it->second.appNewState != Exchange::IAppManager::AppLifecycleState::APP_STATE_SUSPENDED && it->second.appNewState != Exchange::IAppManager::AppLifecycleState::APP_STATE_PAUSED && it->second.appNewState != Exchange::IAppManager::AppLifecycleState::APP_STATE_HIBERNATED)))
     {
          /* Fetch list of installed packages */
+        LOGINFO("VEEKSHA packageLock fetchInstalledPackages call");
         status = fetchInstalledPackages(packageList);
 
         if (status == Core::ERROR_NONE)
         {
+            LOGINFO("VEEKSHA packageLock fetchInstalledPackages status: %d, packageList size: %zu", status, packageList.size());
             /* Check if appId is installed */
             checkIsInstalled(appId, installed, packageList);
 
@@ -810,8 +814,10 @@ Core::hresult AppManagerImplementation::PreloadApp(const string& appId , const s
     mAdminLock.Lock();
     if (nullptr != mLifecycleInterfaceConnector)
     {
+        LOGINFO("VEEKSHA REACHED HERE packagemock"); 
         status = packageLock(appId, packageData, lockReason);
-        WPEFramework::Exchange::RuntimeConfig& runtimeConfig = packageData.configMetadata;
+        LOGINFO("VEEKSHA REACHED HERE");
+        WPEFramework::Exchange::RuntimeConfig runtimeConfig = packageData.configMetadata;
         runtimeConfig.unpackedPath = packageData.unpackedPath;
         getCustomValues(runtimeConfig);
 
@@ -955,11 +961,12 @@ Core::hresult AppManagerImplementation::fetchInstalledPackages(std::vector<WPEFr
             LOGERR("ListPackage is returning Error or Packages is nullptr");
             goto End;
         }
-
+        LOGINFO("ListPackage is returning success");
         WPEFramework::Exchange::IPackageInstaller::Package package;
         while (packages->Next(package)) {
             packageList.push_back(package);
         }
+        LOGINFO("ListPackage is returning success with %zu packages", packageList.size());
         status = Core::ERROR_NONE;
         packages->Release();
     }
