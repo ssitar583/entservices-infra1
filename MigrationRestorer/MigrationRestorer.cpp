@@ -590,6 +590,47 @@ namespace WPEFramework
                 }               
             }
 
+            else if(key == "accessibility/closedcaption")
+            {
+                printf("Entered inside accessibility/closedcaption block\n" );
+	            bool closedCaption = false;
+                if (cJSON_IsString(inputVal))
+                {
+                    printf("Entered inside closedcaption if-block\n" );
+                    string set = inputVal->valuestring;
+                    closedCaption = (set == "on") ? true : false;
+                }
+
+                PluginHost::IShell::state state;
+
+                if ((Utils::getServiceState(_service, USERSETTINGS_CALLSIGN, state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
+                    Utils::activatePlugin(_service, USERSETTINGS_CALLSIGN);
+
+                if ((Utils::getServiceState(_service, USERSETTINGS_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
+                {
+                    printf("the usersettings plugin activated successfully\n");
+                    ASSERT(_service != nullptr);
+
+                    _userSettingsPlugin = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::IUserSettings>(USERSETTINGS_CALLSIGN);
+                    if (_userSettingsPlugin)
+                    {
+                        printf("Entered inside the _userSettingsPlugin block\n");
+                        if (_userSettingsPlugin->SetCaptions(closedCaption) == Core::ERROR_NONE)
+                        {
+                            printf("The set closedcaption method executed successfully\n");
+                        }
+                        else
+                        {
+                            LOGERR("Failed to set closedcaption");
+                        }
+                    }
+                }
+                else
+                {
+                    LOGERR("Failed to activate %s", USERSETTINGS_CALLSIGN);
+                }
+            }
+
             else if(key == "system/presentationlanguage")
             {
                 printf("Entered inside system/presentationlanguage block\n" );
@@ -767,8 +808,9 @@ namespace WPEFramework
                 JsonObject params;
                 params["friendlyName"] = friendlyName;
                 sendNotify("onFriendlyNameChanged", params);
+                WDMP_STATUS status = WDMP_FAILURE;
                 //write to persistence storage
-                WDMP_STATUS status = setRFCParameter((char*)"thunderapi",
+                status = setRFCParameter((char*)"thunderapi",
                        TR181_SYSTEM_FRIENDLY_NAME,friendlyName.c_str(),WDMP_STRING);
                 if (WDMP_SUCCESS == status){
                     LOGINFO("Success Setting the friendly name value\n");
