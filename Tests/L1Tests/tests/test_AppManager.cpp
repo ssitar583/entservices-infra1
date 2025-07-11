@@ -76,6 +76,7 @@ protected:
     Plugin::AppManagerImplementation *mAppManagerImpl;
     Exchange::IPackageInstaller::INotification* mPackageManagerNotification_cb = nullptr;
     Exchange::IAppManager::INotification* mAppManagerNotification = nullptr;
+    //Exchange::ILifecycleManager::INotification* mLifecycleManagerNotification_cb = nullptr;
 
     Core::ProxyType<WorkerPoolImplementation> workerPool;
 
@@ -145,6 +146,13 @@ protected:
                     mPackageManagerNotification_cb = notification;
                     return Core::ERROR_NONE;
                 }));
+
+        // EXPECT_CALL(*mLifecycleManagerMock, Register(::testing::_))
+        // .WillOnce(::testing::Invoke(
+        //     [&](Exchange::ILifecycleManager::INotification* notification) {
+        //         mLifecycleManagerNotification_cb = notification;
+        //         return Core::ERROR_NONE;
+        //     }));
 
         EXPECT_EQ(string(""), mAppManagerPlugin->Initialize(mServiceMock));
         mAppManagerImpl = Plugin::AppManagerImplementation::getInstance();
@@ -1725,6 +1733,22 @@ TEST_F(AppManagerTest, KillAppUsingComRpcFailureWrongAppID)
     }
 }
 
+// Empty App ID for KillAppUsingComRpcFailureEmptyAppID
+TEST_F(AppManagerTest, KillAppUsingComRpcFailureEmptyAppID)
+{
+    Core::hresult status;
+
+    status = createResources();
+    EXPECT_EQ(Core::ERROR_NONE, status);
+
+    EXPECT_EQ(Core::ERROR_GENERAL, mAppManagerImpl->KillApp(""));
+
+    if(status == Core::ERROR_NONE)
+    {
+        releaseResources();
+    }
+}
+
 /*
  * Test Case for KillAppUsingComRpcFailureLifecycleManagerRemoteObjectIsNull
  * Setting up only AppManager Plugin and creating required COM-RPC resources
@@ -2584,6 +2608,20 @@ TEST_F(AppManagerTest, GetLoadedAppsJsonRpc)
     }
 }
 
+// getLoadedApps failed to createLifecycleManagerRemoteObject
+// TEST_F(AppManagerTest, GetLoadedAppsFailedToCreateLifecycleManagerRemoteObject)
+// {
+//     Core::hresult status;
+
+//     createAppManagerImpl();
+//     // Simulate failure to create LifecycleManager remote object
+//     mLifecycleManagerRemoteObject = nullptr;
+    
+//     .WillOnce(::testing::Return(nullptr));
+//     EXPECT_EQ(Core::ERROR_GENERAL, mAppManagerImpl->GetLoadedApps(mAppData));
+//     releaseAppManagerImpl();
+// }
+
 
 /*
  * Test Case for FetchPackageInfoByAppIdSuccess
@@ -2646,3 +2684,59 @@ TEST_F(AppManagerTest, OnAppInstallationStatusChangedSuccess)
         releaseResources();
     }
 }
+
+// TEST_F(AppManagerTest, OnAppStateChangedSuccess)
+// {
+//     Core::hresult status;
+
+//     status = createResources();
+//     EXPECT_EQ(Core::ERROR_NONE, status);
+//     // Simulate the callback
+//     ASSERT_NE(mLifecycleManagerNotification_cb, nullptr) << "LifecycleManager notification callback is not registered";
+//     // mLifecycleManagerNotification_cb->OnAppStateChanged( APPMANAGER_APP_ID,
+//     //     APPMANAGER_APP_INSTANCE,
+//     //     Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN,
+//     //     Exchange::IAppManager::AppLifecycleState::APP_STATE_UNLOADED,
+//     //     APPMANAGER_APP_INTENT);
+//     //mAppManagerImpl->OnAppLifecycleStateChanged(Jsonstr);
+//     // Verify that the callback was handled correctly
+
+//     if(status == Core::ERROR_NONE)
+//     {
+//         releaseResources();
+//     }
+// }
+
+// Test for mapAppLifecycleStateSuccess
+// TEST_F(AppManagerTest, mapAppLifecycleStateSuccess)
+// {
+//     Core::hresult status;
+
+//     status = createResources();
+//     EXPECT_EQ(Core::ERROR_NONE, status);
+
+//     Exchange::IAppManager::AppLifecycleState state = mAppManagerImpl->mapAppLifecycleState(APPMANAGER_APP_ID);
+//     EXPECT_EQ(Exchange::IAppManager::AppLifecycleState::APP_STATE_ACTIVE, state);
+
+//     if(status == Core::ERROR_NONE)
+//     {
+//         releaseResources();
+//     }
+// }
+
+// // Test for mapAppLifecycleStateFailure
+// TEST_F(AppManagerTest, mapAppLifecycleStateFailure)
+// {
+//     Core::hresult status;
+
+//     status = createResources();
+//     EXPECT_EQ(Core::ERROR_NONE, status);
+
+//     Exchange::IAppManager::AppLifecycleState state = mAppManagerImpl->mapAppLifecycleState(APPMANAGER_WRONG_APP_ID);
+//     EXPECT_EQ(Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN, state);
+
+//     if(status == Core::ERROR_NONE)
+//     {
+//         releaseResources();
+//     }
+// }
