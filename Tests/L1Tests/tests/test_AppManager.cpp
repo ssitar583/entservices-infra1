@@ -283,26 +283,6 @@ protected:
         return Core::Service<RPC::IteratorType<Exchange::IPackageInstaller::IPackageIterator>>::Create<Exchange::IPackageInstaller::IPackageIterator>(packageList);
     }
 
-    // Core::ProxyType<Exchange::IPackageInstaller::IPackageIterator> _packageIterator;
-    // Exchange::IPackageInstaller::IPackageIterator* FillPackageIterator() {
-    //     std::list<Exchange::IPackageInstaller::Package> packageList;
-
-    //     Exchange::IPackageInstaller::Package package;
-    //     package.packageId = APPMANAGER_APP_ID;
-    //     package.version   = APPMANAGER_APP_VERSION;
-    //     package.digest    = APPMANAGER_APP_DIGEST;
-    //     package.state     = APPMANAGER_APP_STATE;
-    //     package.sizeKb    = APPMANAGER_APP_SIZE;
-
-    //     packageList.emplace_back(package);
-
-    //     _packageIterator = Core::Service<RPC::IteratorType<Exchange::IPackageInstaller::IPackageIterator>>
-    //         ::Create<Exchange::IPackageInstaller::IPackageIterator>(packageList);
-
-    //     return _packageIterator.operator->();
-    // }
-
-
     void LaunchAppPreRequisite(Exchange::ILifecycleManager::LifecycleState state)
     {
         const std::string launchArgs = APPMANAGER_APP_LAUNCHARGS;
@@ -825,6 +805,78 @@ TEST_F(AppManagerTest, LaunchAppUsingComRpcFailureWrongAppID)
         releaseResources();
     }
 }
+
+// Empty appid
+TEST_F(AppManagerTest, LaunchAppUsingComRpcFailureEmptyAppID)
+{
+    Core::hresult status;
+
+    status = createResources();
+    EXPECT_EQ(Core::ERROR_NONE, status);
+
+    LaunchAppPreRequisite(Exchange::ILifecycleManager::LifecycleState::ACTIVE);
+    EXPECT_EQ(Core::ERROR_GENERAL, mAppManagerImpl->LaunchApp("", APPMANAGER_APP_INTENT, APPMANAGER_APP_LAUNCHARGS));
+
+    if(status == Core::ERROR_NONE)
+    {
+        releaseResources();
+    }
+}
+
+// SpawnApp failure
+TEST_F(AppManagerTest, LaunchAppUsingComRpcSpawnAppFailure)
+{
+    Core::hresult status;
+
+    status = createResources();
+    EXPECT_EQ(Core::ERROR_NONE, status);
+
+    LaunchAppPreRequisite(Exchange::ILifecycleManager::LifecycleState::ACTIVE);
+    EXPECT_CALL(*mLifecycleManagerMock, SpawnApp(APPMANAGER_APP_ID, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
+    .WillOnce([&](const string& appId, const string& intent, const Exchange::ILifecycleManager::LifecycleState state,
+        const Exchange::RuntimeConfig& runtimeConfigObject, const string& launchArgs, string& appInstanceId, string& error, bool& success) {
+        error = "Failed to create LifecycleInterfaceConnector";
+        success = false;
+        return Core::ERROR_GENERAL;
+    });
+
+    EXPECT_EQ(Core::ERROR_GENERAL, mAppManagerImpl->LaunchApp(APPMANAGER_APP_ID, APPMANAGER_APP_INTENT, APPMANAGER_APP_LAUNCHARGS));
+    if(status == Core::ERROR_NONE)
+    {
+        releaseResources();
+    }
+}
+
+// Failed to create the create LifecycleInterfaceConnector
+// TEST_F(AppManagerTest, LaunchAppUsingComRpcFailureCreateLifecycleInterfaceConnector)
+// {
+//     Core::hresult status;
+
+//     status = createResources();
+//     EXPECT_EQ(Core::ERROR_NONE, status);
+
+//     LaunchAppPreRequisite(Exchange::ILifecycleManager::LifecycleState::ACTIVE);
+//     mLifecycleManagerRemoteObject = nullptr; // Simulate failure to create LifecycleInterfaceConnector
+//     EXPECT_CALL(*mServiceMock, QueryInterfaceByCallsign(::testing::_, ::testing::_))
+//     .WillRepeatedly(::testing::Invoke(
+//               [&](const uint32_t id, const std::string& name) -> void* {
+//                 if (name == "org.rdk.LifecycleManager") {
+//                     if(id == Exchange::ILifecycleManager::ID) {
+//                         return nullptr; // Simulate failure to create LifecycleInterfaceConnector
+//                     }
+//                     else if(id == Exchange::ILifecycleManagerState::ID) {
+//                         return nullptr; // Simulate failure to create LifecycleManagerState
+//                     }
+//                 }
+//                 }));
+//     EXPECT_EQ(Core::ERROR_GENERAL, mAppManagerImpl->LaunchApp(APPMANAGER_APP_ID, APPMANAGER_APP_INTENT, APPMANAGER_APP_LAUNCHARGS));
+
+//     if(status == Core::ERROR_NONE)
+//     {
+//         releaseResources();
+//     }
+
+// }
 
 /*
  * Test Case for LaunchAppUsingComRpcFailureIsAppLoadedReturnError
