@@ -2637,7 +2637,7 @@ TEST_F(AppManagerTest, handleOnAppLifecycleStateChangedUsingComRpcSuccess)
     }
 }
 
-
+ 
 // Test for fetchPackageInfoByAppId
 // TEST_F(AppManagerTest, fetchPackageInfoByAppId)
 // {
