@@ -1364,6 +1364,36 @@ TEST_F(AppManagerTest, CloseAppUsingJSONRpcSuccess)
     }
 }
 
+// CloseAppUsingSuspendedState
+TEST_F(AppManagerTest, DISABLED_CloseAppUsingSuspendedState)
+{
+    Core::hresult status;
+
+    status = createResources();
+    EXPECT_EQ(Core::ERROR_NONE, status);
+
+    LaunchAppPreRequisite(Exchange::ILifecycleManager::LifecycleState::PAUSED);
+    ON_CALL(*p_wrapsImplMock, stat(::testing::_, ::testing::_))
+        .WillByDefault([](const char* path, struct stat* info) {
+            TEST_LOG("Veeksha Mocking stat call for path: %s", path);
+            // Simulate a successful stat call
+            if (info != nullptr) {
+                info->st_mode = S_IFREG | 0644; // Regular file with read/write permissions
+            }
+            // Simulate success
+            return 0;
+    });
+    EXPECT_EQ(Core::ERROR_NONE, mAppManagerImpl->LaunchApp(APPMANAGER_APP_ID, APPMANAGER_APP_INTENT, APPMANAGER_APP_LAUNCHARGS));
+
+    std::string request = "{\"appId\": \"" + std::string(APPMANAGER_APP_ID) + "\"}";
+    EXPECT_EQ(Core::ERROR_NONE, mJsonRpcHandler.Invoke(connection, _T("closeApp"), request, mJsonRpcResponse));
+    TEST_LOG(" mJsonRpcResponse: %s", mJsonRpcResponse.c_str());
+    if(status == Core::ERROR_NONE)
+    {
+        releaseResources();
+    }
+}
+
 /*
  * Test Case for CloseAppUsingComRpcFailureWrongAppID
  * Setting up AppManager/LifecycleManager/LifecycleManagerState/PersistentStore/PackageManagerRDKEMS Plugin and creating required COM-RPC resources
@@ -2643,7 +2673,7 @@ TEST_F(AppManagerTest, handleOnAppLifecycleStateChangedUsingComRpcSuccess)
 
 
 // GetLoadedApps 
-TEST_F(AppManagerTest, GetLoadedApps)
+TEST_F(AppManagerTest, GetLoadedAppsHibernatedAppSuccess)
 {
     Core::hresult status;
 
@@ -2659,7 +2689,7 @@ TEST_F(AppManagerTest, GetLoadedApps)
     });
     std::string apps;
     EXPECT_EQ(Core::ERROR_NONE, mAppManagerImpl->GetLoadedApps(apps));
-    TEST_LOG("GetLoadedApps :%s", apps.c_str());
+    TEST_LOG("GetLoadedAppsHibernatedAppSuccess :%s", apps.c_str());
     if(status == Core::ERROR_NONE)
     {
         releaseResources();
@@ -2696,6 +2726,36 @@ TEST_F(AppManagerTest, GetLoadedAppsJsonRpc)
     {
         releaseResources();
     }
+}
+
+// GetLoadedAppsSuspendAppSuccess
+TEST_F(AppManagerTest, GetLoadedAppsSuspendAppSuccess)
+{
+    Core::hresult status;
+
+    status = createResources();
+    EXPECT_EQ(Core::ERROR_NONE, status);
+    EXPECT_CALL(*mLifecycleManagerMock, GetLoadedApps(::testing::_, ::testing::_)
+    ).WillOnce([&](bool verbose, string& apps) {
+        apps = R"([
+            {"appId":"NexTennis","appInstanceId":"0295effd-2883-44ed-b614-471e3f682762","activeSessionId":"","targetLifecycleState":6,"currentLifecycleState":6},
+            {"appId":"uktv","appInstanceId":"67fa75b6-0c85-43d4-a591-fd29e7214be5","activeSessionId":"","targetLifecycleState":5,"currentLifecycleState":5},
+            {"appId":"YouTube","appInstanceId":"12345678-1234-1234-1234-123456789012","activeSessionId":"","targetLifecycleState":4,"currentLifecycleState":4},
+            {"appId":"Netflix","appInstanceId":"87654321-4321-4321-4321-210987654321","activeSessionId":"","targetLifecycleState":3,"currentLifecycleState":3},
+            {"appId":"Spotify","appInstanceId":"abcdefab-cdef-abcd-efab-cdefabcdefab","activeSessionId":"","targetLifecycleState":2,"currentLifecycleState":2},
+            {"appId":"Hulu","appInstanceId":"fedcbafe-dcba-fedc-ba98-7654321fedcb","activeSessionId":"","targetLifecycleState":1,"currentLifecycleState":1},
+            {"appId":"AmazonPrime","appInstanceId":"12345678-90ab-cdef-1234-567890abcdef","activeSessionId":"","targetLifecycleState":0,"currentLifecycleState":0}
+        ])";
+        return Core::ERROR_NONE;
+    });
+    std::string apps;
+    EXPECT_EQ(Core::ERROR_NONE, mAppManagerImpl->GetLoadedApps(apps));
+    TEST_LOG("GetLoadedAppsSuspendAppSuccess :%s", apps.c_str());
+    if(status == Core::ERROR_NONE)
+    {
+        releaseResources();
+    }
+
 }
 
 // getLoadedApps failed to createLifecycleManagerRemoteObject
@@ -2805,7 +2865,7 @@ TEST_F(AppManagerTest, OnAppInstallationStatusChangedSuccess)
 //     status = createResources();
 //     EXPECT_EQ(Core::ERROR_NONE, status);
 
-//     Exchange::IAppManager::AppLifecycleState state = mAppManagerImpl->mapAppLifecycleState(APPMANAGER_APP_ID);
+//     Exchange::IAppManager::AppLifecycleState state = mAppManagerImpl->mapAppLifecycleState(Exchange::ILifecycleManager::LifecycleState::ACTIVE);
 //     EXPECT_EQ(Exchange::IAppManager::AppLifecycleState::APP_STATE_ACTIVE, state);
 
 //     if(status == Core::ERROR_NONE)
