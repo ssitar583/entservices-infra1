@@ -35,6 +35,7 @@
 #include "ThunderPortability.h"
 #include "Module.h"
 #include "WorkerPoolImplementation.h"
+#include "WrapsMock.h"
 
 #define TEST_LOG(x, ...) fprintf(stderr, "\033[1;32m[%s:%d](%s)<PID:%d><TID:%d>" x "\n\033[0m", __FILE__, __LINE__, __FUNCTION__, getpid(), gettid(), ##__VA_ARGS__); fflush(stderr);
 
@@ -71,13 +72,13 @@ protected:
     PackageInstallerMock* mPackageInstallerMock = nullptr;
     Store2Mock* mStore2Mock = nullptr;
     StorageManagerMock* mStorageManagerMock = nullptr;
+    WrapsImplMock *p_wrapsImplMock   = nullptr;
 
     Core::ProxyType<Plugin::AppManager> mAppManagerPlugin;
     Plugin::AppManagerImplementation *mAppManagerImpl;
     Exchange::IPackageInstaller::INotification* mPackageManagerNotification_cb = nullptr;
     Exchange::IAppManager::INotification* mAppManagerNotification = nullptr;
     //Exchange::ILifecycleManager::INotification* mLifecycleManagerNotification_cb = nullptr;
-
     Core::ProxyType<WorkerPoolImplementation> workerPool;
 
     Core::JSONRPC::Handler& mJsonRpcHandler;
@@ -111,6 +112,8 @@ protected:
         mPackageInstallerMock = new NiceMock<PackageInstallerMock>;
         mStorageManagerMock = new NiceMock<StorageManagerMock>;
         mStore2Mock = new NiceMock<Store2Mock>;
+        p_wrapsImplMock  = new NiceMock <WrapsImplMock>;
+        Wraps::setImpl(p_wrapsImplMock);
 
         TEST_LOG("In createResources!");
 
@@ -222,6 +225,13 @@ protected:
                     }));
         }
 
+        Wraps::setImpl(nullptr);
+        if (p_wrapsImplMock != nullptr)
+        {
+            delete p_wrapsImplMock;
+            p_wrapsImplMock = nullptr;
+        }
+
         if (mStorageManagerMock != nullptr)
         {
             TEST_LOG("Release StorageManagerMock");
@@ -315,6 +325,7 @@ protected:
         .WillRepeatedly([&](const string& appInstanceId , const Exchange::ILifecycleManager::LifecycleState targetLifecycleState , const string& launchIntent) {
             return Core::ERROR_NONE;
         });
+
         EXPECT_CALL(*mLifecycleManagerMock, SpawnApp(APPMANAGER_APP_ID, ::testing::_, ::testing::_, ::testing::_, launchArgs, ::testing::_, ::testing::_, ::testing::_))
         .Times(::testing::AnyNumber())
         .WillOnce([&](const string& appId, const string& intent, const Exchange::ILifecycleManager::LifecycleState state,
@@ -772,6 +783,33 @@ TEST_F(AppManagerTest, LaunchAppUsingJSONRpcSuccess)
     EXPECT_EQ(Core::ERROR_NONE, mJsonRpcHandler.Invoke(connection, _T("launchApp"), request, mJsonRpcResponse));
     TEST_LOG(" mJsonRpcResponse: %s", mJsonRpcResponse.c_str());
     //EXPECT_STREQ("{\"appInstanceId\":\"testAppInstance\"}", mJsonRpcResponse.c_str());
+
+    if(status == Core::ERROR_NONE)
+    {
+        releaseResources();
+    }
+}
+
+// LaunchAppUsingCOMRPCSuspendedSuccess
+TEST_F(AppManagerTest, LaunchAppUsingCOMRPCSuspendedSuccess)
+{
+    Core::hresult status;
+
+    status = createResources();
+    EXPECT_EQ(Core::ERROR_NONE, status);
+
+    LaunchAppPreRequisite(Exchange::ILifecycleManager::LifecycleState::SUSPENDED);
+    ON_CALL(*p_wrapsImplMock, stat(::testing::_, ::testing::_))
+        .WillByDefault([](const char* path, struct stat* info) {
+            TEST_LOG("Veeksha Mocking stat call for path: %s", path);
+            // Simulate a successful stat call
+            if (info != nullptr) {
+                info->st_mode = S_IFREG | 0644; // Regular file with read/write permissions
+            }
+            // Simulate success
+            return 0;
+    });
+    EXPECT_EQ(Core::ERROR_NONE, mAppManagerImpl->LaunchApp(APPMANAGER_APP_ID, APPMANAGER_APP_INTENT, APPMANAGER_APP_LAUNCHARGS));
 
     if(status == Core::ERROR_NONE)
     {
