@@ -136,7 +136,7 @@ void AppManagerImplementation::Dispatch(EventNames event, const JsonObject param
             AppLifecycleState newState = Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN;
             AppLifecycleState oldState = Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN;
             AppErrorReason errorReason = Exchange::IAppManager::AppErrorReason::APP_ERROR_NONE;
-
+            LOGINFO("AppManagerImplementation::Dispatch: event %d", static_cast<int>(event));
             if (!(params.HasLabel("appId") && !(appId = params["appId"].String()).empty()))
             {
                 LOGERR("appId not present or empty");
@@ -159,6 +159,10 @@ void AppManagerImplementation::Dispatch(EventNames event, const JsonObject param
             }
             else
             {
+                LOGINFO("AppManagerImplementation::Dispatch: appId %s, appInstanceId %s, newState %d, oldState %d, errorReason %d",
+                    appId.c_str(), appInstanceId.c_str(),
+                    params["newState"].Number(), params["oldState"].Number(),
+                    params["errorReason"].Number());
                 newState = static_cast<AppLifecycleState>(params["newState"].Number());
                 oldState = static_cast<AppLifecycleState>(params["oldState"].Number());
                 errorReason = static_cast<AppErrorReason>(params["errorReason"].Number());

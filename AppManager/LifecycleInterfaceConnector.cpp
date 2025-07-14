@@ -185,6 +185,7 @@ namespace WPEFramework
                     if (appManagerImplInstance != nullptr)
                     {
                         auto it = appManagerImplInstance->mAppInfo.find(appId);
+                        LOGINFO("AppManagerImplementation::launch: appId %s, loaded %d, it->second.appNewState %u", appId.c_str(), loaded, (it != appManagerImplInstance->mAppInfo.end()) ? it->second.appNewState : Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN);
                         if ((loaded == true) &&
                             (Core::ERROR_NONE == status) &&
                             (it != appManagerImplInstance->mAppInfo.end()) &&
@@ -211,6 +212,7 @@ namespace WPEFramework
                             if (fileExists(SUSPEND_POLICY_FILE) == true)
                             {
                                 appManagerImplInstance->updateCurrentAction(appId, AppManagerImplementation::APP_ACTION_SUSPEND);
+                                LOGINFO("veeksha launchApp appInstanceId %s", it->second.appInstanceId.c_str());
                                 state = Exchange::ILifecycleManager::LifecycleState::SUSPENDED;
                             }
                             else
@@ -784,18 +786,18 @@ End:
                 return it->second.appInstanceId;
         }
 
-        void LifecycleInterfaceConnector::RemoveApp(const string& appId)
-        {
-            AppManagerImplementation* appManagerImpl = AppManagerImplementation::getInstance();
-            if (!appManagerImpl)
-                return;
+        // void LifecycleInterfaceConnector::RemoveApp(const string& appId)
+        // {
+        //     AppManagerImplementation* appManagerImpl = AppManagerImplementation::getInstance();
+        //     if (!appManagerImpl)
+        //         return;
 
-            auto it = appManagerImpl->mAppInfo.find(appId);
-            if (it != appManagerImpl->mAppInfo.end())
-                appManagerImpl->mAppInfo.erase(it);
-            else
-                LOGERR("AppInfo for appId '%s' not found", appId.c_str());
-        }
+        //     auto it = appManagerImpl->mAppInfo.find(appId);
+        //     if (it != appManagerImpl->mAppInfo.end())
+        //         appManagerImpl->mAppInfo.erase(it);
+        //     else
+        //         LOGERR("AppInfo for appId '%s' not found", appId.c_str());
+        // }
 
         bool LifecycleInterfaceConnector::fileExists(const char* pFileName)
         {
