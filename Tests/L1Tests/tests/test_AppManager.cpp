@@ -236,8 +236,12 @@ protected:
         if (mStorageManagerMock != nullptr)
         {
             TEST_LOG("Release StorageManagerMock");
-            mStorageManagerMock->Release();  // IS THIS REQUIRED?
-            mStorageManagerMock = nullptr;
+            EXPECT_CALL(*mStorageManagerMock, Release())
+                .WillOnce(::testing::Invoke(
+                [&]() {
+                     delete mStorageManagerMock;
+                     return 0;
+            })); 
         }
         mAppManagerPlugin->Deinitialize(mServiceMock);
         delete mServiceMock;
@@ -439,8 +443,6 @@ TEST_F(AppManagerTest, GetInstalledAppsUsingJSONRpcSuccess)
 
     status = createResources();
     EXPECT_EQ(Core::ERROR_NONE, status);
-    //auto mockIterator = FillPackageIterator(); // Fill the package Info
-    TEST_LOG(" Veeksha GetInstalledAppsUsingJSONRpcSuccess - Mocking ListPackages");
     EXPECT_CALL(*mPackageInstallerMock, ListPackages(::testing::_))
     .WillRepeatedly([&](Exchange::IPackageInstaller::IPackageIterator*& packages) {
         auto mockIterator = FillPackageIterator(); // Fill the package Info
@@ -451,7 +453,10 @@ TEST_F(AppManagerTest, GetInstalledAppsUsingJSONRpcSuccess)
     TEST_LOG(" mJsonRpcResponse: %s", mJsonRpcResponse.c_str());
     jsonStr = GetPackageInfoInJSON();
     TEST_LOG("jsonStr :%s", jsonStr.c_str());
-    EXPECT_STREQ("\"[{\\\"appId\\\":\\\"com.test.app\\\",\\\"versionString\\\":\\\"1.2.8\\\",\\\"type\\\":\\\"APPLICATION_TYPE_INTERACTIVE\\\",\\\"lastActiveTime\\\":\\\"\\\",\\\"lastActiveIndex\\\":\\\"\\\"}]\"", mJsonRpcResponse.c_str());
+    //EXPECT_STREQ("\"[{\\\"appId\\\":\\\"com.test.app\\\",\\\"versionString\\\":\\\"1.2.8\\\",\\\"type\\\":\\\"APPLICATION_TYPE_INTERACTIVE\\\",\\\"lastActiveTime\\\":\\\"\\\",\\\"lastActiveIndex\\\":\\\"\\\"}]\"", mJsonRpcResponse.c_str());
+    EXPECT_STREQ(
+    "[{\"appId\":\"com.test.app\",\"versionString\":\"1.2.8\",\"type\":\"APPLICATION_TYPE_INTERACTIVE\",\"lastActiveTime\":\"\",\"lastActiveIndex\":\"\"}]",
+    mJsonRpcResponse.c_str());
 
     if(status == Core::ERROR_NONE)
     {
@@ -2011,13 +2016,16 @@ TEST_F(AppManagerTest, SendIntentUsingComRpcFailureLifecycleManagerRemoteObjectI
  * Verifying the return of the API
  * Releasing the AppManager interface and all related test resources
  */
-TEST_F(AppManagerTest, DISABLED_ClearAppDataUsingComRpcSuccess)
+TEST_F(AppManagerTest, ClearAppDataUsingComRpcSuccess)
 {
     Core::hresult status;
 
     status = createResources();
     EXPECT_EQ(Core::ERROR_NONE, status);
-
+    EXPECT_CALL(*mStorageManagerMock, Clear(::testing::_, ::testing::_))
+        .WillOnce([&](const string& appId, const string& errorReason) {
+            return Core::ERROR_NONE; // Simulating successful clear of app data
+        });
     EXPECT_EQ(Core::ERROR_NONE, mAppManagerImpl->ClearAppData(APPMANAGER_APP_ID));
 
     if(status == Core::ERROR_NONE)
@@ -2834,7 +2842,7 @@ TEST_F(AppManagerTest, OnApplicationStateChangedSuccess)
 TEST_F(AppManagerTest, handleOnAppLifecycleStateChangedUsingComRpcSuccess)
 {
     Core::hresult status;
-
+    TEST_LOG("VEEKSHA handleOnAppLifecycleStateChangedUsingComRpcSuccess");
     status = createResources();
     EXPECT_EQ(Core::ERROR_NONE, status);
     TEST_LOG("handleOnAppLifecycleStateChangedUsingComRpcSuccess");
