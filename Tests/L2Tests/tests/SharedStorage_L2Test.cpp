@@ -178,11 +178,11 @@ SharedStorage_L2test::~SharedStorage_L2test()
     uint32_t status = Core::ERROR_GENERAL;
 
     /* Deactivate plugin in destructor */
-    status = DeactivateService("org.rdk.PersistentStore");
-    EXPECT_EQ(Core::ERROR_NONE, status);
     status = DeactivateService("org.rdk.CloudStore");
     EXPECT_EQ(Core::ERROR_NONE, status);
     status = DeactivateService("org.rdk.SharedStorage");
+    EXPECT_EQ(Core::ERROR_NONE, status);
+    status = DeactivateService("org.rdk.PersistentStore");
     EXPECT_EQ(Core::ERROR_NONE, status);
 
     if (mock_server) {
