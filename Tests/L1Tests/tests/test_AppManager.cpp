@@ -150,12 +150,12 @@ protected:
                     return Core::ERROR_NONE;
                 }));
 
-        // ON_CALL(*mLifecycleManagerStateMock, Register(::testing::_))
-        //     .WillByDefault(::testing::Invoke(
-        //         [&](Exchange::ILifecycleManagerState::INotification* notification) {
-        //             mLifecycleManagerStateNotification_cb = notification;
-        //             return Core::ERROR_NONE;
-        //         }));
+        ON_CALL(*mLifecycleManagerStateMock, Register(::testing::_))
+            .WillByDefault(::testing::Invoke(
+                [&](Exchange::ILifecycleManagerState::INotification* notification) {
+                    mLifecycleManagerStateNotification_cb = notification;
+                    return Core::ERROR_NONE;
+                }));
 
 
         EXPECT_EQ(string(""), mAppManagerPlugin->Initialize(mServiceMock));
