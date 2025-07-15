@@ -181,11 +181,20 @@ namespace WPEFramework
 
                 if (nullptr != mLifecycleManagerRemoteObject)
                 {
+                    LOGINFO("LifecycleInterfaceConnector::launch: appId %s, intent %s, launchArgs %s",
+                        appId.c_str(), intent.c_str(), launchArgs.c_str());
                     status = isAppLoaded(appId, loaded);
                     if (appManagerImplInstance != nullptr)
                     {
                         auto it = appManagerImplInstance->mAppInfo.find(appId);
-                        LOGINFO("AppManagerImplementation::launch: appId %s, loaded %d, it->second.appNewState %u", appId.c_str(), loaded, (it != appManagerImplInstance->mAppInfo.end()) ? it->second.appNewState : Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN);
+                        LOGINFO("LaunchApp appId %s, loaded %d, appInstanceId %s, targetAppState %d",
+                            appId.c_str(), loaded, it->second.appInstanceId.c_str(), it->second.targetAppState);
+                        LOGINFO("appManagerImplInstance->mAppInfo.end() = %s",
+                            (it != appManagerImplInstance->mAppInfo.end()) ? "true" : "false");
+                        LOGINFO("appManagerImplInstance->mAppInfo.size() = %zu",
+                            appManagerImplInstance->mAppInfo.size());
+                        LOGINFO("appManagerImplInstance->mAppInfo[appId].appNewState = %d",
+                            it->second.appNewState);
                         if ((loaded == true) &&
                             (Core::ERROR_NONE == status) &&
                             (it != appManagerImplInstance->mAppInfo.end()) &&
@@ -212,7 +221,6 @@ namespace WPEFramework
                             if (fileExists(SUSPEND_POLICY_FILE) == true)
                             {
                                 appManagerImplInstance->updateCurrentAction(appId, AppManagerImplementation::APP_ACTION_SUSPEND);
-                                LOGINFO("veeksha launchApp appInstanceId %s", it->second.appInstanceId.c_str());
                                 state = Exchange::ILifecycleManager::LifecycleState::SUSPENDED;
                             }
                             else
@@ -328,13 +336,16 @@ namespace WPEFramework
             {
                 for(auto appIterator = appManagerImplInstance->mAppInfo.begin(); appIterator != appManagerImplInstance->mAppInfo.end(); ++appIterator)
                 {
+                    LOGINFO("Checking appId: %s against %s", appId.c_str(), appIterator->first.c_str());
                     if(appIterator->first.compare(appId) == 0)
                     {
                         appInstanceId = appIterator->second.appInstanceId;
                         appIntent = appIterator->second.appIntent;
-
+                        LOGINFO("Found appId: %s, appInstanceId: %s, appIntent: %s", appId.c_str(), appInstanceId.c_str(), appIntent.c_str());
                         if(nullptr != mLifecycleManagerRemoteObject)
                         {
+                            LOGINFO("LifecycleInterfaceConnector::closeApp: appId %s, appInstanceId %s, appIntent %s",
+                                appId.c_str(), appInstanceId.c_str(), appIntent.c_str());
                             appManagerImplInstance->updateCurrentAction(appId, AppManagerImplementation::APP_ACTION_CLOSE);
 
                             status = mLifecycleManagerRemoteObject->SetTargetAppState(appInstanceId, Exchange::ILifecycleManager::LifecycleState::PAUSED, appIntent);
@@ -786,18 +797,18 @@ End:
                 return it->second.appInstanceId;
         }
 
-        // void LifecycleInterfaceConnector::RemoveApp(const string& appId)
-        // {
-        //     AppManagerImplementation* appManagerImpl = AppManagerImplementation::getInstance();
-        //     if (!appManagerImpl)
-        //         return;
+        void LifecycleInterfaceConnector::RemoveApp(const string& appId)
+        {
+            AppManagerImplementation* appManagerImpl = AppManagerImplementation::getInstance();
+            if (!appManagerImpl)
+                return;
 
-        //     auto it = appManagerImpl->mAppInfo.find(appId);
-        //     if (it != appManagerImpl->mAppInfo.end())
-        //         appManagerImpl->mAppInfo.erase(it);
-        //     else
-        //         LOGERR("AppInfo for appId '%s' not found", appId.c_str());
-        // }
+            auto it = appManagerImpl->mAppInfo.find(appId);
+            if (it != appManagerImpl->mAppInfo.end())
+                appManagerImpl->mAppInfo.erase(it);
+            else
+                LOGERR("AppInfo for appId '%s' not found", appId.c_str());
+        }
 
         bool LifecycleInterfaceConnector::fileExists(const char* pFileName)
         {

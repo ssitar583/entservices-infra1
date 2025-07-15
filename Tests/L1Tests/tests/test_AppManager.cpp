@@ -997,187 +997,6 @@ TEST_F(AppManagerTest, LaunchAppUsingComRpcFailureLifecycleManagerRemoteObjectIs
     releaseAppManagerImpl();
 }
 
-// Launchapp at FetchInstalled Packages
-// TEST_F(AppManagerTest, DISABLED_LaunchAppAtfetchInstalledPackagesFailure)
-// {
-//     Core::hresult status;
-    
-//     status = createResources();
-//     EXPECT_EQ(Core::ERROR_NONE, status);
-//     LaunchAppPreRequisite(Exchange::ILifecycleManager::LifecycleState::ACTIVE);
-
-//     EXPECT_CALL(*mPackageInstallerMock, ListPackages(::testing::_))
-//     .WillOnce([&](Exchange::IPackageInstaller::IPackageIterator*& packages) {
-//         packages = nullptr; // make Package list empty
-//         return Core::ERROR_NONE;
-//     });
-
-//     EXPECT_EQ(Core::ERROR_GENERAL, mAppManagerImpl->LaunchApp(APPMANAGER_APP_ID, APPMANAGER_APP_INTENT, APPMANAGER_APP_LAUNCHARGS));
-
-//     if(status == Core::ERROR_NONE)
-//     {
-//         releaseResources();
-//     }
-// }
-
-// Launchapp Failed to PackageManager Lock failure
-// TEST_F(AppManagerTest, DISABLED_LaunchAppAtPackageManagerLockFailure)
-// {
-//     Core::hresult status;
-
-//     status = createResources();
-//     EXPECT_EQ(Core::ERROR_NONE, status);
-//     LaunchAppPreRequisite(Exchange::ILifecycleManager::LifecycleState::ACTIVE);
-
-//     EXPECT_CALL(*mPackageManagerMock, Lock(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
-//     .WillOnce([&](const string &packageId, const string &version, const Exchange::IPackageHandler::LockReason &lockReason, uint32_t &lockId /* @out */, string &unpackedPath /* @out */, Exchange::RuntimeConfig &configMetadata /* @out */, Exchange::IPackageHandler::ILockIterator*& appMetadata /* @out */) {
-//         return Core::ERROR_GENERAL;
-//     });
-
-//     EXPECT_EQ(Core::ERROR_GENERAL, mAppManagerImpl->LaunchApp(APPMANAGER_APP_ID, APPMANAGER_APP_INTENT, APPMANAGER_APP_LAUNCHARGS));
-
-//     if(status == Core::ERROR_NONE)
-//     {
-//         releaseResources();
-//     }
-// }
-
-// Launchapp Failed to Failed to createOrUpdate the PackageInfo
-// TEST_F(AppManagerTest, DISABLED_LaunchAppAtCreateOrUpdatePackageInfoFailure)
-// {
-//     Core::hresult status;
-
-//     status = createResources();
-//     EXPECT_EQ(Core::ERROR_NONE, status);
-//     LaunchAppPreRequisite(Exchange::ILifecycleManager::LifecycleState::ACTIVE);
-
-//     EXPECT_CALL(*mPackageManagerMock, Lock(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
-//     .WillOnce([&](const string &packageId, const string &version, const Exchange::IPackageHandler::LockReason &lockReason, uint32_t &lockId /* @out */, string &unpackedPath /* @out */, Exchange::RuntimeConfig &configMetadata /* @out */, Exchange::IPackageHandler::ILockIterator*& appMetadata /* @out */) {
-//         lockId = 1;
-//         unpackedPath = APPMANAGER_APP_UNPACKEDPATH;
-//         return Core::ERROR_NONE;
-//     });
-
-//     EXPECT_CALL(*mLifecycleManagerMock, IsAppLoaded(::testing::_, ::testing::_))
-//     .WillRepeatedly([&](const std::string &appId, bool &loaded) {
-//         loaded = true;
-//         return Core::ERROR_NONE;
-//     });
-
-//     EXPECT_CALL(*mLifecycleManagerMock, SetTargetAppState(::testing::_, ::testing::_, ::testing::_))
-//     .WillRepeatedly([&](const string& appInstanceId , const Exchange::ILifecycleManager::LifecycleState targetLifecycleState , const string& launchIntent) {
-//         return Core::ERROR_NONE;
-//     });
-
-//     EXPECT_CALL(*mLifecycleManagerMock, SpawnApp(APPMANAGER_APP_ID, ::testing::_, ::testing::_, ::testing::_, APPMANAGER_APP_LAUNCHARGS, ::testing::_, ::testing::_, ::testing::_))
-//     .WillOnce([&](const string& appId, const string& intent, const Exchange::ILifecycleManager::LifecycleState state,
-//         const Exchange::RuntimeConfig& runtimeConfigObject, const string& launchArgs, string& appInstanceId, string& error, bool& success) {
-//         appInstanceId = APPMANAGER_APP_INSTANCE;
-//         error = "";
-//         success = false; // Simulating failure to create or update package info
-//         return Core::ERROR_NONE;
-//     });
-
-//     EXPECT_EQ(Core::ERROR_GENERAL, mAppManagerImpl->LaunchApp(APPMANAGER_APP_ID, APPMANAGER_APP_INTENT, APPMANAGER_APP_LAUNCHARGS));
-
-//     if(status == Core::ERROR_NONE)
-//     {
-//         releaseResources();
-//     }
-// }
-
-// Launchapp Failed to SpawnApp failure
-// TEST_F(AppManagerTest, DISABLED_LaunchAppAtSpawnAppFailure)
-// {
-//     Core::hresult status;
-
-//     status = createResources();
-//     EXPECT_EQ(Core::ERROR_NONE, status);
-//     LaunchAppPreRequisite(Exchange::ILifecycleManager::LifecycleState::ACTIVE);
-
-//     EXPECT_CALL(*mPackageManagerMock, Lock(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
-//     .WillOnce([&](const string &packageId, const string &version, const Exchange::IPackageHandler::LockReason &lockReason, uint32_t &lockId /* @out */, string &unpackedPath /* @out */, Exchange::RuntimeConfig &configMetadata /* @out */, Exchange::IPackageHandler::ILockIterator*& appMetadata /* @out */) {
-//         lockId = 1;
-//         unpackedPath = APPMANAGER_APP_UNPACKEDPATH;
-//         return Core::ERROR_NONE;
-//     });
-
-//     EXPECT_CALL(*mLifecycleManagerMock, IsAppLoaded(::testing::_, ::testing::_))
-//     .WillRepeatedly([&](const std::string &appId, bool &loaded) {
-//         loaded = true;
-//         return Core::ERROR_NONE;
-//     });
-
-//     EXPECT_CALL(*mLifecycleManagerMock, SetTargetAppState(::testing::_, ::testing::_, ::testing::_))
-//     .WillRepeatedly([&](const string& appInstanceId , const Exchange::ILifecycleManager::LifecycleState targetLifecycleState , const string& launchIntent) {
-//         return Core::ERROR_NONE;
-//     });
-
-//     EXPECT_CALL(*mLifecycleManagerMock, SpawnApp(APPMANAGER_APP_ID, ::testing::_, ::testing::_, ::testing::_, APPMANAGER_APP_LAUNCHARGS, ::testing::_, ::testing::_, ::testing::_))
-//     .WillOnce([&](const string& appId, const string& intent, const Exchange::ILifecycleManager::LifecycleState state,
-//         const Exchange::RuntimeConfig& runtimeConfigObject, const string& launchArgs, string& appInstanceId, string& error, bool& success) {
-//         appInstanceId = APPMANAGER_APP_INSTANCE;
-//         error = "";
-//         success = false; // Simulating failure to spawn app
-//         return Core::ERROR_NONE;
-//     });
-
-//     EXPECT_EQ(Core::ERROR_GENERAL, mAppManagerImpl->LaunchApp(APPMANAGER_APP_ID, APPMANAGER_APP_INTENT, APPMANAGER_APP_LAUNCHARGS));
-
-//     if(status == Core::ERROR_NONE)
-//     {
-//         releaseResources();
-//     }
-// }
-
-
-// Launchapp failed as mPackageManagerHandlerObject is there but but package version is empty
-// TEST_F(AppManagerTest, DISABLED_LaunchAppAtPackageVersionEmpty)
-// {
-//     Core::hresult status;
-
-//     status = createResources();
-//     EXPECT_EQ(Core::ERROR_NONE, status);
-//     LaunchAppPreRequisite(Exchange::ILifecycleManager::LifecycleState::ACTIVE);
-
-//     EXPECT_CALL(*mPackageManagerMock, Lock(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
-//     .WillOnce([&](const string &packageId, const string &version, const Exchange::IPackageHandler::LockReason &lockReason, uint32_t &lockId /* @out */, string &unpackedPath /* @out */, Exchange::RuntimeConfig &configMetadata /* @out */, Exchange::IPackageHandler::ILockIterator*& appMetadata /* @out */) {
-//         lockId = 1;
-//         unpackedPath = APPMANAGER_APP_UNPACKEDPATH;
-//         return Core::ERROR_NONE;
-//     });
-
-//     EXPECT_CALL(*mLifecycleManagerMock, IsAppLoaded(::testing::_, ::testing::_))
-//     .WillRepeatedly([&](const std::string &appId, bool &loaded) {
-//         loaded = true;
-//         return Core::ERROR_NONE;
-//     });
-
-//     EXPECT_CALL(*mLifecycleManagerMock, SetTargetAppState(::testing::_, ::testing::_, ::testing::_))
-//     .WillRepeatedly([&](const string& appInstanceId , const Exchange::ILifecycleManager::LifecycleState targetLifecycleState , const string& launchIntent) {
-//         return Core::ERROR_NONE;
-//     });
-
-//     EXPECT_CALL(*mLifecycleManagerMock, SpawnApp(APPMANAGER_APP_ID, ::testing::_, ::testing::_, ::testing::_, APPMANAGER_APP_LAUNCHARGS, ::testing::_, ::testing::_, ::testing::_))
-//     .WillOnce([&](const string& appId, const string& intent, const Exchange::ILifecycleManager::LifecycleState state,
-//         const Exchange::RuntimeConfig& runtimeConfigObject, const string& launchArgs, string& appInstanceId, string& error, bool& success) {
-//         appInstanceId = APPMANAGER_APP_INSTANCE;
-//         error = "";
-//         success = true;
-//         return Core::ERROR_NONE;
-//     });
-
-//     // Simulating empty package version
-//     EXPECT_EQ(Core::ERROR_GENERAL, mAppManagerImpl->LaunchApp(APPMANAGER_APP_ID, APPMANAGER_APP_INTENT, ""));
-
-//     if(status == Core::ERROR_NONE)
-//     {
-//         releaseResources();
-//     }
-// }
-
-// 
-
 /*
  * Test Case for PreloadAppUsingComRpcSuccess
  * Setting up AppManager/LifecycleManager/LifecycleManagerState/PersistentStore/PackageManagerRDKEMS Plugin and creating required COM-RPC resources
@@ -1206,36 +1025,6 @@ TEST_F(AppManagerTest, PreloadAppUsingComRpcSuccess)
         releaseResources();
     }
 }
-
-// Test Case for PreloadAppUsingJSONRpcSuccess
-// TEST_F(AppManagerTest, PreloadAppUsingJSONRpcSuccess)
-// {
-//     Core::hresult status;
-//     std::string error = "";
-
-//     status = createResources();
-//     EXPECT_EQ(Core::ERROR_NONE, status);
-//     TEST_LOG("PreloadAppUsingJSONRpcSuccess - createResources done!");
-
-//     LaunchAppPreRequisite(Exchange::ILifecycleManager::LifecycleState::PAUSED);
-//     EXPECT_CALL(*mPackageManagerMock, Lock(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
-//         .WillRepeatedly([&](const string &packageId, const string &version, const Exchange::IPackageHandler::LockReason &lockReason, uint32_t &lockId /* @out */, string &unpackedPath /* @out */, Exchange::RuntimeConfig &configMetadata /* @out */, Exchange::IPackageHandler::ILockIterator*& appMetadata /* @out */) {
-//             lockId = 1;
-//             unpackedPath = APPMANAGER_APP_UNPACKEDPATH;
-//             TEST_LOG("Mock Locking packageId: %s, version: %s, lockId: %d, unpackedPath: %s", packageId.c_str(), version.c_str(), lockId, unpackedPath.c_str());
-//             return Core::ERROR_NONE;
-//         });
-//     std::string request = "{\"appId\": \"" + std::string(APPMANAGER_APP_ID) + "\", \"launchArgs\": \"" + std::string(APPMANAGER_APP_LAUNCHARGS) + "\"}";
-//     EXPECT_EQ(Core::ERROR_NONE, mJsonRpcHandler.Invoke(connection, _T("preloadApp"), request, mJsonRpcResponse));
-//     TEST_LOG(" mJsonRpcResponse: %s", mJsonRpcResponse.c_str());
-//     //EXPECT_STREQ("{\"appInstanceId\":\"testAppInstance\"}", mJsonRpcResponse.c_str());
-
-//     if(status == Core::ERROR_NONE)
-//     {
-//         releaseResources();
-//     }
-// }
-
 
 TEST_F(AppManagerTest, PreloadAppUsingJSONRpcSuccess)
 {
@@ -1657,82 +1446,6 @@ TEST_F(AppManagerTest, TerminateAppUsingComRpcFailureLifecycleManagerRemoteObjec
     EXPECT_EQ(Core::ERROR_GENERAL, mAppManagerImpl->TerminateApp(APPMANAGER_APP_ID));
     releaseAppManagerImpl();
 }
-
-// TerminateApp at packageunlock failure due to removeAppInfoByAppId failure
-// TEST_F(AppManagerTest, DISABLED_TerminateAppAtPackageUnlockFailure)
-// {
-//     Core::hresult status;
-//     status = createResources();
-//     EXPECT_EQ(Core::ERROR_NONE, status);
-    
-//     EXPECT_CALL(*mPackageManagerMock, Unlock(::testing::_, ::testing::_))
-//     .WillOnce([&](const string &packageId, uint32_t lockId) {
-//         return Core::ERROR_GENERAL; // Simulating failure to unlock package
-//     });
-
-//     EXPECT_EQ(Core::ERROR_GENERAL, mAppManagerImpl->TerminateApp(APPMANAGER_APP_ID));
-
-//     if(status == Core::ERROR_NONE)
-//     {
-//         releaseResources();
-//     }
-// }
-
-// TerminateApp at packageunlock failure due to removeAppInfoByAppId failure
-// TEST_F(AppManagerTest, DISABLED_TerminateAppAtRemoveAppInfoByAppIdFailure)
-// {
-//     Core::hresult status;
-//     status = createResources();
-//     EXPECT_EQ(Core::ERROR_NONE, status);
-
-//     EXPECT_CALL(*mPackageManagerMock, Unlock(::testing::_, ::testing::_))
-//     .WillOnce([&](const string &packageId, uint32_t lockId) {
-//         return Core::ERROR_NONE; // Simulating successful unlock
-//     });
-
-//     EXPECT_CALL(*mPackageManagerMock, RemoveAppInfoByAppId(::testing::_))
-//     .WillOnce([&](const string &appId) {
-//         return Core::ERROR_GENERAL; // Simulating failure to remove app info
-//     });
-
-//     EXPECT_EQ(Core::ERROR_GENERAL, mAppManagerImpl->TerminateApp(APPMANAGER_APP_ID));
-
-//     if(status == Core::ERROR_NONE)
-//     {
-//         releaseResources();
-//     }
-// }
-
-// TerminateApp falilure due to AppId not found in map to get the version
-// TEST_F(AppManagerTest, DISABLED_TerminateAppAtAppIdNotFoundInMap)
-// {
-//     Core::hresult status;
-//     status = createResources();
-//     EXPECT_EQ(Core::ERROR_NONE, status);
-
-//     EXPECT_CALL(*mPackageManagerMock, Unlock(::testing::_, ::testing::_))
-//     .WillOnce([&](const string &packageId, uint32_t lockId) {
-//         return Core::ERROR_NONE; // Simulating successful unlock
-//     });
-
-//     EXPECT_CALL(*mPackageManagerMock, RemoveAppInfoByAppId(::testing::_))
-//     .WillOnce([&](const string &appId) {
-//         return Core::ERROR_NONE; // Simulating successful removal of app info
-//     });
-
-//     // Simulating that the appId is not found in the map
-//     EXPECT_CALL(*mPackageManagerMock, GetPackageVersion(::testing::_))
-//     .WillOnce([&](const string &appId) {
-//         return ""; // Simulating empty version
-//     });
-
-//     EXPECT_EQ(Core::ERROR_GENERAL, mAppManagerImpl->TerminateApp(APPMANAGER_APP_ID));
-
-//     if(status == Core::ERROR_NONE)
-//     {
-//         releaseResources();
-//     }
-// }
 
 /*
  * Test Case for StartSystemAppUsingComRpcSuccess
@@ -2717,66 +2430,6 @@ TEST_F(AppManagerTest, GetLoadedAppsCOMRPCSuccess)
 }
 
 /*
- * Test Case for handleOnAppLifecycleStateChangedUsingComRpcSuccess
- * Setting up AppManager/LifecycleManager/LifecycleManagerState/PersistentStore/PackageManagerRDKEMS Plugin and creating required COM-RPC resources
- * Verifying the return of the API
- * Releasing the AppManager interface and all related test resources
- */
-// TEST_F(AppManagerTest, handleOnAppLifecycleStateChangedUsingComRpcSuccess)
-// {
-//     Core::hresult status;
-
-//     status = createResources();
-//     EXPECT_EQ(Core::ERROR_NONE, status);
-//     TEST_LOG("handleOnAppLifecycleStateChangedUsingComRpcSuccess");
-//     mAppManagerImpl->handleOnAppLifecycleStateChanged(
-//         APPMANAGER_APP_ID,
-//         APPMANAGER_APP_INSTANCE,
-//         Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN,
-//         Exchange::IAppManager::AppLifecycleState::APP_STATE_UNLOADED,
-//         Exchange::IAppManager::AppErrorReason::APP_ERROR_NONE);
-
-//     if(status == Core::ERROR_NONE)
-//     {
-//         releaseResources();
-//     }
-// }
-
- 
-// Test for fetchPackageInfoByAppId
-// TEST_F(AppManagerTest, fetchPackageInfoByAppId)
-// {
-//     Core::hresult status;
-    
-//     status = createResources();
-//     EXPECT_EQ(Core::ERROR_NONE, status);
-    
-
-//     EXPECT_EQ(true, mAppManagerImpl->fetchPackageInfoByAppId(APPMANAGER_APP_ID, packageData));
-//     TEST_LOG("fetchPackageInfoByAppId :%s", APPMANAGER_APP_PACKAGE_NAME);
-
-//     if(status == Core::ERROR_NONE)
-//     {
-//         releaseResources();
-//     }
-// }
-
-// // Test for fetchPackageInfoByAppId with wrong app id
-// TEST_F(AppManagerTest, fetchPackageInfoByAppIdWrongAppId)
-// {
-//     Core::hresult status;
-    
-//     status = createResources();
-//     EXPECT_EQ(Core::ERROR_NONE, status);
-//     EXPECT_EQ(Core::ERROR_GENERAL, mAppManagerImpl->fetchPackageInfoByAppId(APPMANAGER_WRONG_APP_ID, packageName));
-
-//     if(status == Core::ERROR_NONE)
-//     {
-//         releaseResources();
-//     }
-// }
-
-/*
  * Test Case for FetchPackageInfoByAppIdSuccess
  * Populates mAppInfo with test appId and package data
  * Calls fetchPackageInfoByAppId() with the test appId
@@ -2784,37 +2437,28 @@ TEST_F(AppManagerTest, GetLoadedAppsCOMRPCSuccess)
  */
 // TEST_F(AppManagerTest, FetchPackageInfoByAppIdSuccess)
 // {
-//     Core::hresult status;
-//     status = createResources();
-//     EXPECT_EQ(Core::ERROR_NONE, status);
+//     PackageInfo expectedInfo;
+//     expectedInfo.version          = APPMANAGER_APP_VERSION;
+//     expectedInfo.lockId           = 1;
+//     expectedInfo.unpackedPath   = APPMANAGER_APP_UNPACKEDPATH;
 
-//     // Prepare expected input in mAppInfo
-//     const std::string appId = APPMANAGER_APP_ID;
-//     Plugin::PackageInfo expectedInfo;
-//     expectedInfo.version = APPMANAGER_APP_VERSION;
-//     expectedInfo.lockId = 42;
-//     expectedInfo.unpackedPath = APPMANAGER_APP_UNPACKEDPATH;
-//     expectedInfo.appMetadata = "test.metadata";
+//     PackageInfo packageData;
+//     packageData.packageId         = APPMANAGER_APP_ID;
+//     packageData.version           = APPMANAGER_APP_VERSION
+//     packageData.lockId            = 1;
+//     packageData.unpackedPath      = APPMANAGER_APP_UNPACKEDPATH;
 
-//     mAppManagerImpl->createOrUpdatePackageInfoByAppId(appId, expectedInfo);
+//     PackageInfo actualInfo;
+//     string appId = APPMANAGER_APP_ID;
 
-//     // Output holder
-//     Plugin::PackageInfo actualInfo;
-
-//     // Act
 //     bool result = mAppManagerImpl->fetchPackageInfoByAppId(appId, actualInfo);
 
-//     // Assert
 //     EXPECT_TRUE(result);
+//     EXPECT_EQ(actualInfo.packageId, expectedInfo.packageId);
 //     EXPECT_EQ(actualInfo.version, expectedInfo.version);
-//     EXPECT_EQ(actualInfo.lockId, expectedInfo.lockId);
-//     EXPECT_EQ(actualInfo.unpackedPath, expectedInfo.unpackedPath);
-//     EXPECT_EQ(actualInfo.appMetadata, expectedInfo.appMetadata);
-
-//     if(status == Core::ERROR_NONE)
-//     {
-//         releaseResources();
-//     }
+//     EXPECT_EQ(actualInfo.digest, expectedInfo.digest);
+//     EXPECT_EQ(actualInfo.state, expectedInfo.state);
+//     EXPECT_EQ(actualInfo.sizeKb, expectedInfo.sizeKb);
 // }
 
 
