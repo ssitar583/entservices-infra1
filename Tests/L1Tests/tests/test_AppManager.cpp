@@ -2831,22 +2831,22 @@ TEST_F(AppManagerTest, OnApplicationStateChangedSuccess)
  * Verifying the return of the API
  * Releasing the AppManager interface and all related test resources
  */
-// TEST_F(AppManagerTest, handleOnAppLifecycleStateChangedUsingComRpcSuccess)
-// {
-//     Core::hresult status;
+TEST_F(AppManagerTest, handleOnAppLifecycleStateChangedUsingComRpcSuccess)
+{
+    Core::hresult status;
 
-//     status = createResources();
-//     EXPECT_EQ(Core::ERROR_NONE, status);
-//     TEST_LOG("handleOnAppLifecycleStateChangedUsingComRpcSuccess");
-//     mAppManagerImpl->handleOnAppLifecycleStateChanged(
-//         APPMANAGER_APP_ID,
-//         APPMANAGER_APP_INSTANCE,
-//         Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN,
-//         Exchange::IAppManager::AppLifecycleState::APP_STATE_UNLOADED,
-//         Exchange::IAppManager::AppErrorReason::APP_ERROR_NONE);
+    status = createResources();
+    EXPECT_EQ(Core::ERROR_NONE, status);
+    TEST_LOG("handleOnAppLifecycleStateChangedUsingComRpcSuccess");
+    mAppManagerImpl->handleOnAppLifecycleStateChanged(
+        APPMANAGER_APP_ID,
+        APPMANAGER_APP_INSTANCE,
+        Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN,
+        Exchange::IAppManager::AppLifecycleState::APP_STATE_UNLOADED,
+        Exchange::IAppManager::AppErrorReason::APP_ERROR_NONE);
 
-//     if(status == Core::ERROR_NONE)
-//     {
-//         releaseResources();
-//     }
-// }
+    if(status == Core::ERROR_NONE)
+    {
+        releaseResources();
+    }
+}
