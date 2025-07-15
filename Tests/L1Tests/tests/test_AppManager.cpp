@@ -2782,24 +2782,24 @@ TEST_F(AppManagerTest, GetLoadedAppsCOMRPCSuccess)
 
 
 // Add callback and notiification tests
-// TEST_F(AppManagerTest, OnAppInstallationStatusChangedSuccess)
-// {
-//     Core::hresult status;
+TEST_F(AppManagerTest, OnAppInstallationStatusChangedSuccess)
+{
+    Core::hresult status;
 
-//     status = createResources();
-//     EXPECT_EQ(Core::ERROR_NONE, status);
-//     std::string Jsonstr = R"([{"packageId":"YouTube","version":"100.1.30+rialto","state":"INSTALLED"}])";
-//     // Simulate the callback
-//     ASSERT_NE(mPackageManagerNotification_cb, nullptr) << "PackageManager notification callback is not registered";
-//     mPackageManagerNotification_cb->OnAppInstallationStatus(Jsonstr);
-//     //mAppManagerImpl->OnAppInstallationStatus(Jsonstr);
-//     // Verify that the callback was handled correctly
+    status = createResources();
+    EXPECT_EQ(Core::ERROR_NONE, status);
+    std::string Jsonstr = R"([{"packageId":"YouTube","version":"100.1.30+rialto","state":"INSTALLED"}])";
+    // Simulate the callback
+    ASSERT_NE(mPackageManagerNotification_cb, nullptr) << "PackageManager notification callback is not registered";
+    mPackageManagerNotification_cb->OnAppInstallationStatus(Jsonstr);
+    //mAppManagerImpl->OnAppInstallationStatus(Jsonstr);
+    // Verify that the callback was handled correctly
 
-//     if(status == Core::ERROR_NONE)
-//     {
-//         releaseResources();
-//     }
-// }
+    if(status == Core::ERROR_NONE)
+    {
+        releaseResources();
+    }
+}
 
 
 // Test case for OnApplicationStateChangedSuccess
