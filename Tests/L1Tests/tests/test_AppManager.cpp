@@ -168,6 +168,29 @@ protected:
 
     void releaseResources()
     {
+        if (mLifecycleManagerStateMock != nullptr && mLifecycleManagerStateNotification_cb != nullptr)
+        {
+            TEST_LOG("Unregister LifecycleManagerStateNotification");
+            ON_CALL(*mLifecycleManagerStateMock, Unregister(::testing::_))
+                .WillByDefault(::testing::Invoke([&]() {
+                    return 0;
+                }));
+            mLifecycleManagerStateNotification_cb = nullptr;
+        }
+
+        if (mPackageInstallerMock != nullptr && mPackageManagerNotification_cb != nullptr)
+        {
+            TEST_LOG("Unregister PackageManagerNotification");
+            ON_CALL(*mPackageInstallerMock, Unregister(::testing::_))
+                .WillByDefault(::testing::Invoke([&]() {
+                    return 0;
+                }));
+            mPackageManagerNotification_cb = nullptr;
+        }
+
+        // Let background threads settle to avoid async crashes
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
         TEST_LOG("In releaseResources!");
         if (mLifecycleManagerMock != nullptr)
         {
@@ -2842,22 +2865,22 @@ TEST_F(AppManagerTest, OnApplicationStateChangedSuccess)
  * Verifying the return of the API
  * Releasing the AppManager interface and all related test resources
  */
-// TEST_F(AppManagerTest, handleOnAppLifecycleStateChangedUsingComRpcSuccess)
-// {
-//     Core::hresult status;
-//     TEST_LOG("VEEKSHA handleOnAppLifecycleStateChangedUsingComRpcSuccess");
-//     status = createResources();
-//     EXPECT_EQ(Core::ERROR_NONE, status);
-//     TEST_LOG("handleOnAppLifecycleStateChangedUsingComRpcSuccess");
-//     mAppManagerImpl->handleOnAppLifecycleStateChanged(
-//         APPMANAGER_APP_ID,
-//         APPMANAGER_APP_INSTANCE,
-//         Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN,
-//         Exchange::IAppManager::AppLifecycleState::APP_STATE_UNLOADED,
-//         Exchange::IAppManager::AppErrorReason::APP_ERROR_NONE);
+TEST_F(AppManagerTest, handleOnAppLifecycleStateChangedUsingComRpcSuccess)
+{
+    Core::hresult status;
+    TEST_LOG("VEEKSHA handleOnAppLifecycleStateChangedUsingComRpcSuccess");
+    status = createResources();
+    EXPECT_EQ(Core::ERROR_NONE, status);
+    TEST_LOG("handleOnAppLifecycleStateChangedUsingComRpcSuccess");
+    mAppManagerImpl->handleOnAppLifecycleStateChanged(
+        APPMANAGER_APP_ID,
+        APPMANAGER_APP_INSTANCE,
+        Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN,
+        Exchange::IAppManager::AppLifecycleState::APP_STATE_UNLOADED,
+        Exchange::IAppManager::AppErrorReason::APP_ERROR_NONE);
 
-//     if(status == Core::ERROR_NONE)
-//     {
-//         releaseResources();
-//     }
-// }
+    if(status == Core::ERROR_NONE)
+    {
+        releaseResources();
+    }
+}
