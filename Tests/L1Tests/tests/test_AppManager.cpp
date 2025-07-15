@@ -2041,13 +2041,16 @@ TEST_F(AppManagerTest, ClearAppDataUsingComRpcSuccess)
  * Verifying the return of the API
  * Releasing the AppManager interface and all related test resources
  */
-TEST_F(AppManagerTest, DISABLED_ClearAllAppDataUsingComRpcSuccess)
+TEST_F(AppManagerTest, ClearAllAppDataUsingComRpcSuccess)
 {
     Core::hresult status;
 
     status = createResources();
     EXPECT_EQ(Core::ERROR_NONE, status);
-
+    EXPECT_CALL(*mStorageManagerMock, ClearAll(::testing::_, ::testing::_))
+    .WillOnce([&](const string& exemptionAppIds, const string& errorReason) {
+        return Core::ERROR_NONE; // Simulating successful clear of app data
+    });
     EXPECT_EQ(Core::ERROR_NONE, mAppManagerImpl->ClearAllAppData());
 
     if(status == Core::ERROR_NONE)
