@@ -281,6 +281,7 @@ SharedStorage_L2testDeviceScope::~SharedStorage_L2testDeviceScope()
     EXPECT_EQ(Core::ERROR_NONE, status);
     status = DeactivateService("org.rdk.SharedStorage");
     EXPECT_EQ(Core::ERROR_NONE, status);
+    sleep(3);
 }
 
 uint32_t SharedStorage_L2testDeviceScope::CreateSharedStorageInterfaceObject(int interface)
