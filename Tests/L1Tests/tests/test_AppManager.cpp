@@ -2615,67 +2615,6 @@ TEST_F(AppManagerTest, updateCurrentActionUsingComRpcFailureAppIDNotExist)
     }
 }
 
-/*
- * Test Case for handleOnAppLifecycleStateChangedUsingComRpcSuccess
- * Setting up AppManager/LifecycleManager/LifecycleManagerState/PersistentStore/PackageManagerRDKEMS Plugin and creating required COM-RPC resources
- * Verifying the return of the API
- * Releasing the AppManager interface and all related test resources
- */
-// TEST_F(AppManagerTest, handleOnAppLifecycleStateChangedUsingComRpcSuccess)
-// {
-//     Core::hresult status;
-
-//     status = createResources();
-//     EXPECT_EQ(Core::ERROR_NONE, status);
-//     TEST_LOG("handleOnAppLifecycleStateChangedUsingComRpcSuccess");
-//     mAppManagerImpl->handleOnAppLifecycleStateChanged(
-//         APPMANAGER_APP_ID,
-//         APPMANAGER_APP_INSTANCE,
-//         Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN,
-//         Exchange::IAppManager::AppLifecycleState::APP_STATE_UNLOADED,
-//         Exchange::IAppManager::AppErrorReason::APP_ERROR_NONE);
-
-//     if(status == Core::ERROR_NONE)
-//     {
-//         releaseResources();
-//     }
-// }
-
- 
-// Test for fetchPackageInfoByAppId
-// TEST_F(AppManagerTest, fetchPackageInfoByAppId)
-// {
-//     Core::hresult status;
-    
-//     status = createResources();
-//     EXPECT_EQ(Core::ERROR_NONE, status);
-    
-
-//     EXPECT_EQ(true, mAppManagerImpl->fetchPackageInfoByAppId(APPMANAGER_APP_ID, packageData));
-//     TEST_LOG("fetchPackageInfoByAppId :%s", APPMANAGER_APP_PACKAGE_NAME);
-
-//     if(status == Core::ERROR_NONE)
-//     {
-//         releaseResources();
-//     }
-// }
-
-// // Test for fetchPackageInfoByAppId with wrong app id
-// TEST_F(AppManagerTest, fetchPackageInfoByAppIdWrongAppId)
-// {
-//     Core::hresult status;
-    
-//     status = createResources();
-//     EXPECT_EQ(Core::ERROR_NONE, status);
-//     EXPECT_EQ(Core::ERROR_GENERAL, mAppManagerImpl->fetchPackageInfoByAppId(APPMANAGER_WRONG_APP_ID, packageName));
-
-//     if(status == Core::ERROR_NONE)
-//     {
-//         releaseResources();
-//     }
-// }
-
-
 // GetLoadedApps
 // Test for getLoadedApps JsonRpc
 TEST_F(AppManagerTest, GetLoadedAppsJsonRpc)
@@ -2740,6 +2679,66 @@ TEST_F(AppManagerTest, GetLoadedAppsCOMRPCSuccess)
 }
 
 /*
+ * Test Case for handleOnAppLifecycleStateChangedUsingComRpcSuccess
+ * Setting up AppManager/LifecycleManager/LifecycleManagerState/PersistentStore/PackageManagerRDKEMS Plugin and creating required COM-RPC resources
+ * Verifying the return of the API
+ * Releasing the AppManager interface and all related test resources
+ */
+// TEST_F(AppManagerTest, handleOnAppLifecycleStateChangedUsingComRpcSuccess)
+// {
+//     Core::hresult status;
+
+//     status = createResources();
+//     EXPECT_EQ(Core::ERROR_NONE, status);
+//     TEST_LOG("handleOnAppLifecycleStateChangedUsingComRpcSuccess");
+//     mAppManagerImpl->handleOnAppLifecycleStateChanged(
+//         APPMANAGER_APP_ID,
+//         APPMANAGER_APP_INSTANCE,
+//         Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN,
+//         Exchange::IAppManager::AppLifecycleState::APP_STATE_UNLOADED,
+//         Exchange::IAppManager::AppErrorReason::APP_ERROR_NONE);
+
+//     if(status == Core::ERROR_NONE)
+//     {
+//         releaseResources();
+//     }
+// }
+
+ 
+// Test for fetchPackageInfoByAppId
+// TEST_F(AppManagerTest, fetchPackageInfoByAppId)
+// {
+//     Core::hresult status;
+    
+//     status = createResources();
+//     EXPECT_EQ(Core::ERROR_NONE, status);
+    
+
+//     EXPECT_EQ(true, mAppManagerImpl->fetchPackageInfoByAppId(APPMANAGER_APP_ID, packageData));
+//     TEST_LOG("fetchPackageInfoByAppId :%s", APPMANAGER_APP_PACKAGE_NAME);
+
+//     if(status == Core::ERROR_NONE)
+//     {
+//         releaseResources();
+//     }
+// }
+
+// // Test for fetchPackageInfoByAppId with wrong app id
+// TEST_F(AppManagerTest, fetchPackageInfoByAppIdWrongAppId)
+// {
+//     Core::hresult status;
+    
+//     status = createResources();
+//     EXPECT_EQ(Core::ERROR_NONE, status);
+//     EXPECT_EQ(Core::ERROR_GENERAL, mAppManagerImpl->fetchPackageInfoByAppId(APPMANAGER_WRONG_APP_ID, packageName));
+
+//     if(status == Core::ERROR_NONE)
+//     {
+//         releaseResources();
+//     }
+// }
+
+/*
  * Test Case for FetchPackageInfoByAppIdSuccess
  * Populates mAppInfo with test appId and package data
  * Calls fetchPackageInfoByAppId() with the test appId
@@ -2801,68 +2800,53 @@ TEST_F(AppManagerTest, OnAppInstallationStatusChangedSuccess)
     }
 }
 
+TEST_F(AppManagerTest, OnApplicationStateChangedSuccess)
+{
+    Core::hresult status;
+    status = createResources();
+    // Set expectation on the CORRECT Register method
+    TEST_LOG("OnApplicationStateChangedSuccess");
 
-// Test case for OnApplicationStateChangedSuccess
-// TEST_F(AppManagerTest, OnApplicationStateChangedSuccess)
+    EXPECT_EQ(Core::ERROR_NONE, status);
+    ASSERT_NE(mLifecycleManagerStateNotification_cb, nullptr)
+        << "LifecycleManagerState notification callback is not registered";
+    
+    // 2. Remove the static_cast<uint32_t> and use enum values directly
+    mLifecycleManagerStateNotification_cb->OnAppLifecycleStateChanged(
+        "YouTube",
+        "12345678-1234-1234-1234-123456789012",
+        Exchange::ILifecycleManager::LifecycleState::SUSPENDED,  // Old state
+        Exchange::ILifecycleManager::LifecycleState::ACTIVE,     // New state
+        "start"
+    );
+    
+    if(status == Core::ERROR_NONE) {
+        releaseResources();
+    }
+}
+
+/*
+ * Test Case for handleOnAppLifecycleStateChangedUsingComRpcSuccess
+ * Setting up AppManager/LifecycleManager/LifecycleManagerState/PersistentStore/PackageManagerRDKEMS Plugin and creating required COM-RPC resources
+ * Verifying the return of the API
+ * Releasing the AppManager interface and all related test resources
+ */
+// TEST_F(AppManagerTest, handleOnAppLifecycleStateChangedUsingComRpcSuccess)
 // {
 //     Core::hresult status;
-//     status = createResources();
-//     // Set expectation on the CORRECT Register method
-//     TEST_LOG("OnApplicationStateChangedSuccess");
-//     EXPECT_CALL(*mLifecycleManagerStateMock, Register(::testing::_))
-//         .WillOnce(::testing::Invoke(
-//             [&](Exchange::ILifecycleManagerState::INotification* notification) {
-//                 TEST_LOG("Registering LifecycleManagerState notification callback");
-//                 mLifecycleManagerStateNotification_cb = notification;
-//                 return Core::ERROR_NONE;
-//     }));
 
+//     status = createResources();
 //     EXPECT_EQ(Core::ERROR_NONE, status);
-//     ASSERT_NE(mLifecycleManagerStateNotification_cb, nullptr) << "LifecycleManager notification callback is not registered";
-//     // mLifecycleManagerStateNotification_cb->OnAppLifecycleStateChanged("YouTube","12345678-1234-1234-1234-123456789012", 4,4, "start");
-//     mLifecycleManagerStateNotification_cb->OnAppLifecycleStateChanged(
-//     "YouTube",
-//     "12345678-1234-1234-1234-123456789012",
-//     Exchange::ILifecycleManager::LifecycleState::SUSPENDED,
-//     Exchange::ILifecycleManager::LifecycleState::ACTIVE,
-//     "start"
-//     );
+//     TEST_LOG("handleOnAppLifecycleStateChangedUsingComRpcSuccess");
+//     mAppManagerImpl->handleOnAppLifecycleStateChanged(
+//         APPMANAGER_APP_ID,
+//         APPMANAGER_APP_INSTANCE,
+//         Exchange::IAppManager::AppLifecycleState::APP_STATE_UNKNOWN,
+//         Exchange::IAppManager::AppLifecycleState::APP_STATE_UNLOADED,
+//         Exchange::IAppManager::AppErrorReason::APP_ERROR_NONE);
+
 //     if(status == Core::ERROR_NONE)
 //     {
-//         releaseResources();
-//     }
-// }
-
-// TEST_F(AppManagerTest, OnApplicationStateChangedSuccess)
-// {
-//     Core::hresult status;
-//     status = createResources();
-//     // Set expectation on the CORRECT Register method
-//     TEST_LOG("OnApplicationStateChangedSuccess");
-    
-//     // 1. Use the correct interface for registration
-//     // EXPECT_CALL(*mLifecycleManagerStateMock, Register(::testing::_))
-//     //     .WillOnce(::testing::Invoke(
-//     //         [&](Exchange::ILifecycleManagerState::INotification* notification) {
-//     //             TEST_LOG("Registering LifecycleManagerState notification callback");
-//     //             mLifecycleManagerStateNotification_cb = notification;
-//     //             return Core::ERROR_NONE;
-//     // }));
-
-//     EXPECT_EQ(Core::ERROR_NONE, status);
-//     ASSERT_NE(mLifecycleManagerStateNotification_cb, nullptr)
-//         << "LifecycleManagerState notification callback is not registered";
-    
-//     // 2. Remove the static_cast<uint32_t> and use enum values directly
-//     mLifecycleManagerStateNotification_cb->OnAppLifecycleStateChanged(
-//         "YouTube",
-//         "12345678-1234-1234-1234-123456789012",
-//         Exchange::ILifecycleManager::LifecycleState::SUSPENDED,  // Old state
-//         Exchange::ILifecycleManager::LifecycleState::ACTIVE,     // New state
-//         "start"
-//     );
-    
-//     if(status == Core::ERROR_NONE) {
 //         releaseResources();
 //     }
 // }
