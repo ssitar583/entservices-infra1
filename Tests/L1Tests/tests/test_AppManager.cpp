@@ -789,6 +789,10 @@ TEST_F(AppManagerTest, LaunchAppUsingComRpcSuccess)
 
     status = createResources();
     EXPECT_EQ(Core::ERROR_NONE, status);
+    Plugin::AppManagerImplementation::AppInfo appInfo;
+    appInfo.appInstanceId = APPMANAGER_APP_INSTANCE;
+    appInfo.appNewState = Exchange::IAppManager::AppLifecycleState::APP_STATE_SUSPENDED;
+    mAppManagerImpl->mAppInfo[APPMANAGER_APP_ID] = appInfo;
 
     LaunchAppPreRequisite(Exchange::ILifecycleManager::LifecycleState::ACTIVE);
     EXPECT_EQ(Core::ERROR_NONE, mAppManagerImpl->LaunchApp(APPMANAGER_APP_ID, APPMANAGER_APP_INTENT, APPMANAGER_APP_LAUNCHARGS));
@@ -2845,7 +2849,6 @@ TEST_F(AppManagerTest, OnApplicationStateChangedSuccess)
     ASSERT_NE(mLifecycleManagerStateNotification_cb, nullptr)
         << "LifecycleManagerState notification callback is not registered";
     
-    // 2. Remove the static_cast<uint32_t> and use enum values directly
     mLifecycleManagerStateNotification_cb->OnAppLifecycleStateChanged(
         "YouTube",
         "12345678-1234-1234-1234-123456789012",
