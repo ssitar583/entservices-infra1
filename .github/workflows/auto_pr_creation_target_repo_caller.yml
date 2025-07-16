@@ -7,18 +7,60 @@ on:
       - test_develop
 
 jobs:
-  debug_check:
+  check_linked_prs_merged:
     runs-on: ubuntu-latest
+    outputs:
+      proceed: ${{ steps.check.outputs.proceed }}
     steps:
-      - run: echo "Triggered" 
-      
+      - name: Check if all linked PRs are merged
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          pip install PyGithub
+          python <<'EOF'
+          import os, sys, re
+          from github import Github
+          token = os.environ['GITHUB_TOKEN']
+          repo_name = os.environ['REPO']
+          pr_number = int(os.environ['PR_NUMBER'])
+          g = Github(token)
+          repo = g.get_repo(repo_name)
+          pr = repo.get_pull(pr_number)
+          issue_numbers = re.findall(r'#(\d+)', pr.body or '')
+          if not issue_numbers:
+              print('::set-output name=proceed::true')
+              sys.exit(0)
+          for issue_number in issue_numbers:
+              issue = repo.get_issue(int(issue_number))
+              linked_prs = set()
+              # Use timeline to find connected PRs
+              try:
+                  for event in issue.get_timeline():
+                      if hasattr(event, 'source') and hasattr(event.source, 'number'):
+                          linked_prs.add(event.source.number)
+              except Exception:
+                  pass
+              if not linked_prs:
+                  linked_prs = {pr_number}
+              all_merged = True
+              for pr_num in linked_prs:
+                  linked_pr = repo.get_pull(pr_num)
+                  if not linked_pr.merged:
+                      all_merged = False
+                      print(f'PR #{pr_num} is not merged. Skipping workflow.')
+                      break
+              if not all_merged:
+                  print('::set-output name=proceed::false')
+                  sys.exit(0)
+          print('::set-output name=proceed::true')
+          EOF
+
   call_auto_pr_workflow:
-    #secrets:
-      #RDKCM_RDKE: ${{ secrets.RDKCM_RDKE }}
+    needs: check_linked_prs_merged
+    if: needs.check_linked_prs_merged.outputs.proceed == 'true'
     uses: rdkcentral/build_tools_workflows/.github/workflows/auto_pr_creation_meta.yml@RDKEMW-4778
     secrets:
       RDKCM_RDKE: ${{ secrets.RDKCM_RDKE }}
-    #runs-on: ubuntu-latest
-    #steps:
-     # - name: Print placeholder instead of actual logic
-     #   run: echo "This is a placeholder for the actual logic." 
