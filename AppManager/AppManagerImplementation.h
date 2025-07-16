@@ -26,18 +26,30 @@
 #include <interfaces/IConfiguration.h>
 #include <interfaces/IAppPackageManager.h>
 #include <interfaces/IStorageManager.h>
+#include <interfaces/IOCIContainer.h>
 #include "tracing/Logging.h"
 #include <com/com.h>
 #include <core/core.h>
 #include <plugins/plugins.h>
 #include "LifecycleInterfaceConnector.h"
-#include <interfaces/IPackageManager.h>
+//#include <interfaces/IPackageManager.h>
 #include <map>
 
 namespace WPEFramework {
 namespace Plugin {
 
     class AppManagerImplementation : public Exchange::IAppManager, public Exchange::IConfiguration {
+
+    class SystemInfo {
+        public:
+        SystemInfo(PluginHost::IShell* service);
+        SystemInfo() = delete;
+        ~SystemInfo();
+        string GetInfo();
+
+        private:
+        Exchange::IOCIContainer* mOciContainer;
+    };
 
     public:
         AppManagerImplementation();

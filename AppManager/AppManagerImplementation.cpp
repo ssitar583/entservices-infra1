@@ -17,7 +17,9 @@
 * limitations under the License.
 */
 
+#include <fstream>
 #include <iomanip>      /* for std::setw, std::setfill */
+
 #include "AppManagerImplementation.h"
 
 #define TIME_DATA_SIZE           200
@@ -285,6 +287,9 @@ uint32_t AppManagerImplementation::Configure(PluginHost::IShell* service)
         {
             LOGINFO("created createStorageManagerRemoteObject");
         }
+
+        SystemInfo info(mCurrentservice);
+        info.GetInfo();
 
         result = Core::ERROR_NONE;
     }
@@ -1288,6 +1293,86 @@ void AppManagerImplementation::updateCurrentAction(const std::string& appId, Cur
         LOGERR("App ID %s not found while updating currentAction", appId.c_str());
     }
 }
+
+AppManagerImplementation::SystemInfo::SystemInfo(PluginHost::IShell* service)
+    : mOciContainer(nullptr)
+{
+    LOGDBG();
+    if (service) {
+        const string callsign = "org.rdk.OCIContainer";
+        mOciContainer = service->QueryInterfaceByCallsign<Exchange::IOCIContainer>(callsign);
+        if (!mOciContainer) {
+            LOGERR("Failed to get an instance of %s", callsign.c_str());
+        }
+    }
+    LOGDBG();
+}
+
+AppManagerImplementation::SystemInfo::~SystemInfo() {
+}
+
+string getLine(string filename) {
+    LOGDBG();
+    string line;
+    std::ifstream file(filename);
+    if (file.is_open()) {
+        std::getline(file, line);
+    }
+    LOGDBG("file: %s val=%s", filename.c_str(), line.c_str());
+    return line;
+}
+
+uint64_t getVal(string filename) {
+    string str = getLine(filename);
+    return str.empty() ? 0 : std::stoul(str);
+
+}
+
+std::pair<uint64_t,uint64_t> readMemUsage(const string &id) {
+    LOGDBG();
+    unsigned long usage = 0;
+    unsigned long maxUsage = 0;
+
+    string cgroupPath = "/sys/fs/cgroup/memory/";
+    if (!id.empty()) {
+        cgroupPath += id;
+        cgroupPath += "/";
+    }
+
+    usage = getVal(cgroupPath + "memory.usage_in_bytes");
+    maxUsage = getVal(cgroupPath + "memory.max_usage_in_bytes");
+
+    // maxUsage = getVal("/sys/fs/cgroup/memory/cpu.weight");
+    // 4032475] DEBUG [AppManagerImplementation.cpp:1370] GetInfo: memory.usage: 0 memory.max_usage=100
+
+    LOGDBG();
+    return std::make_pair(usage, maxUsage);
+}
+
+string AppManagerImplementation::SystemInfo::GetInfo() {
+    LOGDBG();
+    string info;
+    string containerId = "com.sky.as.apps_com.bskyb.epgui";    // XXX: input ?!
+
+    if (mOciContainer) {
+        bool success = false;
+        string errorReason;
+        mOciContainer->GetContainerInfo(containerId, info, success, errorReason);
+    }
+
+    /*
+        cat /sys/fs/cgroup/memory/memory.usage_in_bytes
+        cat /sys/fs/cgroup/memory/memory.max_usage_in_bytes
+        cat /sys/fs/cgroup/memory/com.sky.as.apps_com.bskyb.epgui/memory.usage_in_bytes
+        cat /sys/fs/cgroup/memory/com.sky.as.apps_com.bskyb.epgui/memory.max_usage_in_bytes
+    */
+
+    std::pair<uint64_t, uint64_t> mem = readMemUsage(containerId);
+    LOGDBG("memory.usage: %lu memory.max_usage=%lu", mem.first, mem.second);
+
+    return info;
+}
+
 
 } /* namespace Plugin */
 } /* namespace WPEFramework */
