@@ -112,6 +112,7 @@ namespace Plugin {
     }
 
     void PackageManagerImplementation::LoadCache() {
+        LOGDBG("entry");
         std::string jsonstr;
         std::ifstream file(cache_file);
         if (file.is_open()) {
@@ -134,7 +135,7 @@ namespace Plugin {
                     state.installState = InstallState::INSTALLED;
                     mState.insert( { key, state } );
 
-                    LOGDBG("Loading Cache, id: %s ver: %s", key.first.c_str(), key.second.c_str());
+                    //LOGDBG("Loading Cache, id: %s ver: %s", key.first.c_str(), key.second.c_str());
                 }
                 cacheInitialized = true;
             }
@@ -142,9 +143,13 @@ namespace Plugin {
             cacheInitialized = false;
             LOGERR("Failed to open %s", cache_file.c_str());
         }
+        LOGDBG("exit");
     }
 
     void PackageManagerImplementation::SaveCache() {
+        LOGDBG("entry");
+
+        // We could store in PersistentStore instead of file
         //Exchange::IStore2* mPersistentStore =
         //mCurrentservice->QueryInterfaceByCallsign<WPEFramework::Exchange::IStore2>("org.rdk.PersistentStore");
         std::string jsonstr;
@@ -172,6 +177,7 @@ namespace Plugin {
         } else {
             LOGERR("Failed to  stringify JsonArray");
         }
+        LOGDBG("exit");
     }
 
     Core::hresult PackageManagerImplementation::Initialize(PluginHost::IShell* service)
