@@ -59,6 +59,10 @@
 #define TR181_SYSTEM_FRIENDLY_NAME "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.SystemServices.FriendlyName"
 #include "rfcapi.h"
 
+#include <interfaces/ITextTrack.h>
+#define TEXTTRACK_CALLSIGN "org.rdk.TextTrack"
+
+
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 0
@@ -486,8 +490,12 @@ namespace WPEFramework
     uint32_t MigrationRestorer :: ApplyDisplaySettings(const JsonObject& parameters, JsonObject& response)
     {
         printf("MigrationRestorer'S ApplyDisplaySettings Method called\n");
+        std::cout << "The size of validatedkeys vector is : " << validatedkeys.size() <<std::endl;
+
         for(const string& key : validatedkeys)
         {
+            std::cout << "The key is : " << key << std::endl;
+            
             auto itInput = inputMap.find(key);
 
             cJSON* inputVal = itInput->second;
@@ -817,6 +825,47 @@ namespace WPEFramework
                 }
                 else {
                     LOGINFO("Failed Setting the friendly name value %s\n",getRFCErrorString(status));
+                }
+            }
+
+            else if(key == "accessibility/windowopacity")
+            {
+                printf("Entered inside accessibility/windowopacity block\n" );
+	            int8_t windowopacity = 0;
+                if (cJSON_IsNumber(inputVal)) {
+                    printf("Entered inside windowopacity if-block\n" );
+                    int val = (int)inputVal->valuedouble;
+                    windowopacity = (int8_t)val;
+                }
+
+
+                PluginHost::IShell::state state;
+
+                if ((Utils::getServiceState(_service, TEXTTRACK_CALLSIGN, state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
+                    Utils::activatePlugin(_service, TEXTTRACK_CALLSIGN);
+
+                if ((Utils::getServiceState(_service, TEXTTRACK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
+                {
+                    printf("the texttrack plugin activated successfully\n");
+                    ASSERT(_service != nullptr);
+
+                    _textTrackPlugin = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::ITextTrackClosedCaptionsStyle>(TEXTTRACK_CALLSIGN);
+                    if (_textTrackPlugin)
+                    {
+                        printf("Entered inside the _textTrackPlugin block\n");
+                        if (_textTrackPlugin->SetWindowOpacity(windowopacity) == Core::ERROR_NONE)
+                        {
+                            printf("The set windowopacity method executed successfully\n");
+                        }
+                        else
+                        {
+                            LOGERR("Failed to set windowopacity");
+                        }
+                    }
+                }
+                else
+                {
+                    LOGERR("Failed to activate %s", TEXTTRACK_CALLSIGN);
                 }
             }
 

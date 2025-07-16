@@ -27,6 +27,7 @@
 
 #include <interfaces/IUserSettings.h>
 #include <interfaces/IHdmiCecSink.h>
+#include <interfaces/ITextTrack.h>
 
 
 
@@ -75,6 +76,7 @@ namespace Plugin {
 
         Exchange::IUserSettings* _userSettingsPlugin;
         Exchange::IHdmiCecSink* _hdmiCecSinkPlugin;
+        Exchange::ITextTrackClosedCaptionsStyle* _textTrackPlugin;
     };
 
 } // namespace Plugin
