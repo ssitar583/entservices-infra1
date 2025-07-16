@@ -21,49 +21,42 @@ jobs:
         run: |
           pip install PyGithub
           python <<'EOF'
-          import os, sys, re, requests
-          from github import Github
-          token = os.environ['GITHUB_TOKEN']
-          repo_name = os.environ['REPO']
-          pr_number = int(os.environ['PR_NUMBER'])
-          g = Github(token)
-          repo = g.get_repo(repo_name)
-          pr = repo.get_pull(pr_number)
-          issue_numbers = re.findall(r'#(\d+)', pr.body or '')
-          if not issue_numbers:
-              with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-                  fh.write('proceed=true\n')
-              sys.exit(0)
-
-          headers = {'Authorization': f'token {token}'}
-          owner, repo_short = repo_name.split('/')
-
-          for issue_number in issue_numbers:
-              url = f'https://api.github.com/repos/{owner}/{repo_short}/issues/{issue_number}/timeline'
-              r = requests.get(url, headers={**headers, 'Accept': 'application/vnd.github.mockingbird-preview+json'})
-              events = r.json()
-              linked_prs = set()
-              for event in events:
-                  if event.get('event') == 'connected' and event.get('source', {}).get('type') == 'pull_request':
-                      pr_url = event['source']['issue']['pull_request']['url']
-                      pr_id = int(pr_url.split('/')[-1])
-                      linked_prs.add(pr_id)
-              if not linked_prs:
-                  linked_prs = {pr_number}
-              all_merged = True
-              for pr_num in linked_prs:
-                  linked_pr = repo.get_pull(pr_num)
-                  if not linked_pr.merged:
-                      all_merged = False
-                      print(f'PR #{pr_num} is not merged. Skipping workflow.')
-                      break
-              if not all_merged:
-                  with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-                      fh.write('proceed=false\n')
-                  sys.exit(0)
-          with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-              fh.write('proceed=true\n')
-          EOF
+import os, sys, re, requests
+from github import Github
+token = os.environ['GITHUB_TOKEN']
+repo_name = os.environ['REPO']
+pr_number = int(os.environ['PR_NUMBER'])
+g = Github(token)
+repo = g.get_repo(repo_name)
+pr = repo.get_pull(pr_number)
+issue_numbers = re.findall(r'#(\d+)', pr.body or '')
+proceed = 'true'
+if issue_numbers:
+    headers = {'Authorization': f'token {token}'}
+    owner, repo_short = repo_name.split('/')
+    for issue_number in issue_numbers:
+        url = f'https://api.github.com/repos/{owner}/{repo_short}/issues/{issue_number}/timeline'
+        r = requests.get(url, headers={**headers, 'Accept': 'application/vnd.github.mockingbird-preview+json'})
+        events = r.json()
+        linked_prs = set()
+        for event in events:
+            if event.get('event') == 'connected' and event.get('source', {}).get('type') == 'pull_request':
+                pr_url = event['source']['issue']['pull_request']['url']
+                pr_id = int(pr_url.split('/')[-1])
+                linked_prs.add(pr_id)
+        if not linked_prs:
+            linked_prs = {pr_number}
+        for pr_num in linked_prs:
+            linked_pr = repo.get_pull(pr_num)
+            if not linked_pr.merged:
+                print(f'PR #{pr_num} is not merged. Skipping workflow.')
+                proceed = 'false'
+                break
+        if proceed == 'false':
+            break
+with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+    fh.write(f'proceed={proceed}\n')
+EOF
 
   call_auto_pr_workflow:
     needs: check_linked_prs_merged
