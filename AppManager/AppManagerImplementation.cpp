@@ -1368,7 +1368,7 @@ string AppManagerImplementation::SystemInfo::GetInfo() {
     */
 
     std::pair<uint64_t, uint64_t> mem = readMemUsage(containerId);
-    LOGDBG("memory.usage: %lu memory.max_usage=%lu", mem.first, mem.second);
+    LOGDBG("memory.usage: %" PRIu64 " memory.max_usage=%" PRIu64, mem.first, mem.second);
 
     return info;
 }
