@@ -313,19 +313,20 @@ AnalyticsTest::~AnalyticsTest()
 {
     uint32_t status = Core::ERROR_GENERAL;
 
-    ON_CALL(*p_rBusApiImplMock, rbus_close(::testing::_))
-        .WillByDefault(
-            ::testing::Return(RBUS_ERROR_SUCCESS));
-    status = DeactivateService("org.rdk.Analytics");
+    sleep(2);
+
+    status = DeactivateService("org.rdk.PowerManager");
     EXPECT_EQ(Core::ERROR_NONE, status);
 
     status = DeactivateService("org.rdk.System");
     EXPECT_EQ(Core::ERROR_NONE, status);
 
-    sleep(2);
+    ON_CALL(*p_rBusApiImplMock, rbus_close(::testing::_))
+    .WillByDefault(::testing::Return(RBUS_ERROR_SUCCESS));
 
-    status = DeactivateService("org.rdk.PowerManager");
+    status = DeactivateService("org.rdk.Analytics");
     EXPECT_EQ(Core::ERROR_NONE, status);
+
 
     int file_status = remove("/tmp/AnalyticsStore.db");
     // Check if the file has been successfully removed

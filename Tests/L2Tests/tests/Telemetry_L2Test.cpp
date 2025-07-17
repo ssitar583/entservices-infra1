@@ -249,6 +249,10 @@ Telemetry_L2test::~Telemetry_L2test()
     Core::hresult status = Core::ERROR_GENERAL;
     m_event_signalled = Telemetry_StateInvalid;
 
+    sleep(3);
+    //Deactivate PowerMgr
+    status = DeactivateService("org.rdk.PowerManager");
+
     if (m_telemetryplugin) {
         m_telemetryplugin->Unregister(&notify);
         m_telemetryplugin->Release();
@@ -257,10 +261,6 @@ Telemetry_L2test::~Telemetry_L2test()
     status = DeactivateService("org.rdk.Telemetry");
     EXPECT_EQ(Core::ERROR_NONE, status);
 
-    sleep(3);
-
-    //Deactivate PowerMgr
-    status = DeactivateService("org.rdk.PowerManager");
     PowerManagerHalMock::Delete();
     mfrMock::Delete();
 }
