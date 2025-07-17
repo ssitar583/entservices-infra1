@@ -22,8 +22,16 @@ set(THUNDER_PORT 9998)
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 
+if (PLUGIN_ANALYTICS)
+    set(SRC_FILES ${SRC_FILES} tests/Analytics_L2Test.cpp)
+endif()
+
 if(PLUGIN_APPMANAGER)
     set(SRC_FILES ${SRC_FILES} tests/AppManager_L2Test.cpp)
+endif()
+
+if(PLUGIN_TELEMETRY)
+    set(SRC_FILES ${SRC_FILES} tests/Telemetry_L2Test.cpp)
 endif()
 
 if(PLUGIN_USBDEVICE)
@@ -48,14 +56,6 @@ endif()
 
 if(PLUGIN_SHAREDSTORAGE)
    set(SRC_FILES ${SRC_FILES} tests/SharedStorage_L2Test.cpp)
-endif()
-
-if (PLUGIN_ANALYTICS)
-    set(SRC_FILES ${SRC_FILES} tests/Analytics_L2Test.cpp)
-endif()
-
-if(PLUGIN_TELEMETRY)
-    set(SRC_FILES ${SRC_FILES} tests/Telemetry_L2Test.cpp)
 endif()
 
 add_library(${MODULE_NAME} SHARED ${SRC_FILES})
