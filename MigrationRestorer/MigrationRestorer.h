@@ -58,12 +58,13 @@ namespace Plugin {
             void UnregisterAll();
             void PopulateMigrationDataStore();
             void PopulateMigrationDataStoreSchema();
-	    void ValidateMigrationDataStore();
+	        void ValidateMigrationDataStore();
             cJSON* resolveRef( const std::string& ref);
             bool validateValue(cJSON* value, cJSON* schema);
 
        
             uint32_t ApplyDisplaySettings(const JsonObject& parameters, JsonObject& response);
+            uint32_t ApplyClosedCaptionsSettings(const JsonObject& parameters, JsonObject& response);
             
         private:
             PluginHost::IShell* _service{};

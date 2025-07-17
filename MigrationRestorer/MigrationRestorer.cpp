@@ -311,6 +311,7 @@ namespace WPEFramework
     {
         printf("MigrationRestorer'S RegisterAll Method called");
         registerMethod("ApplyDisplaySettings", &MigrationRestorer::ApplyDisplaySettings, this);
+        registerMethod("ApplyClosedCaptionsSettings", &MigrationRestorer::ApplyClosedCaptionsSettings, this);
     }
 
     void MigrationRestorer::UnregisterAll()
@@ -485,7 +486,456 @@ namespace WPEFramework
         return true;
     }
 
+    Exchange::ITextTrackClosedCaptionsStyle::FontFamily stringToFontFamily(const string& str)
+    {
+        if(str == "ms-serif") return Exchange::ITextTrackClosedCaptionsStyle::FontFamily::MONOSPACED_SERIF;
+        if(str == "PR-serif") return Exchange::ITextTrackClosedCaptionsStyle::FontFamily::PROPORTIONAL_SERIF;
+        if(str == "ms-sans-serif") return Exchange::ITextTrackClosedCaptionsStyle::FontFamily::MONOSPACE_SANS_SERIF;
+        if(str == "pr-sans-serif") return Exchange::ITextTrackClosedCaptionsStyle::FontFamily::PROPORTIONAL_SANS_SERIF;
+        if(str == "casual") return Exchange::ITextTrackClosedCaptionsStyle::FontFamily::CASUAL;
+        if(str == "cursive") return Exchange::ITextTrackClosedCaptionsStyle::FontFamily::CURSIVE;
+        if(str == "smallcaps") return Exchange::ITextTrackClosedCaptionsStyle::FontFamily::SMALL_CAPITAL;
+        return Exchange::ITextTrackClosedCaptionsStyle::FontFamily::CONTENT_DEFAULT;
+    }
 
+    Exchange::ITextTrackClosedCaptionsStyle::FontSize stringToFontSize(const string& str)
+    {
+        if(str == "small") return Exchange::ITextTrackClosedCaptionsStyle::FontSize::SMALL;
+        if(str == "medium") return Exchange::ITextTrackClosedCaptionsStyle::FontSize::REGULAR;
+        if(str == "large") return Exchange::ITextTrackClosedCaptionsStyle::FontSize::LARGE;
+        if(str == "extra-large") return Exchange::ITextTrackClosedCaptionsStyle::FontSize::EXTRA_LARGE;
+        return Exchange::ITextTrackClosedCaptionsStyle::FontSize::CONTENT_DEFAULT;
+    }
+
+    Exchange::ITextTrackClosedCaptionsStyle::FontEdge stringToFontEdge(const string& str)
+    {
+        if(str == "none") return Exchange::ITextTrackClosedCaptionsStyle::FontEdge::NONE;
+        if(str == "raised") return Exchange::ITextTrackClosedCaptionsStyle::FontEdge::RAISED;
+        if(str == "depressed") return Exchange::ITextTrackClosedCaptionsStyle::FontEdge::DEPRESSED;
+        if(str == "uniform") return Exchange::ITextTrackClosedCaptionsStyle::FontEdge::UNIFORM;
+        if(str == "leftdropshadow") return Exchange::ITextTrackClosedCaptionsStyle::FontEdge::LEFT_DROP_SHADOW;
+        if(str == "rightdropshadow") return Exchange::ITextTrackClosedCaptionsStyle::FontEdge::RIGHT_DROP_SHADOW;
+        return Exchange::ITextTrackClosedCaptionsStyle::FontEdge::CONTENT_DEFAULT;
+    }
+
+    uint32_t MigrationRestorer :: ApplyClosedCaptionsSettings(const JsonObject& parameters, JsonObject& response)
+    {
+        printf("ApplyClosedCaptonsSettings method called\n");
+        
+        for(const string&key : validatedkeys)
+        {
+            std::cout << "The key is : " << key << std::endl;
+            
+            auto itInput = inputMap.find(key);
+
+            cJSON* inputVal = itInput->second;
+
+            if (key == "closedcaptions/fontstyle" )
+            {
+                printf("Entered inside closedcaptions/fontstyle block\n" );
+		Exchange::ITextTrackClosedCaptionsStyle::FontFamily fontstyle = Exchange::ITextTrackClosedCaptionsStyle::FontFamily::CONTENT_DEFAULT;
+                if (cJSON_IsString(inputVal)) {
+                    printf("Entered inside fontstyle if-block\n" );
+                    fontstyle = stringToFontFamily(inputVal->valuestring);
+                }
+
+
+                PluginHost::IShell::state state;
+
+                if ((Utils::getServiceState(_service, TEXTTRACK_CALLSIGN, state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
+                    Utils::activatePlugin(_service, TEXTTRACK_CALLSIGN);
+
+                if ((Utils::getServiceState(_service, TEXTTRACK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
+                {
+                    printf("the texttrack plugin activated successfully\n");
+                    ASSERT(_service != nullptr);
+
+                    _textTrackPlugin = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::ITextTrackClosedCaptionsStyle>(TEXTTRACK_CALLSIGN);
+                    if (_textTrackPlugin)
+                    {
+                        printf("Entered inside the _textTrackPlugin block\n");
+                        if (_textTrackPlugin->SetFontFamily(fontstyle) == Core::ERROR_NONE)
+                        {
+                            printf("The set fontstyle method executed successfully\n");
+                        }
+                        else
+                        {
+                            LOGERR("Failed to set fontstyle");
+                        }
+                    }
+                }
+                else
+                {
+                    LOGERR("Failed to activate %s", TEXTTRACK_CALLSIGN);
+                }
+            }
+
+            else if (key == "closedcaptions/fontsize" )
+            {
+                printf("Entered inside closedcaptions/fontsize block\n" );
+	            Exchange::ITextTrackClosedCaptionsStyle::FontSize fontsize = Exchange::ITextTrackClosedCaptionsStyle::FontSize::CONTENT_DEFAULT;
+                if (cJSON_IsString(inputVal)) {
+                    printf("Entered inside fontsize if-block\n" );
+                    fontsize = stringToFontSize(inputVal->valuestring);
+                }
+
+
+                PluginHost::IShell::state state;
+
+                if ((Utils::getServiceState(_service, TEXTTRACK_CALLSIGN, state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
+                    Utils::activatePlugin(_service, TEXTTRACK_CALLSIGN);
+
+                if ((Utils::getServiceState(_service, TEXTTRACK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
+                {
+                    printf("the texttrack plugin activated successfully\n");
+                    ASSERT(_service != nullptr);
+
+                    _textTrackPlugin = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::ITextTrackClosedCaptionsStyle>(TEXTTRACK_CALLSIGN);
+                    if (_textTrackPlugin)
+                    {
+                        printf("Entered inside the _textTrackPlugin block\n");
+                        if (_textTrackPlugin->SetFontSize(fontsize) == Core::ERROR_NONE)
+                        {
+                            printf("The set fontsize method executed successfully\n");
+                        }
+                        else
+                        {
+                            LOGERR("Failed to set fontsize");
+                        }
+                    }
+                }
+                else
+                {
+                    LOGERR("Failed to activate %s", TEXTTRACK_CALLSIGN);
+                }
+            }
+
+            else if(key == "closedcaptions/fontcolor")
+            {
+                printf("Entered inside closedcaptions/fontcolor block\n" );
+	            string color;
+                if (cJSON_IsString(inputVal)) {
+                    printf("Entered inside fontcolor if-block\n" );
+                    color = inputVal->valuestring;
+                }
+
+
+                PluginHost::IShell::state state;
+
+                if ((Utils::getServiceState(_service, TEXTTRACK_CALLSIGN, state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
+                    Utils::activatePlugin(_service, TEXTTRACK_CALLSIGN);
+
+                if ((Utils::getServiceState(_service, TEXTTRACK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
+                {
+                    printf("the texttrack plugin activated successfully\n");
+                    ASSERT(_service != nullptr);
+
+                    _textTrackPlugin = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::ITextTrackClosedCaptionsStyle>(TEXTTRACK_CALLSIGN);
+                    if (_textTrackPlugin)
+                    {
+                        printf("Entered inside the _textTrackPlugin block\n");
+                        if (_textTrackPlugin->SetFontColor(color) == Core::ERROR_NONE)
+                        {
+                            printf("The set fontcolor method executed successfully\n");
+                        }
+                        else
+                        {
+                            LOGERR("Failed to set fontcolor");
+                        }
+                    }
+                }
+                else
+                {
+                    LOGERR("Failed to activate %s", TEXTTRACK_CALLSIGN);
+                }
+            }
+
+            else if(key == "closedcaptions/fontopacity")
+            {
+                printf("Entered inside closedcaptions/fontopacity block\n" );
+	            int8_t fontopacity = 0;
+                if (cJSON_IsNumber(inputVal)) {
+                    printf("Entered inside fontopacity if-block\n" );
+                    int val = (int)inputVal->valuedouble;
+                    fontopacity = (int8_t)val;
+                }
+
+
+                PluginHost::IShell::state state;
+
+                if ((Utils::getServiceState(_service, TEXTTRACK_CALLSIGN, state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
+                    Utils::activatePlugin(_service, TEXTTRACK_CALLSIGN);
+
+                if ((Utils::getServiceState(_service, TEXTTRACK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
+                {
+                    printf("the texttrack plugin activated successfully\n");
+                    ASSERT(_service != nullptr);
+
+                    _textTrackPlugin = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::ITextTrackClosedCaptionsStyle>(TEXTTRACK_CALLSIGN);
+                    if (_textTrackPlugin)
+                    {
+                        printf("Entered inside the _textTrackPlugin block\n");
+                        if (_textTrackPlugin->SetFontOpacity(fontopacity) == Core::ERROR_NONE)
+                        {
+                            printf("The set fontopacity method executed successfully\n");
+                        }
+                        else
+                        {
+                            LOGERR("Failed to set fontopacity");
+                        }
+                    }
+                }
+                else
+                {
+                    LOGERR("Failed to activate %s", TEXTTRACK_CALLSIGN);
+                }
+            }
+
+            else if(key == "closedcaptions/fontedgestyle")
+            {
+                printf("Entered inside closedcaptions/fontedgestyle block\n" );
+	            Exchange::ITextTrackClosedCaptionsStyle::FontEdge fontedge = Exchange::ITextTrackClosedCaptionsStyle::FontEdge::CONTENT_DEFAULT;
+                if (cJSON_IsString(inputVal)) {
+                    printf("Entered inside fontedgestyle if-block\n" );
+                    fontedge = stringToFontEdge(inputVal->valuestring);
+                }
+
+
+                PluginHost::IShell::state state;
+
+                if ((Utils::getServiceState(_service, TEXTTRACK_CALLSIGN, state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
+                    Utils::activatePlugin(_service, TEXTTRACK_CALLSIGN);
+
+                if ((Utils::getServiceState(_service, TEXTTRACK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
+                {
+                    printf("the texttrack plugin activated successfully\n");
+                    ASSERT(_service != nullptr);
+
+                    _textTrackPlugin = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::ITextTrackClosedCaptionsStyle>(TEXTTRACK_CALLSIGN);
+                    if (_textTrackPlugin)
+                    {
+                        printf("Entered inside the _textTrackPlugin block\n");
+                        if (_textTrackPlugin->SetFontEdge(fontedge) == Core::ERROR_NONE)
+                        {
+                            printf("The set fontedgestyle method executed successfully\n");
+                        }
+                        else
+                        {
+                            LOGERR("Failed to set fontedgestyle");
+                        }
+                    }
+                }
+                else
+                {
+                    LOGERR("Failed to activate %s", TEXTTRACK_CALLSIGN);
+                }
+            }
+
+            else if(key == "closedcaptions/fontedgecolor")
+            {
+                printf("Entered inside closedcaptions/fontedgecolor block\n" );
+	            string color ;
+                if (cJSON_IsString(inputVal)) {
+                    printf("Entered inside fontedgecolor if-block\n" );
+                    color = inputVal->valuestring;
+                }
+
+
+                PluginHost::IShell::state state;
+
+                if ((Utils::getServiceState(_service, TEXTTRACK_CALLSIGN, state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
+                    Utils::activatePlugin(_service, TEXTTRACK_CALLSIGN);
+
+                if ((Utils::getServiceState(_service, TEXTTRACK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
+                {
+                    printf("the texttrack plugin activated successfully\n");
+                    ASSERT(_service != nullptr);
+
+                    _textTrackPlugin = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::ITextTrackClosedCaptionsStyle>(TEXTTRACK_CALLSIGN);
+                    if (_textTrackPlugin)
+                    {
+                        printf("Entered inside the _textTrackPlugin block\n");
+                        if (_textTrackPlugin->SetFontEdgeColor(color) == Core::ERROR_NONE)
+                        {
+                            printf("The set fontedgecolor method executed successfully\n");
+                        }
+                        else
+                        {
+                            LOGERR("Failed to set fontedgecolor");
+                        }
+                    }
+                }
+                else
+                {
+                    LOGERR("Failed to activate %s", TEXTTRACK_CALLSIGN);
+                }
+            }
+
+            else if(key == "closedcaptions/backgroundcolor")
+            {
+                printf("Entered inside closedcaptions/backgroundcolor block\n" );
+	            string color;
+                if (cJSON_IsString(inputVal)) {
+                    printf("Entered inside backgroundcolor if-block\n" );
+                    color = inputVal->valuestring;
+                }
+
+
+                PluginHost::IShell::state state;
+
+                if ((Utils::getServiceState(_service, TEXTTRACK_CALLSIGN, state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
+                    Utils::activatePlugin(_service, TEXTTRACK_CALLSIGN);
+
+                if ((Utils::getServiceState(_service, TEXTTRACK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
+                {
+                    printf("the texttrack plugin activated successfully\n");
+                    ASSERT(_service != nullptr);
+
+                    _textTrackPlugin = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::ITextTrackClosedCaptionsStyle>(TEXTTRACK_CALLSIGN);
+                    if (_textTrackPlugin)
+                    {
+                        printf("Entered inside the _textTrackPlugin block\n");
+                        if (_textTrackPlugin->SetBackgroundColor(color) == Core::ERROR_NONE)
+                        {
+                            printf("The set backgroundcolor method executed successfully\n");
+                        }
+                        else
+                        {
+                            LOGERR("Failed to set backgroundcolor");
+                        }
+                    }
+                }
+                else
+                {
+                    LOGERR("Failed to activate %s", TEXTTRACK_CALLSIGN);
+                }
+            }
+
+            else if(key == "closedcaptions/backgroundopacity")
+            {
+                printf("Entered inside closedcaptions/backgroundopacity block\n" );
+	            int8_t backgroundopacity = 0;
+                if (cJSON_IsNumber(inputVal)) {
+                    printf("Entered inside backgroundopacity if-block\n" );
+                    int val = (int)inputVal->valuedouble;
+                    backgroundopacity = (int8_t)val;
+                }
+
+
+                PluginHost::IShell::state state;
+
+                if ((Utils::getServiceState(_service, TEXTTRACK_CALLSIGN, state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
+                    Utils::activatePlugin(_service, TEXTTRACK_CALLSIGN);
+
+                if ((Utils::getServiceState(_service, TEXTTRACK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
+                {
+                    printf("the texttrack plugin activated successfully\n");
+                    ASSERT(_service != nullptr);
+
+                    _textTrackPlugin = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::ITextTrackClosedCaptionsStyle>(TEXTTRACK_CALLSIGN);
+                    if (_textTrackPlugin)
+                    {
+                        printf("Entered inside the _textTrackPlugin block\n");
+                        if (_textTrackPlugin->SetBackgroundOpacity(backgroundopacity) == Core::ERROR_NONE)
+                        {
+                            printf("The set backgroundopacity method executed successfully\n");
+                        }
+                        else
+                        {
+                            LOGERR("Failed to set backgroundopacity");
+                        }
+                    }
+                }
+                else
+                {
+                    LOGERR("Failed to activate %s", TEXTTRACK_CALLSIGN);
+                }
+            }
+
+            else if(key == "closedcaptions/windowcolor")
+            {
+                printf("Entered inside closedcaptions/windowcolor block\n" );
+	            string color;
+                if (cJSON_IsString(inputVal)) {
+                    printf("Entered inside windowcolor if-block\n" );
+                    color = inputVal->valuestring;
+                }
+
+
+                PluginHost::IShell::state state;
+
+                if ((Utils::getServiceState(_service, TEXTTRACK_CALLSIGN, state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
+                    Utils::activatePlugin(_service, TEXTTRACK_CALLSIGN);
+
+                if ((Utils::getServiceState(_service, TEXTTRACK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
+                {
+                    printf("the texttrack plugin activated successfully\n");
+                    ASSERT(_service != nullptr);
+
+                    _textTrackPlugin = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::ITextTrackClosedCaptionsStyle>(TEXTTRACK_CALLSIGN);
+                    if (_textTrackPlugin)
+                    {
+                        printf("Entered inside the _textTrackPlugin block\n");
+                        if (_textTrackPlugin->SetWindowColor(color) == Core::ERROR_NONE)
+                        {
+                            printf("The set windowcolor method executed successfully\n");
+                        }
+                        else
+                        {
+                            LOGERR("Failed to set windowcolor");
+                        }
+                    }
+                }
+                else
+                {
+                    LOGERR("Failed to activate %s", TEXTTRACK_CALLSIGN);
+                }
+            }
+
+            else if(key == "closedcaptions/windowopacity")
+            {
+                printf("Entered inside closedcaptions/windowopacity block\n" );
+	            int8_t windowopacity = 0;
+                if (cJSON_IsNumber(inputVal)) {
+                    printf("Entered inside windowopacity if-block\n" );
+                    int val = (int)inputVal->valuedouble;
+                    windowopacity = (int8_t)val;
+                }
+
+
+                PluginHost::IShell::state state;
+
+                if ((Utils::getServiceState(_service, TEXTTRACK_CALLSIGN, state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
+                    Utils::activatePlugin(_service, TEXTTRACK_CALLSIGN);
+
+                if ((Utils::getServiceState(_service, TEXTTRACK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
+                {
+                    printf("the texttrack plugin activated successfully\n");
+                    ASSERT(_service != nullptr);
+
+                    _textTrackPlugin = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::ITextTrackClosedCaptionsStyle>(TEXTTRACK_CALLSIGN);
+                    if (_textTrackPlugin)
+                    {
+                        printf("Entered inside the _textTrackPlugin block\n");
+                        if (_textTrackPlugin->SetWindowOpacity(windowopacity) == Core::ERROR_NONE)
+                        {
+                            printf("The set windowopacity method executed successfully\n");
+                        }
+                        else
+                        {
+                            LOGERR("Failed to set windowopacity");
+                        }
+                    }
+                }
+                else
+                {
+                    LOGERR("Failed to activate %s", TEXTTRACK_CALLSIGN);
+                }
+            }
+
+        }
+	return 0;
+    }
     
     uint32_t MigrationRestorer :: ApplyDisplaySettings(const JsonObject& parameters, JsonObject& response)
     {
@@ -828,9 +1278,9 @@ namespace WPEFramework
                 }
             }
 
-            else if(key == "accessibility/windowopacity")
+            else if(key == "closedcaptions/windowopacity")
             {
-                printf("Entered inside accessibility/windowopacity block\n" );
+                printf("Entered inside closedcaptions/windowopacity block\n" );
 	            int8_t windowopacity = 0;
                 if (cJSON_IsNumber(inputVal)) {
                     printf("Entered inside windowopacity if-block\n" );
@@ -861,7 +1311,7 @@ namespace WPEFramework
                         {
                             LOGERR("Failed to set windowopacity");
                         }
-                    }
+		    }
                 }
                 else
                 {
@@ -897,6 +1347,7 @@ namespace WPEFramework
                         LOG_DEVICE_EXCEPTION1(zoomSetting);
                         //success = false;
                     }
+                
             }  
         }
 	    return 0;
