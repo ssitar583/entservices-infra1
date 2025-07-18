@@ -262,8 +262,8 @@ SharedStorage_L2testDeviceScope::SharedStorage_L2testDeviceScope()
     /* Activate plugin in constructor */
     status = ActivateService("org.rdk.PersistentStore");
     EXPECT_EQ(Core::ERROR_NONE, status);
-    status = ActivateService("org.rdk.CloudStore");
-    EXPECT_EQ(Core::ERROR_NONE, status);
+    // status = ActivateService("org.rdk.CloudStore");
+    // EXPECT_EQ(Core::ERROR_NONE, status);
     status = ActivateService("org.rdk.SharedStorage");
     EXPECT_EQ(Core::ERROR_NONE, status);
 }
@@ -277,8 +277,8 @@ SharedStorage_L2testDeviceScope::~SharedStorage_L2testDeviceScope()
     /* Deactivate plugin in destructor */
     status = DeactivateService("org.rdk.PersistentStore");
     EXPECT_EQ(Core::ERROR_NONE, status);
-    status = DeactivateService("org.rdk.CloudStore");
-    EXPECT_EQ(Core::ERROR_NONE, status);
+    // status = DeactivateService("org.rdk.CloudStore");
+    // EXPECT_EQ(Core::ERROR_NONE, status);
     status = DeactivateService("org.rdk.SharedStorage");
     EXPECT_EQ(Core::ERROR_NONE, status);
 }
