@@ -1211,6 +1211,46 @@ namespace WPEFramework
                 }
             }
 
+            else if(key == "accessibility/voiceguidancespeed")
+            {
+                printf("Entered inside parental/voiceguidancespeed block\n" );
+	            double voiceguidancespeed = 0;
+                if (cJSON_IsNumber(inputVal))
+                { 
+                    printf("Entered inside voiceguidancespeed if-block\n" );
+                    voiceguidancespeed = inputVal->valuedouble;
+                }
+
+                PluginHost::IShell::state state;
+
+                if ((Utils::getServiceState(_service, USERSETTINGS_CALLSIGN, state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
+                    Utils::activatePlugin(_service, USERSETTINGS_CALLSIGN);
+
+                if ((Utils::getServiceState(_service, USERSETTINGS_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
+                {
+                    printf("the usersettings plugin activated successfully\n");
+                    ASSERT(_service != nullptr);
+
+                    _userSettingsPlugin = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::IUserSettings>(USERSETTINGS_CALLSIGN);
+                    if (_userSettingsPlugin)
+                    {
+                        printf("Entered inside the _userSettingsPlugin block\n");
+                        if (_userSettingsPlugin->SetVoiceGuidanceRate(voiceguidancespeed) == Core::ERROR_NONE)
+                        {
+                            printf("The set voiceguidancespeed method executed successfully\n");
+                        }
+                        else
+                        {
+                            LOGERR("Failed to set voiceguidancespeed");
+                        }
+                    }
+                }
+                else
+                {
+                    LOGERR("Failed to activate %s", USERSETTINGS_CALLSIGN);
+                }
+            }
+
             else if(key == "hdmi/hdmicontrol")
             {
                 printf("Entered inside hdmi/hdmicontrol block\n" );
