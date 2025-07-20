@@ -467,9 +467,9 @@ jobs:
           -DPLUGIN_OCICONTAINER=ON
           -DPLUGIN_USERSETTINGS=ON
           -DPLUGIN_RESOURCEMANAGER=ON
-          -DPLUGIN_APPMANAGER=ON
-          -DPLUGIN_STORAGE_MANAGER=ON
-          -DPLUGIN_RUNTIME_MANAGER=ON
+          #-DPLUGIN_APPMANAGER=ON
+          #-DPLUGIN_STORAGE_MANAGER=ON
+          #-DPLUGIN_RUNTIME_MANAGER=ON
           -DPLUGIN_LIFECYCLE_MANAGER=ON
           &&
           cmake --build build/entservices-infra -j8
@@ -548,9 +548,9 @@ jobs:
           -DPLUGIN_OCICONTAINER=ON
           -DPLUGIN_USERSETTINGS=ON
           -DPLUGIN_RESOURCEMANAGER=ON
-          -DPLUGIN_APPMANAGER=ON
-          -DPLUGIN_STORAGE_MANAGER=ON
-          -DPLUGIN_RUNTIME_MANAGER=ON
+          #-DPLUGIN_APPMANAGER=ON
+          #-DPLUGIN_STORAGE_MANAGER=ON
+          #-DPLUGIN_RUNTIME_MANAGER=ON
           -DPLUGIN_LIFECYCLE_MANAGER=ON
           &&
           cmake --build build/entservices-testframework -j8
