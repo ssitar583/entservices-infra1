@@ -23,6 +23,9 @@
 #include <string>
 #include <vector>
 #include <cstdio>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 #include "LifecycleManager.h"
 #include "LifecycleManagerImplementation.h"
@@ -417,7 +420,8 @@ TEST_F(LifecycleManagerTest, unloadApp_withValidParams)
 {
     createResources();
 
-    appInstanceId = "test.app.instance";
+    boost::uuids::uuid testTag = boost::uuids::random_generator()();
+    appInstanceId = boost::uuids::to_string(testTag);
 
     // TC-18: Unload the app after spawning
     EXPECT_EQ(Core::ERROR_NONE, interface->UnloadApp(appInstanceId, errorReason, success));
@@ -445,7 +449,8 @@ TEST_F(LifecycleManagerTest, killApp_withValidParams)
 {
     createResources();
 
-    appInstanceId = "test.app.instance";
+    boost::uuids::uuid testTag = boost::uuids::random_generator()();
+    appInstanceId = boost::uuids::to_string(testTag);
 
     // TC-20: Kill the app after spawning
     EXPECT_EQ(Core::ERROR_NONE, interface->KillApp(appInstanceId, errorReason, success));
@@ -473,7 +478,8 @@ TEST_F(LifecycleManagerTest, sendIntenttoActiveApp_withValidParams)
 {
     createResources();
 
-    appInstanceId = "test.app.instance";
+    boost::uuids::uuid testTag = boost::uuids::random_generator()();
+    appInstanceId = boost::uuids::to_string(testTag);
     string intent = "test.intent";
 
     // TC-22: Send intent to the app after spawning
