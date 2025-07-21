@@ -231,7 +231,6 @@ Telemetry_L2test::Telemetry_L2test()
 	{
             EXPECT_TRUE(m_telemetryplugin != nullptr);
             if (m_telemetryplugin) {
-                m_telemetryplugin->AddRef();
                 m_telemetryplugin->Register(&notify);
             } else {
                     TEST_LOG("m_telemetryplugin is NULL");
@@ -249,6 +248,9 @@ Telemetry_L2test::~Telemetry_L2test()
 {
     Core::hresult status = Core::ERROR_GENERAL;
     m_event_signalled = Telemetry_StateInvalid;
+
+    EXPECT_CALL(PowerManagerHalMock::Mock(), PLAT_DS_TERM())
+    .WillOnce(::testing::Return(DEEPSLEEPMGR_SUCCESS));
 
     //Deactivate PowerMgr
     status = DeactivateService("org.rdk.PowerManager");

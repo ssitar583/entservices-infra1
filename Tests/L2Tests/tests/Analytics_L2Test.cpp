@@ -313,6 +313,9 @@ AnalyticsTest::~AnalyticsTest()
 {
     uint32_t status = Core::ERROR_GENERAL;
 
+    EXPECT_CALL(PowerManagerHalMock::Mock(), PLAT_DS_TERM())
+    .WillOnce(::testing::Return(DEEPSLEEPMGR_SUCCESS));
+
     status = DeactivateService("org.rdk.PowerManager");
     EXPECT_EQ(Core::ERROR_NONE, status);
 
