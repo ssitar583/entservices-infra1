@@ -250,7 +250,6 @@ Telemetry_L2test::~Telemetry_L2test()
     Core::hresult status = Core::ERROR_GENERAL;
     m_event_signalled = Telemetry_StateInvalid;
 
-    sleep(2);
     //Deactivate PowerMgr
     status = DeactivateService("org.rdk.PowerManager");
 
