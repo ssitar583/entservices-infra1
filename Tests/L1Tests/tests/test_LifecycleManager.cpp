@@ -415,10 +415,17 @@ TEST_F(LifecycleManagerTest, unloadApp_withValidParams)
 
     appInstanceId = "test.app.instance";
 
-    EXPECT_CALL(*mRuntimeManagerMock, Run(appId, appInstanceId,::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, runtimeConfigObject))
+    EXPECT_CALL(*mRuntimeManagerMock, Run(appId, appInstanceId,::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(::testing::AnyNumber())
         .WillOnce(::testing::Invoke(
             [&](const string& appId, const string& appInstanceId, const uint32_t userId, const uint32_t groupId, Exchange::IRuntimeManager::IValueIterator* const& ports, Exchange::IRuntimeManager::IStringIterator* const& paths, Exchange::IRuntimeManager::IStringIterator* const& debugSettings, const Exchange::RuntimeConfig& runtimeConfigObject) {
+                return Core::ERROR_NONE;
+          }));
+
+    EXPECT_CALL(*mRuntimeManagerMock, Resume(appInstanceId))
+        .Times(::testing::AnyNumber())
+        .WillOnce(::testing::Invoke(
+            [&](const string& appInstanceId) {
                 return Core::ERROR_NONE;
           }));
 
@@ -452,10 +459,17 @@ TEST_F(LifecycleManagerTest, killApp_withValidParams)
 
     appInstanceId = "test.app.instance";
 
-    EXPECT_CALL(*mRuntimeManagerMock, Run(appId, appInstanceId,::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, runtimeConfigObject))
+    EXPECT_CALL(*mRuntimeManagerMock, Run(appId, appInstanceId,::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(::testing::AnyNumber())
         .WillOnce(::testing::Invoke(
             [&](const string& appId, const string& appInstanceId, const uint32_t userId, const uint32_t groupId, Exchange::IRuntimeManager::IValueIterator* const& ports, Exchange::IRuntimeManager::IStringIterator* const& paths, Exchange::IRuntimeManager::IStringIterator* const& debugSettings, const Exchange::RuntimeConfig& runtimeConfigObject) {
+                return Core::ERROR_NONE;
+          }));
+
+    EXPECT_CALL(*mRuntimeManagerMock, Resume(appInstanceId))
+        .Times(::testing::AnyNumber())
+        .WillOnce(::testing::Invoke(
+            [&](const string& appInstanceId) {
                 return Core::ERROR_NONE;
           }));
 
@@ -490,10 +504,17 @@ TEST_F(LifecycleManagerTest, sendIntenttoActiveApp_withValidParams)
     appInstanceId = "test.app.instance";
     string intent = "test.intent";
 
-    EXPECT_CALL(*mRuntimeManagerMock, Run(appId, appInstanceId,::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, runtimeConfigObject))
+    EXPECT_CALL(*mRuntimeManagerMock, Run(appId, appInstanceId,::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(::testing::AnyNumber())
         .WillOnce(::testing::Invoke(
             [&](const string& appId, const string& appInstanceId, const uint32_t userId, const uint32_t groupId, Exchange::IRuntimeManager::IValueIterator* const& ports, Exchange::IRuntimeManager::IStringIterator* const& paths, Exchange::IRuntimeManager::IStringIterator* const& debugSettings, const Exchange::RuntimeConfig& runtimeConfigObject) {
+                return Core::ERROR_NONE;
+          }));
+
+    EXPECT_CALL(*mRuntimeManagerMock, Resume(appInstanceId))
+        .Times(::testing::AnyNumber())
+        .WillOnce(::testing::Invoke(
+            [&](const string& appInstanceId) {
                 return Core::ERROR_NONE;
           }));
 
