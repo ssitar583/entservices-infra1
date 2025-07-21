@@ -23,9 +23,6 @@
 #include <string>
 #include <vector>
 #include <cstdio>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
 
 #include "LifecycleManager.h"
 #include "LifecycleManagerImplementation.h"
@@ -420,8 +417,13 @@ TEST_F(LifecycleManagerTest, unloadApp_withValidParams)
 {
     createResources();
 
-    boost::uuids::uuid testTag = boost::uuids::random_generator()();
-    appInstanceId = boost::uuids::to_string(testTag);
+    appInstanceId = "test.app.instance";
+
+    EXPECT_EQ(Core::ERROR_NONE, interface->SpawnApp(appId, launchIntent, targetLifecycleState, runtimeConfigObject, launchArgs, appInstanceId, errorReason, success));
+
+    mLifecycleManagerConfigure->Release();
+
+    mLifecycleManagerConfigure->Configure(mServiceMock);
 
     // TC-18: Unload the app after spawning
     EXPECT_EQ(Core::ERROR_NONE, interface->UnloadApp(appInstanceId, errorReason, success));
@@ -449,8 +451,13 @@ TEST_F(LifecycleManagerTest, killApp_withValidParams)
 {
     createResources();
 
-    boost::uuids::uuid testTag = boost::uuids::random_generator()();
-    appInstanceId = boost::uuids::to_string(testTag);
+    appInstanceId = "test.app.instance";
+
+    EXPECT_EQ(Core::ERROR_NONE, interface->SpawnApp(appId, launchIntent, targetLifecycleState, runtimeConfigObject, launchArgs, appInstanceId, errorReason, success));
+
+    mLifecycleManagerConfigure->Release();
+
+    mLifecycleManagerConfigure->Configure(mServiceMock);
 
     // TC-20: Kill the app after spawning
     EXPECT_EQ(Core::ERROR_NONE, interface->KillApp(appInstanceId, errorReason, success));
@@ -478,13 +485,17 @@ TEST_F(LifecycleManagerTest, sendIntenttoActiveApp_withValidParams)
 {
     createResources();
 
-    boost::uuids::uuid testTag = boost::uuids::random_generator()();
-    appInstanceId = boost::uuids::to_string(testTag);
+    appInstanceId = "test.app.instance";
     string intent = "test.intent";
+
+    EXPECT_EQ(Core::ERROR_NONE, interface->SpawnApp(appId, launchIntent, targetLifecycleState, runtimeConfigObject, launchArgs, appInstanceId, errorReason, success));
+
+    mLifecycleManagerConfigure->Release();
+
+    mLifecycleManagerConfigure->Configure(mServiceMock);
 
     // TC-22: Send intent to the app after spawning
     EXPECT_EQ(Core::ERROR_NONE, interface->SendIntentToActiveApp(appInstanceId, intent, errorReason, success));
-
     //EXPECT_EQ(, "\"[{\\\"loaded\\\":false}]\"");
 
     releaseResources();
