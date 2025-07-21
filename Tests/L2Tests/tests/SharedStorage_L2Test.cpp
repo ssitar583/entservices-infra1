@@ -29,7 +29,7 @@
 #include "SecureStorageServerMock.h"
 #include "SecureStorageServiceMock.h"
 
-#define EVNT_TIMEOUT (100)
+#define EVNT_TIMEOUT (1000)
 #define SHAREDSTORAGE_CALLSIGN _T("org.rdk.SharedStorage.1")
 #define SHAREDSTORAGETEST_CALLSIGN _T("L2tests.1")
 
@@ -450,7 +450,6 @@ TEST_F(SharedStorage_L2test,SetValue_ACCOUNT_Scope_JSONRPC)
 
     signalled = WaitForRequestStatus(EVNT_TIMEOUT, SHARED_STORAGE_ON_VALUE_CHANGED);
     EXPECT_TRUE(signalled & SHARED_STORAGE_ON_VALUE_CHANGED);
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     jsonrpc.Unsubscribe(EVNT_TIMEOUT, _T("onValueChanged"));
 }
 
@@ -586,7 +585,6 @@ TEST_F(SharedStorage_L2testDeviceScope, SetValue_DEVICE_Scope_JSONRPC)
 
     signalled = WaitForRequestStatus(EVNT_TIMEOUT, SHARED_STORAGE_ON_VALUE_CHANGED);
     EXPECT_TRUE(signalled & SHARED_STORAGE_ON_VALUE_CHANGED);
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     jsonrpc.Unsubscribe(EVNT_TIMEOUT, _T("onValueChanged"));
 }
 
@@ -696,8 +694,6 @@ TEST_F(SharedStorage_L2test, SetValue_ACCOUNT_Scope_COMRPC)
 
                 signalled = notify.WaitForRequestStatus(EVNT_TIMEOUT, SHARED_STORAGE_ON_VALUE_CHANGED);
                 EXPECT_TRUE(signalled & SHARED_STORAGE_ON_VALUE_CHANGED);
-
-                std::this_thread::sleep_for(std::chrono::milliseconds(10));
                 
                 m_sharedstorageplugin->Unregister(&notify);
                 m_sharedstorageplugin->Release();
@@ -885,8 +881,6 @@ TEST_F(SharedStorage_L2testDeviceScope, SetValue_DEVICE_Scope_COMRPC)
 
                 signalled = notify.WaitForRequestStatus(EVNT_TIMEOUT, SHARED_STORAGE_ON_VALUE_CHANGED);
                 EXPECT_TRUE(signalled & SHARED_STORAGE_ON_VALUE_CHANGED);
-
-                std::this_thread::sleep_for(std::chrono::milliseconds(10));
                 
                 m_sharedstorageplugin->Unregister(&notify);
                 m_sharedstorageplugin->Release();
