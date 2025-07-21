@@ -422,12 +422,14 @@ TEST_F(LifecycleManagerTest, unloadApp_withValidParams)
                 return Core::ERROR_NONE;
           }));
 
+    #if 0
     EXPECT_CALL(*mRuntimeManagerMock, Resume(appInstanceId))
         .Times(::testing::AnyNumber())
         .WillOnce(::testing::Invoke(
             [&](const string& appInstanceId) {
                 return Core::ERROR_NONE;
           }));
+    #endif
 
     EXPECT_EQ(Core::ERROR_NONE, interface->SpawnApp(appId, launchIntent, targetLifecycleState, runtimeConfigObject, launchArgs, appInstanceId, errorReason, success));
 
@@ -466,12 +468,14 @@ TEST_F(LifecycleManagerTest, killApp_withValidParams)
                 return Core::ERROR_NONE;
           }));
 
+    #if 0
     EXPECT_CALL(*mRuntimeManagerMock, Resume(appInstanceId))
         .Times(::testing::AnyNumber())
         .WillOnce(::testing::Invoke(
             [&](const string& appInstanceId) {
                 return Core::ERROR_NONE;
           }));
+    #endif
 
     EXPECT_EQ(Core::ERROR_NONE, interface->SpawnApp(appId, launchIntent, targetLifecycleState, runtimeConfigObject, launchArgs, appInstanceId, errorReason, success));
 
@@ -511,12 +515,14 @@ TEST_F(LifecycleManagerTest, sendIntenttoActiveApp_withValidParams)
                 return Core::ERROR_NONE;
           }));
 
+    #if 0
     EXPECT_CALL(*mRuntimeManagerMock, Resume(appInstanceId))
         .Times(::testing::AnyNumber())
         .WillOnce(::testing::Invoke(
             [&](const string& appInstanceId) {
                 return Core::ERROR_NONE;
           }));
+    #endif
 
     EXPECT_EQ(Core::ERROR_NONE, interface->SpawnApp(appId, launchIntent, targetLifecycleState, runtimeConfigObject, launchArgs, appInstanceId, errorReason, success));
 
