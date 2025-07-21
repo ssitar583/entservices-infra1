@@ -249,6 +249,9 @@ Telemetry_L2test::~Telemetry_L2test()
     Core::hresult status = Core::ERROR_GENERAL;
     m_event_signalled = Telemetry_StateInvalid;
 
+    EXPECT_CALL(PowerManagerHalMock::Mock(), PLAT_TERM())
+    .WillOnce(::testing::Return(PWRMGR_SUCCESS));
+
     EXPECT_CALL(PowerManagerHalMock::Mock(), PLAT_DS_TERM())
     .WillOnce(::testing::Return(DEEPSLEEPMGR_SUCCESS));
 

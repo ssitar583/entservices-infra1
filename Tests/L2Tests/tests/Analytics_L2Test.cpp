@@ -313,6 +313,9 @@ AnalyticsTest::~AnalyticsTest()
 {
     uint32_t status = Core::ERROR_GENERAL;
 
+    EXPECT_CALL(PowerManagerHalMock::Mock(), PLAT_TERM())
+    .WillOnce(::testing::Return(PWRMGR_SUCCESS));
+
     EXPECT_CALL(PowerManagerHalMock::Mock(), PLAT_DS_TERM())
     .WillOnce(::testing::Return(DEEPSLEEPMGR_SUCCESS));
 
