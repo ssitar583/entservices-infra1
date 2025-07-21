@@ -281,6 +281,18 @@ SharedStorage_L2testDeviceScope::~SharedStorage_L2testDeviceScope()
     EXPECT_EQ(Core::ERROR_NONE, status);
     status = DeactivateService("org.rdk.PersistentStore");
     EXPECT_EQ(Core::ERROR_NONE, status);
+
+    sleep(5);
+    int file_status = remove("/tmp/secure/persistent/rdkservicestore");
+    // Check if the file has been successfully removed
+    if (file_status != 0)
+    {
+        TEST_LOG("Error deleting file[/tmp/secure/persistent/rdkservicestore]");
+    }
+    else
+    {
+        TEST_LOG("File[/tmp/secure/persistent/rdkservicestore] successfully deleted");
+    }
 }
 
 uint32_t SharedStorage_L2testDeviceScope::CreateSharedStorageInterfaceObject(int interface)
