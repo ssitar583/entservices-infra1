@@ -281,18 +281,6 @@ SharedStorage_L2testDeviceScope::~SharedStorage_L2testDeviceScope()
     EXPECT_EQ(Core::ERROR_NONE, status);
     status = DeactivateService("org.rdk.PersistentStore");
     EXPECT_EQ(Core::ERROR_NONE, status);
-
-    sleep(5);
-    int file_status = remove("/tmp/secure/persistent/rdkservicestore");
-    // Check if the file has been successfully removed
-    if (file_status != 0)
-    {
-        TEST_LOG("Error deleting file[/tmp/secure/persistent/rdkservicestore]");
-    }
-    else
-    {
-        TEST_LOG("File[/tmp/secure/persistent/rdkservicestore] successfully deleted");
-    }
 }
 
 uint32_t SharedStorage_L2testDeviceScope::CreateSharedStorageInterfaceObject(int interface)
@@ -615,6 +603,18 @@ TEST_F(SharedStorage_L2testDeviceScope, GetValue_DEVICE_Scope_JSONRPC)
     status = InvokeServiceMethod("org.rdk.SharedStorage.1", "getValue", params, result);
     EXPECT_EQ(status, Core::ERROR_NONE);
     EXPECT_TRUE(result["success"].Boolean());
+
+    sleep(5);
+    int file_status = remove("/tmp/secure/persistent/rdkservicestore");
+    // Check if the file has been successfully removed
+    if (file_status != 0)
+    {
+        TEST_LOG("Error deleting file[/tmp/secure/persistent/rdkservicestore]");
+    }
+    else
+    {
+        TEST_LOG("File[/tmp/secure/persistent/rdkservicestore] successfully deleted");
+    }
 }
 
 /*
