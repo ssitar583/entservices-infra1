@@ -415,7 +415,7 @@ TEST_F(LifecycleManagerTest, unloadApp_withValidParams)
 
     //appInstanceId = "test.app.instance";
 
-    EXPECT_CALL(*mRuntimeManagerMock, Run(appId, appInstanceId,::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
+    EXPECT_CALL(*mRuntimeManagerMock, Run(appId, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(::testing::AnyNumber())
         .WillOnce(::testing::Invoke(
             [&](const string& appId, const string& appInstanceId, const uint32_t userId, const uint32_t groupId, Exchange::IRuntimeManager::IValueIterator* const& ports, Exchange::IRuntimeManager::IStringIterator* const& paths, Exchange::IRuntimeManager::IStringIterator* const& debugSettings, const Exchange::RuntimeConfig& runtimeConfigObject) {
@@ -461,7 +461,7 @@ TEST_F(LifecycleManagerTest, killApp_withValidParams)
 
     //appInstanceId = "test.app.instance";
 
-    EXPECT_CALL(*mRuntimeManagerMock, Run(appId, appInstanceId,::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
+    EXPECT_CALL(*mRuntimeManagerMock, Run(appId, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(::testing::AnyNumber())
         .WillOnce(::testing::Invoke(
             [&](const string& appId, const string& appInstanceId, const uint32_t userId, const uint32_t groupId, Exchange::IRuntimeManager::IValueIterator* const& ports, Exchange::IRuntimeManager::IStringIterator* const& paths, Exchange::IRuntimeManager::IStringIterator* const& debugSettings, const Exchange::RuntimeConfig& runtimeConfigObject) {
@@ -508,7 +508,7 @@ TEST_F(LifecycleManagerTest, sendIntenttoActiveApp_withValidParams)
     //appInstanceId = "test.app.instance";
     string intent = "test.intent";
 
-    EXPECT_CALL(*mRuntimeManagerMock, Run(appId, appInstanceId,::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
+    EXPECT_CALL(*mRuntimeManagerMock, Run(appId, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(::testing::AnyNumber())
         .WillOnce(::testing::Invoke(
             [&](const string& appId, const string& appInstanceId, const uint32_t userId, const uint32_t groupId, Exchange::IRuntimeManager::IValueIterator* const& ports, Exchange::IRuntimeManager::IStringIterator* const& paths, Exchange::IRuntimeManager::IStringIterator* const& debugSettings, const Exchange::RuntimeConfig& runtimeConfigObject) {
