@@ -413,7 +413,7 @@ TEST_F(LifecycleManagerTest, unloadApp_withValidParams)
 {
     createResources();
 
-    appInstanceId = "test.app.instance";
+    //appInstanceId = "test.app.instance";
 
     EXPECT_CALL(*mRuntimeManagerMock, Run(appId, appInstanceId,::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(::testing::AnyNumber())
@@ -459,7 +459,7 @@ TEST_F(LifecycleManagerTest, killApp_withValidParams)
 {
     createResources();
 
-    appInstanceId = "test.app.instance";
+    //appInstanceId = "test.app.instance";
 
     EXPECT_CALL(*mRuntimeManagerMock, Run(appId, appInstanceId,::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(::testing::AnyNumber())
@@ -505,7 +505,7 @@ TEST_F(LifecycleManagerTest, sendIntenttoActiveApp_withValidParams)
 {
     createResources();
 
-    appInstanceId = "test.app.instance";
+    //appInstanceId = "test.app.instance";
     string intent = "test.intent";
 
     EXPECT_CALL(*mRuntimeManagerMock, Run(appId, appInstanceId,::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
