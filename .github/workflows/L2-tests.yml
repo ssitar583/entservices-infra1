@@ -88,7 +88,7 @@ jobs:
         with:
           repository: rdkcentral/entservices-deviceanddisplay
           path: entservices-deviceanddisplay
-          ref: 1b45804a16a4abd6f16fc5a5cb23ab45360eb130
+          ref: feature/RDKEMW-3229-nl
          
       - name: Checkout entservices-testframework
         uses: actions/checkout@v3
