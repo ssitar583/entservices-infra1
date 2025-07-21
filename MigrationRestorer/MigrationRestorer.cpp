@@ -937,6 +937,16 @@ namespace WPEFramework
 	return 0;
     }
     
+    double stringToDouble(string str)
+    {
+        if(str == "slow") return 0.81;
+        if(str == "medium") return 1;
+        if(str == "fast") return 1.19;
+        if(str == "faster") return 1.38;
+        if(str == "fastest") return 1.56;
+	return 0;
+    }
+
     uint32_t MigrationRestorer :: ApplyDisplaySettings(const JsonObject& parameters, JsonObject& response)
     {
         printf("MigrationRestorer'S ApplyDisplaySettings Method called\n");
@@ -1213,12 +1223,13 @@ namespace WPEFramework
 
             else if(key == "accessibility/voiceguidancespeed")
             {
-                printf("Entered inside parental/voiceguidancespeed block\n" );
+                printf("Entered inside accessibility/voiceguidancespeed block\n" );
 	            double voiceguidancespeed = 0;
-                if (cJSON_IsNumber(inputVal))
+                if (cJSON_IsString(inputVal))
                 { 
                     printf("Entered inside voiceguidancespeed if-block\n" );
-                    voiceguidancespeed = inputVal->valuedouble;
+                    string str = inputVal->valuestring;
+                    voiceguidancespeed = stringToDouble(str) ;
                 }
 
                 PluginHost::IShell::state state;
@@ -1351,7 +1362,7 @@ namespace WPEFramework
                         {
                             LOGERR("Failed to set windowopacity");
                         }
-		    }
+		            }
                 }
                 else
                 {
