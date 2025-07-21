@@ -40,10 +40,6 @@
 using ::testing::NiceMock;
 using namespace WPEFramework;
 
-namespace {
-const string callSign = _T("LifecycleManager");
-}
-
 class LifecycleManagerTest : public ::testing::Test {
 protected:
     string appId;
@@ -419,11 +415,14 @@ TEST_F(LifecycleManagerTest, unloadApp_withValidParams)
 
     appInstanceId = "test.app.instance";
 
+    EXPECT_CALL(*mRuntimeManagerMock, Run(appId, appInstanceId,::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, runtimeConfigObject))
+        .Times(::testing::AnyNumber())
+        .WillOnce(::testing::Invoke(
+            [&](const string& appId, const string& appInstanceId, const uint32_t userId, const uint32_t groupId, IValueIterator* const& ports, IStringIterator* const& paths, IStringIterator* const& debugSettings, const Exchange::RuntimeConfig& runtimeConfigObject) {
+                return Core::ERROR_NONE;
+          }));
+
     EXPECT_EQ(Core::ERROR_NONE, interface->SpawnApp(appId, launchIntent, targetLifecycleState, runtimeConfigObject, launchArgs, appInstanceId, errorReason, success));
-
-    mLifecycleManagerConfigure->Release();
-
-    mLifecycleManagerConfigure->Configure(mServiceMock);
 
     // TC-18: Unload the app after spawning
     EXPECT_EQ(Core::ERROR_NONE, interface->UnloadApp(appInstanceId, errorReason, success));
@@ -453,11 +452,14 @@ TEST_F(LifecycleManagerTest, killApp_withValidParams)
 
     appInstanceId = "test.app.instance";
 
+    EXPECT_CALL(*mRuntimeManagerMock, Run(appId, appInstanceId,::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, runtimeConfigObject))
+        .Times(::testing::AnyNumber())
+        .WillOnce(::testing::Invoke(
+            [&](const string& appId, const string& appInstanceId, const uint32_t userId, const uint32_t groupId, IValueIterator* const& ports, IStringIterator* const& paths, IStringIterator* const& debugSettings, const Exchange::RuntimeConfig& runtimeConfigObject) {
+                return Core::ERROR_NONE;
+          }));
+
     EXPECT_EQ(Core::ERROR_NONE, interface->SpawnApp(appId, launchIntent, targetLifecycleState, runtimeConfigObject, launchArgs, appInstanceId, errorReason, success));
-
-    mLifecycleManagerConfigure->Release();
-
-    mLifecycleManagerConfigure->Configure(mServiceMock);
 
     // TC-20: Kill the app after spawning
     EXPECT_EQ(Core::ERROR_NONE, interface->KillApp(appInstanceId, errorReason, success));
@@ -488,11 +490,14 @@ TEST_F(LifecycleManagerTest, sendIntenttoActiveApp_withValidParams)
     appInstanceId = "test.app.instance";
     string intent = "test.intent";
 
+    EXPECT_CALL(*mRuntimeManagerMock, Run(appId, appInstanceId,::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, runtimeConfigObject))
+        .Times(::testing::AnyNumber())
+        .WillOnce(::testing::Invoke(
+            [&](const string& appId, const string& appInstanceId, const uint32_t userId, const uint32_t groupId, IValueIterator* const& ports, IStringIterator* const& paths, IStringIterator* const& debugSettings, const Exchange::RuntimeConfig& runtimeConfigObject) {
+                return Core::ERROR_NONE;
+          }));
+
     EXPECT_EQ(Core::ERROR_NONE, interface->SpawnApp(appId, launchIntent, targetLifecycleState, runtimeConfigObject, launchArgs, appInstanceId, errorReason, success));
-
-    mLifecycleManagerConfigure->Release();
-
-    mLifecycleManagerConfigure->Configure(mServiceMock);
 
     // TC-22: Send intent to the app after spawning
     EXPECT_EQ(Core::ERROR_NONE, interface->SendIntentToActiveApp(appInstanceId, intent, errorReason, success));
