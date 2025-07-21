@@ -29,7 +29,7 @@
 #include "SecureStorageServerMock.h"
 #include "SecureStorageServiceMock.h"
 
-#define EVNT_TIMEOUT (200)
+#define EVNT_TIMEOUT (100)
 #define SHAREDSTORAGE_CALLSIGN _T("org.rdk.SharedStorage.1")
 #define SHAREDSTORAGETEST_CALLSIGN _T("L2tests.1")
 
