@@ -918,6 +918,18 @@ TEST_F(SharedStorage_L2testDeviceScope, GetValue_DEVICE_Scope_COMRPC)
                 TEST_LOG("GetValue returned value: %s, ttl: %u, success: %d", value.c_str(), ttl, success);
                 EXPECT_TRUE(success);
 
+                sleep(5);
+                int file_status = remove("/tmp/secure/persistent/rdkservicestore");
+                // Check if the file has been successfully removed
+                if (file_status != 0)
+                {
+                    TEST_LOG("Error deleting file[/tmp/secure/persistent/rdkservicestore]");
+                }
+                else
+                {
+                    TEST_LOG("File[/tmp/secure/persistent/rdkservicestore] successfully deleted");
+                }
+
                 m_sharedstorageplugin->Release();
             } else {
                 TEST_LOG("m_sharedstorageplugin is NULL");
