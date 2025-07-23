@@ -44,7 +44,7 @@ jobs:
           echo "git config completed"
           #Try to extract version from PR description
           PR_DESC="$(echo "${{ github.event.pull_request.body }}" | tr -d '\r')"
-          
+          echo "PR description is: $PR_DESC" 
           VERSION_FROM_PR=$(echo "$PR_DESC" | grep -oP 'version\s*:\s*\K[0-9]+\.[0-9]+\.[0-9]+(?=)' || true)
           
           echo "Extracted version from PR: $VERSION_FROM_PR"
