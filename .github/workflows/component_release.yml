@@ -48,9 +48,9 @@ jobs:
           VERSION_FROM_PR=$(echo "$PR_DESC" | grep -oP 'version\s*:\s*\K[0-9]+\.[0-9]+\.[0-9]+(?=)' || true)
           
           echo "Extracted version from PR: $VERSION_FROM_PR"
-          # Ensure no line executes $PR_DESC as a command
+          
+          # Ensure version is not empty
           if [[ -n "$VERSION_FROM_PR" ]]; then
-            echo "Using version from PR description: $VERSION_FROM_PR"
             RELEASE_VERSION="$VERSION_FROM_PR"
             echo "Using version from PR description: $RELEASE_VERSION"
           else
